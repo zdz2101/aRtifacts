@@ -46,90 +46,18 @@ make_rule_pack_keys <- function(domain,
                                 dup_rate_threshold = 0.1,
                                 owner_team        = "DM",
                                 ...) {
-  .context_cols <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
-  list(
-
-    # R001 — Missing key fields -----------------------------------------------
-    new_flag_rule(
-      id         = "R001_KEY_MISSING",
-      domain     = domain,
-      severity   = "critical",
-      category   = "data_entry",
-      owner_team = owner_team,
-      fn = function(df) {
-        present <- intersect(key_vars, names(df))
-        if (!length(present)) return(data.frame())
-        miss <- rowSums(
-          is.na(df[, present, drop = FALSE]) |
-            df[, present, drop = FALSE] == ""
-        ) > 0
-        if (!any(miss)) return(data.frame())
-        df[miss, .context_cols(df), drop = FALSE]
-      }
-    ),
-
-    # R002 — Duplicate keys ---------------------------------------------------
-    new_flag_rule(
-      id         = "R002_DUPLICATE_KEYS",
-      domain     = domain,
-      severity   = "critical",
-      category   = "programming_etl",
-      owner_team = owner_team,
-      fn = function(df) {
-        present <- intersect(key_vars, names(df))
-        if (!length(present)) return(data.frame())
-        dup <- duplicated(df[, present, drop = FALSE]) |
-          duplicated(df[, present, drop = FALSE], fromLast = TRUE)
-        if (!any(dup)) return(data.frame())
-        df[dup, .context_cols(df), drop = FALSE]
-      }
-    ),
-
-    # R009 — High duplicate rate by site ------------------------------------
-    new_flag_rule(
-      id         = "R009_HIGH_DUP_RATE_SITE",
-      domain     = domain,
-      severity   = "warning",
-      category   = "ops_anomaly",
-      owner_team = owner_team,
-      fn = function(df) {
-        if (!(site_var %in% names(df))) return(data.frame())
-        present <- intersect(key_vars, names(df))
-        if (!length(present)) return(data.frame())
-        dup <- duplicated(df[, present, drop = FALSE]) |
-          duplicated(df[, present, drop = FALSE], fromLast = TRUE)
-        by_site <- tapply(dup, df[[site_var]], mean, na.rm = TRUE)
-        bad <- names(by_site)[!is.na(by_site) & by_site > dup_rate_threshold]
-        if (!length(bad)) return(data.frame())
-        out <- df[dup & df[[site_var]] %in% bad, .context_cols(df), drop = FALSE]
-        out$DUP_RATE <- by_site[out[[site_var]]]
-        out
-      }
-    ),
-
-    # R010 — High duplicate rate by subject ---------------------------------
-    new_flag_rule(
-      id         = "R010_HIGH_DUP_RATE_SUBJECT",
-      domain     = domain,
-      severity   = "warning",
-      category   = "ops_anomaly",
-      owner_team = owner_team,
-      fn = function(df) {
-        if (!(subject_var %in% names(df))) return(data.frame())
-        present <- intersect(key_vars, names(df))
-        if (!length(present)) return(data.frame())
-        dup <- duplicated(df[, present, drop = FALSE]) |
-          duplicated(df[, present, drop = FALSE], fromLast = TRUE)
-        by_subj <- tapply(dup, df[[subject_var]], mean, na.rm = TRUE)
-        bad <- names(by_subj)[!is.na(by_subj) & by_subj > dup_rate_threshold]
-        if (!length(bad)) return(data.frame())
-        out <- df[dup & df[[subject_var]] %in% bad, .context_cols(df), drop = FALSE]
-        out$DUP_RATE <- by_subj[out[[subject_var]]]
-        out
-      }
-    )
+  rules <- list(
+    R001 = rule_r001_key_missing(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R002 = rule_r002_duplicate_keys(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R003 = rule_r003_key_type_drift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R004 = rule_r004_column_added(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R005 = rule_r005_column_removed(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R006 = rule_r006_column_type_drift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R007 = rule_r007_key_distribution_shift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R008 = rule_r008_key_level_outlier(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R009 = rule_r009_high_dup_rate_site(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
+    R010 = rule_r010_high_dup_rate_subject(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...)
   )
+
+  unname(Filter(Negate(is.null), rules))
 }

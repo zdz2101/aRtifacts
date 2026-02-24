@@ -6,6 +6,9 @@
 > and guidelines for extending the package or building supplemental packages
 > such as `aRtifacts.sdtm` and `aRtifacts.adam`.
 >
+> This file is maintained in lockstep with `context/AGENTS.md` so either
+> can be used as the primary agent/developer context.
+>
 > **Using this as AI context for a supplemental package:** Provide this file
 > together with the relevant implementation guide (e.g. `SDTMIG_v3.4.md`
 > for `aRtifacts.sdtm`, `ADaMIG_v1.3.md` for `aRtifacts.adam`). This file
@@ -77,9 +80,13 @@ aRtifacts/
 │   ├── rules_missingness.R # Module 3 — missingness & completeness (R021–R027)
 │   ├── rules_plausibility.R # Module 4 — plausibility & range (R031–R039)
 │   ├── rules_consistency.R # Module 5 — cross-field & relational consistency (R040–R048)
+│   ├── rule_r001_*.R ... rule_r050_*.R # One file per core rule constructor (implemented or NULL template)
 │   ├── checkers.R          # Bundled ADaM supplemental checks (ADSL, BDS)
 │   ├── sample_data.R       # Synthetic example datasets (SDTM + ADaM supplemental)
 │   └── utils.R             # Internal helpers (not exported)
+├── tests/testthat/
+│   ├── test-rule-r001-*.R ... test-rule-r050-*.R # One test file per core rule constructor
+│   └── test-rule-wrapper-integration.R # Verifies wrapper packs match standalone rule constructors
 ├── man/                    # Auto-generated .Rd files
 ├── vignettes/
 │   ├── getting-started.Rmd  # End-to-end schema-agnostic walkthrough
@@ -131,6 +138,10 @@ Each class has a **constructor** (`new_domain_snapshot()`,
 | `diff_flags(old_flags, new_flags)` | Classifies flags as introduced / resolved / persisting across cuts |
 
 ### 4.4 Generalized checks & core rule catalog (`R/generalized_rules.R` + module files)
+
+Each module wrapper composes standalone per-rule constructors (`rule_r###_*`)
+and filters out `NULL` placeholders for rules that are intentionally templated
+or not yet implementable in single-snapshot scope.
 
 | Function | Purpose |
 |---|---|
@@ -300,6 +311,8 @@ Unit tests live in `tests/testthat/` and use **testthat 3** edition.
 | `test-rules-missingness-module.R` | Module 3 (`make_rule_pack_missingness()`) behavior checks |
 | `test-rules-plausibility-module.R` | Module 4 (`make_rule_pack_plausibility()`) behavior checks |
 | `test-rules-consistency-module.R` | Module 5 (`make_rule_pack_consistency()`) behavior checks |
+| `test-rule-r001-*.R` ... `test-rule-r050-*.R` | Standalone per-rule constructor tests (implemented rules use fixture-based trigger assertions; placeholder rules assert `NULL`) |
+| `test-rule-wrapper-integration.R` | Wrapper-to-standalone parity (wrapper outputs equal direct `rule_r###_*()` construction after filtering `NULL`) |
 | `test-checkers.R` | `check_adsl()`, `check_bds()`, `validate_adam()` |
 | `test-sample-data.R` | `example_adsl()`, `example_advs()`, `example_sdtm_lb()` — shape, required columns, key uniqueness |
 
@@ -456,7 +469,7 @@ rule-pack development workflows.
 ## 10. Known limitations and future work
 
 - **Core catalog coverage.** `make_rule_pack_core()` is a thin
-  wrapper around 5 module builders that together implement ~30 of the 50
+   wrapper around 5 module builders that currently implement 33 of the 50
   catalog rules as executable `FlagRule`s. Rules requiring cross-snapshot
   comparison (R003-R008, R028-R030, R050) belong in the diff engine.
   Rules requiring external reference data (R020, R032, R044) and rules

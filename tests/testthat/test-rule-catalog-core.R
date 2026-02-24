@@ -26,8 +26,8 @@ test_that("rule_catalog_core() uses supported scope values", {
 })
 
 test_that("rule_catalog_core() matches data-raw CSV source exactly", {
-  skip_if_not(system.file("data-raw/rule_catalog_core.csv", package = "aRtifcats"))
-  csv <- utils::read.csv("data-raw/rule_catalog_core.csv", stringsAsFactors = FALSE, check.names = FALSE)
+  skip_if_not(!is.null(system.file("data-raw/rule_catalog_core.csv", package = "aRtifacts")))
+  csv <- utils::read.csv(system.file("data-raw/rule_catalog_core.csv", package = "aRtifacts"), stringsAsFactors = FALSE, check.names = FALSE)
   cat <- rule_catalog_core()
   expect_identical(cat, csv)
 })
