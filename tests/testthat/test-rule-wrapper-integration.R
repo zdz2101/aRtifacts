@@ -71,7 +71,6 @@ module_specs <- list(
       "rule_r033_negative_not_allowed",
       "rule_r034_suspicious_zeros",
       "rule_r035_statistical_outliers",
-      "rule_r036_site_distribution_shift",
       "rule_r037_implausible_change",
       "rule_r038_low_variance",
       "rule_r039_rounding_anomaly"

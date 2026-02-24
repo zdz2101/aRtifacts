@@ -199,6 +199,164 @@ compare_record_volume <- function(old_dom, new_dom) {
   )
 }
 
+.quantile_or_na <- function(x, prob) {
+  if (!length(x)) return(NA_real_)
+  as.numeric(stats::quantile(x, probs = prob, names = FALSE, type = 7, na.rm = TRUE))
+}
+
+#' Compare distribution shift between two domain snapshots
+#'
+#' Summarizes group-level distribution drift for a single numeric variable
+#' between old and new cuts, using dependency-free metrics and optional
+#' Kolmogorov-Smirnov statistics from `stats`.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#' @param var Single variable name to compare.
+#' @param by Grouping variable name. Default `"SITEID"`.
+#'
+#' @return A tidy `data.frame` with one row per group and deterministic
+#'   columns: `domain`, `var`, `by`, `group`, `n_old`, `n_new`,
+#'   `mean_old`, `mean_new`, `mean_delta`, `median_old`, `median_new`,
+#'   `median_delta`, `q10_old`, `q10_new`, `q10_delta`, `q25_old`,
+#'   `q25_new`, `q25_delta`, `q75_old`, `q75_new`, `q75_delta`, `q90_old`,
+#'   `q90_new`, `q90_delta`, `ks_stat`, and `ks_p_value`.
+#' @export
+#'
+#' @examples
+#' old_df <- data.frame(
+#'   ID = 1:6,
+#'   SITEID = c("A", "A", "A", "B", "B", "B"),
+#'   AVAL = c(10, 11, 12, 20, 21, 22),
+#'   stringsAsFactors = FALSE
+#' )
+#' new_df <- old_df
+#' new_df$AVAL[new_df$SITEID == "A"] <- new_df$AVAL[new_df$SITEID == "A"] + 5
+#'
+#' old_dom <- new_domain_snapshot("ADVS", old_df, key_vars = "ID")
+#' new_dom <- new_domain_snapshot("ADVS", new_df, key_vars = "ID")
+#'
+#' compare_distribution_shift(old_dom, new_dom, var = "AVAL", by = "SITEID")
+compare_distribution_shift <- function(old_dom, new_dom, var, by = "SITEID") {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  if (!is.character(var) || length(var) != 1L || is.na(var) || !nzchar(var)) {
+    stop("`var` must be a single non-empty character scalar.", call. = FALSE)
+  }
+
+  if (!is.character(by) || length(by) != 1L || is.na(by) || !nzchar(by)) {
+    stop("`by` must be a single non-empty character scalar.", call. = FALSE)
+  }
+
+  if (!(var %in% names(old_dom@data) && var %in% names(new_dom@data))) {
+    stop("`var` must exist in both snapshots.", call. = FALSE)
+  }
+
+  if (!(by %in% names(old_dom@data) && by %in% names(new_dom@data))) {
+    stop("`by` must exist in both snapshots.", call. = FALSE)
+  }
+
+  old_group <- as.character(old_dom@data[[by]])
+  new_group <- as.character(new_dom@data[[by]])
+  groups <- sort(unique(c(old_group, new_group)))
+
+  if (!length(groups)) {
+    return(data.frame(
+      domain = character(0),
+      var = character(0),
+      by = character(0),
+      group = character(0),
+      n_old = integer(0),
+      n_new = integer(0),
+      mean_old = numeric(0),
+      mean_new = numeric(0),
+      mean_delta = numeric(0),
+      median_old = numeric(0),
+      median_new = numeric(0),
+      median_delta = numeric(0),
+      q10_old = numeric(0),
+      q10_new = numeric(0),
+      q10_delta = numeric(0),
+      q25_old = numeric(0),
+      q25_new = numeric(0),
+      q25_delta = numeric(0),
+      q75_old = numeric(0),
+      q75_new = numeric(0),
+      q75_delta = numeric(0),
+      q90_old = numeric(0),
+      q90_new = numeric(0),
+      q90_delta = numeric(0),
+      ks_stat = numeric(0),
+      ks_p_value = numeric(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  rows <- lapply(groups, function(g) {
+    old_vals <- suppressWarnings(as.numeric(old_dom@data[[var]][old_group == g]))
+    new_vals <- suppressWarnings(as.numeric(new_dom@data[[var]][new_group == g]))
+
+    old_vals <- old_vals[!is.na(old_vals)]
+    new_vals <- new_vals[!is.na(new_vals)]
+
+    mean_old <- if (length(old_vals)) mean(old_vals) else NA_real_
+    mean_new <- if (length(new_vals)) mean(new_vals) else NA_real_
+    median_old <- if (length(old_vals)) stats::median(old_vals) else NA_real_
+    median_new <- if (length(new_vals)) stats::median(new_vals) else NA_real_
+
+    q10_old <- .quantile_or_na(old_vals, 0.10)
+    q10_new <- .quantile_or_na(new_vals, 0.10)
+    q25_old <- .quantile_or_na(old_vals, 0.25)
+    q25_new <- .quantile_or_na(new_vals, 0.25)
+    q75_old <- .quantile_or_na(old_vals, 0.75)
+    q75_new <- .quantile_or_na(new_vals, 0.75)
+    q90_old <- .quantile_or_na(old_vals, 0.90)
+    q90_new <- .quantile_or_na(new_vals, 0.90)
+
+    ks_stat <- NA_real_
+    ks_p_value <- NA_real_
+    if (length(old_vals) >= 2L && length(new_vals) >= 2L) {
+      ks <- suppressWarnings(stats::ks.test(old_vals, new_vals))
+      ks_stat <- as.numeric(ks$statistic)
+      ks_p_value <- as.numeric(ks$p.value)
+    }
+
+    data.frame(
+      domain = as.character(old_dom@name),
+      var = var,
+      by = by,
+      group = g,
+      n_old = as.integer(length(old_vals)),
+      n_new = as.integer(length(new_vals)),
+      mean_old = mean_old,
+      mean_new = mean_new,
+      mean_delta = mean_new - mean_old,
+      median_old = median_old,
+      median_new = median_new,
+      median_delta = median_new - median_old,
+      q10_old = q10_old,
+      q10_new = q10_new,
+      q10_delta = q10_new - q10_old,
+      q25_old = q25_old,
+      q25_new = q25_new,
+      q25_delta = q25_new - q25_old,
+      q75_old = q75_old,
+      q75_new = q75_new,
+      q75_delta = q75_new - q75_old,
+      q90_old = q90_old,
+      q90_new = q90_new,
+      q90_delta = q90_new - q90_old,
+      ks_stat = ks_stat,
+      ks_p_value = ks_p_value,
+      stringsAsFactors = FALSE
+    )
+  })
+
+  out <- do.call(rbind, rows)
+  out[order(out$group), , drop = FALSE]
+}
+
 .column_type_string <- function(x) {
   paste(class(x), collapse = "|")
 }

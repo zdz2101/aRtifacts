@@ -469,3 +469,71 @@ test_that("compare_record_volume() supports threshold pattern for plateaus/spike
   out <- compare_record_volume(old_dom, new_dom)
   expect_true(out$relative_change > 0.5)
 })
+
+# ---------------------------------------------------------------------------
+# compare_distribution_shift()
+# ---------------------------------------------------------------------------
+
+dist_df <- function(shift_a = 0, shift_b = 0) {
+  data.frame(
+    id = 1:40,
+    SITEID = rep(c("A", "B"), each = 20),
+    value = c((1:20) + shift_a, (1:20) + shift_b),
+    stringsAsFactors = FALSE
+  )
+}
+
+dist_dom <- function(df) {
+  new_domain_snapshot("dist", df, key_vars = "id")
+}
+
+test_that("compare_distribution_shift() reports no shift for identical cuts", {
+  old_dom <- dist_dom(dist_df())
+  new_dom <- dist_dom(dist_df())
+
+  out <- compare_distribution_shift(old_dom, new_dom, var = "value", by = "SITEID")
+  expect_named(
+    out,
+    c(
+      "domain", "var", "by", "group", "n_old", "n_new",
+      "mean_old", "mean_new", "mean_delta", "median_old", "median_new", "median_delta",
+      "q10_old", "q10_new", "q10_delta", "q25_old", "q25_new", "q25_delta",
+      "q75_old", "q75_new", "q75_delta", "q90_old", "q90_new", "q90_delta",
+      "ks_stat", "ks_p_value"
+    )
+  )
+  expect_equal(nrow(out), 2L)
+  expect_true(all(out$mean_delta == 0))
+  expect_true(all(out$median_delta == 0))
+  expect_true(all(out$ks_stat == 0))
+})
+
+test_that("compare_distribution_shift() captures moderate shift in one group", {
+  old_dom <- dist_dom(dist_df())
+  new_dom <- dist_dom(dist_df(shift_a = 2, shift_b = 0))
+
+  out <- compare_distribution_shift(old_dom, new_dom, var = "value", by = "SITEID")
+  row_a <- out[out$group == "A", , drop = FALSE]
+  row_b <- out[out$group == "B", , drop = FALSE]
+
+  expect_equal(row_a$mean_delta, 2)
+  expect_equal(row_a$median_delta, 2)
+  expect_true(row_a$ks_stat > 0)
+  expect_equal(row_b$mean_delta, 0)
+  expect_equal(row_b$ks_stat, 0)
+})
+
+test_that("compare_distribution_shift() reports stronger drift for large shift", {
+  old_dom <- dist_dom(dist_df())
+  moderate_dom <- dist_dom(dist_df(shift_a = 2, shift_b = 0))
+  large_dom <- dist_dom(dist_df(shift_a = 20, shift_b = 0))
+
+  moderate <- compare_distribution_shift(old_dom, moderate_dom, var = "value", by = "SITEID")
+  large <- compare_distribution_shift(old_dom, large_dom, var = "value", by = "SITEID")
+
+  mod_a <- moderate[moderate$group == "A", , drop = FALSE]
+  large_a <- large[large$group == "A", , drop = FALSE]
+
+  expect_true(abs(large_a$mean_delta) > abs(mod_a$mean_delta))
+  expect_true(large_a$ks_stat >= mod_a$ks_stat)
+})
