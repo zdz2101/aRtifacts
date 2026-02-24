@@ -25,14 +25,23 @@ reference:
   - title: Diff engine
     contents:
       - diff_keys
+      - diff_key_types
+      - diff_columns
+      - diff_column_types
       - diff_values
       - diff_meta_artifact
+      - compare_key_churn
+      - compare_record_volume
+      - compare_distribution_shift
       - diff_flags
   - title: Rule engine
     contents:
       - new_flag_rule
+      - new_diff_flag_rule
       - run_flags
+      - run_diff_flags
       - FlagRule
+      - DiffFlagRule
   - title: Generalized checks and catalogs
     contents:
       - rule_catalog_core
@@ -44,10 +53,15 @@ reference:
     contents:
       - make_rule_pack_core
       - make_rule_pack_keys
+      - make_rule_pack_keys_diff
       - make_rule_pack_dates
       - make_rule_pack_missingness
       - make_rule_pack_plausibility
       - make_rule_pack_consistency
+  - title: Individual rule constructors
+    desc: All bundled rule constructors (`rule_r###_*`).
+    contents:
+      - starts_with("rule_r")
   - title: Bundled SDTM/ADaM modules
     desc: Supplemental domain-specific checks (future aRtifacts.sdtm / aRtifacts.adam)
     contents:

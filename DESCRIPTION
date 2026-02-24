@@ -11,6 +11,8 @@ Description: A lightweight, schema-agnostic S7-based snapshot, diff, and rule
     as defaults; these are designed to migrate into companion packages
     (aRtifacts.sdtm, aRtifacts.adam) as the ecosystem matures.
 License: MIT + file LICENSE
+URL: https://zdz2101.github.io/aRtifacts/,
+   https://github.com/zdz2101/aRtifacts
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
