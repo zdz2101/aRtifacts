@@ -9,6 +9,7 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+suppressPackageStartupMessages(library(aRtifacts))
 ```
 
 ## Why topology exists
@@ -208,6 +209,88 @@ These checks combine cross-domain logic with old-vs-new behavior.
 rules <- pack_core_50_a7(group_var = "SITEID", subject_var = "USUBJID")
 ctx <- new_rule_context(current = current_artifact, previous = previous_artifact)
 run_rules(ctx, rules)
+```
+
+---
+
+## Implemented rule inventory (current package state)
+
+The inventory below is generated from currently exported `rule_*` constructors,
+so it tracks package state at render time. To keep this human-readable, rules
+are grouped by topology and each row includes a short plain-language blurb.
+
+```{r include=FALSE}
+rule_exports <- sort(grep(
+  "^rule_(sch|id|snap|de|tmp|grp|xdom|xagg|both)_",
+  getNamespaceExports("aRtifacts"),
+  value = TRUE
+))
+
+extract_family <- function(x) sub("^rule_([a-z]+)_.*$", "\\1", x)
+extract_id <- function(x) toupper(sub("^rule_[a-z]+_([0-9]{3})_.*$", "\\1", x))
+
+family_to_topology <- c(
+  sch = "A0",
+  id = "A1/A2",
+  de = "A1",
+  tmp = "A1",
+  grp = "A2",
+  xdom = "A3",
+  xagg = "A4",
+  snap = "A5/A6",
+  both = "A7"
+)
+
+inventory <- data.frame(
+  topology = unname(family_to_topology[extract_family(rule_exports)]),
+  family = extract_family(rule_exports),
+  rule_id = extract_id(rule_exports),
+  constructor = rule_exports,
+  stringsAsFactors = FALSE
+)
+
+summary_tab <- aggregate(constructor ~ topology, data = inventory, FUN = length)
+names(summary_tab)[names(summary_tab) == "constructor"] <- "n_rules"
+summary_tab <- summary_tab[order(summary_tab$topology), , drop = FALSE]
+extract_topic <- function(x) {
+  sub("^rule_[a-z]+_[0-9]{3}_", "", x)
+}
+
+to_blurb <- function(topic) {
+  txt <- gsub("_", " ", topic)
+  txt <- tolower(txt)
+  txt <- paste0(toupper(substr(txt, 1, 1)), substr(txt, 2, nchar(txt)))
+  paste0(txt, ".")
+}
+
+inventory$rule <- paste0(toupper(inventory$family), "-", inventory$rule_id)
+inventory$blurb <- vapply(extract_topic(inventory$constructor), to_blurb, character(1))
+
+inventory <- inventory[order(inventory$topology, inventory$family, inventory$rule_id), , drop = FALSE]
+
+inventory_display <- inventory[, c("topology", "rule", "constructor", "blurb"), drop = FALSE]
+names(inventory_display) <- c("Topology", "Rule", "Constructor", "What it checks")
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+knitr::kable(
+  summary_tab,
+  caption = "Implemented rule counts by topology (family-mapped)",
+  row.names = FALSE,
+  align = c("l", "r")
+)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, results='asis'}
+cat("<div style='overflow-x:auto; width:100%;'>")
+cat(as.character(knitr::kable(
+  inventory_display,
+  format = "html",
+  caption = "Implemented rule inventory (scroll horizontally if needed)",
+  row.names = FALSE,
+  align = c("l", "l", "l", "l")
+)))
+cat("</div>")
 ```
 
 ---
