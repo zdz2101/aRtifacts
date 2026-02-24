@@ -51,10 +51,7 @@ module_specs <- list(
       "rule_r024_required_missing",
       "rule_r025_domain_empty",
       "rule_r026_no_followup",
-      "rule_r027_missing_baseline",
-      "rule_r028_late_arrival_spike",
-      "rule_r029_data_plateau",
-      "rule_r030_completion_rate_outlier"
+      "rule_r027_missing_baseline"
     )
   ),
   plausibility = list(

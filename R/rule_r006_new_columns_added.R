@@ -1,11 +1,10 @@
-rule_r004_column_added <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
-  list(
-    id = "R004_COLUMN_ADDED",
+rule_r006_new_columns_added <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
+  base_rule <- new_flag_rule(
+    id = "R006_NEW_COLUMNS_ADDED",
     domain = domain,
     severity = "warning",
     category = "programming_etl",
     owner_team = owner_team,
-    scope = "diff",
     fn = function(old_dom, new_dom) {
       .assert_domain(old_dom, "old_dom")
       .assert_domain(new_dom, "new_dom")
@@ -15,5 +14,15 @@ rule_r004_column_added <- function(domain, key_vars, subject_var = "USUBJID", si
       if (!nrow(out)) return(out)
       out[order(out$column), , drop = FALSE]
     }
+  )
+
+  list(
+    id = base_rule@id,
+    domain = base_rule@domain,
+    severity = base_rule@severity,
+    category = base_rule@category,
+    owner_team = base_rule@owner_team,
+    scope = "diff",
+    fn = base_rule@fn
   )
 }

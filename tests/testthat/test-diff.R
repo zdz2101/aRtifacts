@@ -314,3 +314,158 @@ test_that("diff_meta_artifact() errors when old_art is not an ArtifactSnapshot",
 test_that("diff_meta_artifact() errors when new_art is not an ArtifactSnapshot", {
   expect_error(diff_meta_artifact(orders_art(), list()), regexp = "new_art")
 })
+
+# ---------------------------------------------------------------------------
+# compare_key_churn()
+# ---------------------------------------------------------------------------
+
+test_that("compare_key_churn() is stable for unchanged snapshots", {
+  old_dom <- orders_dom()
+  new_dom <- orders_dom()
+
+  out <- compare_key_churn(old_dom, new_dom)
+  expect_named(
+    out,
+    c(
+      "domain", "old_n_keys", "new_n_keys", "added_n", "removed_n",
+      "churn_n", "added_rate", "removed_rate", "churn_rate",
+      "net_change_n", "net_change_rate"
+    )
+  )
+  expect_equal(nrow(out), 1L)
+  expect_equal(out$old_n_keys, 3L)
+  expect_equal(out$new_n_keys, 3L)
+  expect_equal(out$added_n, 0L)
+  expect_equal(out$removed_n, 0L)
+  expect_equal(out$churn_n, 0L)
+  expect_equal(out$churn_rate, 0)
+  expect_equal(out$net_change_n, 0L)
+  expect_equal(out$net_change_rate, 0)
+})
+
+test_that("compare_key_churn() captures add/remove churn and rates", {
+  old_dom <- orders_dom()
+  new_df <- rbind(
+    orders_df()[-1, , drop = FALSE],
+    data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE)
+  )
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_key_churn(old_dom, new_dom)
+  expect_equal(out$old_n_keys, 3L)
+  expect_equal(out$new_n_keys, 3L)
+  expect_equal(out$added_n, 1L)
+  expect_equal(out$removed_n, 1L)
+  expect_equal(out$churn_n, 2L)
+  expect_equal(out$added_rate, 1 / 3)
+  expect_equal(out$removed_rate, 1 / 3)
+  expect_equal(out$churn_rate, 2 / 3)
+  expect_equal(out$net_change_n, 0L)
+})
+
+test_that("compare_key_churn() handles empty-old to non-empty-new cuts", {
+  old_df <- data.frame(order_id = integer(), customer = character(), amount = numeric(), stringsAsFactors = FALSE)
+  new_df <- data.frame(order_id = c(1L, 2L), customer = c("A", "B"), amount = c(10, 20), stringsAsFactors = FALSE)
+  old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_key_churn(old_dom, new_dom)
+  expect_equal(out$old_n_keys, 0L)
+  expect_equal(out$new_n_keys, 2L)
+  expect_equal(out$added_n, 2L)
+  expect_equal(out$removed_n, 0L)
+  expect_equal(out$churn_n, 2L)
+  expect_true(is.na(out$added_rate))
+  expect_true(is.na(out$churn_rate))
+})
+
+test_that("compare_key_churn() supports threshold pattern for spikes", {
+  old_df <- data.frame(order_id = 1:10, customer = rep("X", 10), amount = rep(1, 10), stringsAsFactors = FALSE)
+  new_df <- data.frame(order_id = 6:15, customer = rep("X", 10), amount = rep(1, 10), stringsAsFactors = FALSE)
+  old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_key_churn(old_dom, new_dom)
+  expect_true(out$churn_rate > 0.5)
+})
+
+test_that("compare_key_churn() errors when key_vars differ", {
+  dom1 <- new_domain_snapshot("x", orders_df(), key_vars = "order_id")
+  dom2 <- new_domain_snapshot("x", orders_df(), key_vars = "customer")
+  expect_error(compare_key_churn(dom1, dom2), regexp = "key_vars")
+})
+
+# ---------------------------------------------------------------------------
+# compare_record_volume()
+# ---------------------------------------------------------------------------
+
+test_that("compare_record_volume() is stable for unchanged cuts", {
+  old_dom <- orders_dom()
+  new_dom <- orders_dom()
+
+  out <- compare_record_volume(old_dom, new_dom)
+  expect_named(
+    out,
+    c("domain", "old_n_records", "new_n_records", "absolute_change", "relative_change", "direction")
+  )
+  expect_equal(nrow(out), 1L)
+  expect_equal(out$old_n_records, 3L)
+  expect_equal(out$new_n_records, 3L)
+  expect_equal(out$absolute_change, 0L)
+  expect_equal(out$relative_change, 0)
+  expect_identical(out$direction, "unchanged")
+})
+
+test_that("compare_record_volume() captures increases", {
+  old_dom <- orders_dom()
+  new_df <- rbind(
+    orders_df(),
+    data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE)
+  )
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_record_volume(old_dom, new_dom)
+  expect_equal(out$old_n_records, 3L)
+  expect_equal(out$new_n_records, 4L)
+  expect_equal(out$absolute_change, 1L)
+  expect_equal(out$relative_change, 1 / 3)
+  expect_identical(out$direction, "increase")
+})
+
+test_that("compare_record_volume() captures drops", {
+  old_dom <- orders_dom()
+  new_df <- orders_df()[1:2, , drop = FALSE]
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_record_volume(old_dom, new_dom)
+  expect_equal(out$old_n_records, 3L)
+  expect_equal(out$new_n_records, 2L)
+  expect_equal(out$absolute_change, -1L)
+  expect_equal(out$relative_change, -1 / 3)
+  expect_identical(out$direction, "decrease")
+})
+
+test_that("compare_record_volume() handles empty-old to non-empty-new", {
+  old_df <- data.frame(order_id = integer(), customer = character(), amount = numeric(), stringsAsFactors = FALSE)
+  old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
+  new_dom <- orders_dom()
+
+  out <- compare_record_volume(old_dom, new_dom)
+  expect_equal(out$old_n_records, 0L)
+  expect_equal(out$new_n_records, 3L)
+  expect_equal(out$absolute_change, 3L)
+  expect_true(is.na(out$relative_change))
+  expect_identical(out$direction, "increase")
+})
+
+test_that("compare_record_volume() supports threshold pattern for plateaus/spikes", {
+  old_dom <- orders_dom()
+  new_df <- rbind(
+    orders_df(),
+    data.frame(order_id = c(201L, 202L, 203L), customer = c("D", "E", "F"), amount = c(1, 1, 1), stringsAsFactors = FALSE)
+  )
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- compare_record_volume(old_dom, new_dom)
+  expect_true(out$relative_change > 0.5)
+})

@@ -59,6 +59,146 @@ diff_keys <- function(old_dom, new_dom) {
   list(added = added, removed = removed)
 }
 
+.safe_rate <- function(numerator, denominator) {
+  if (denominator == 0L) {
+    if (numerator == 0L) 0 else NA_real_
+  } else {
+    as.numeric(numerator) / as.numeric(denominator)
+  }
+}
+
+#' Compare key churn between two domain snapshots
+#'
+#' Summarizes key-level churn across cuts, including added and removed key
+#' counts and rates.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#'
+#' @return A one-row `data.frame` with deterministic columns:
+#'   `domain`, `old_n_keys`, `new_n_keys`, `added_n`, `removed_n`,
+#'   `churn_n`, `added_rate`, `removed_rate`, `churn_rate`,
+#'   `net_change_n`, and `net_change_rate`.
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()
+#' new_data <- rbind(
+#'   new_data,
+#'   data.frame(
+#'     STUDYID = "STUDY01",
+#'     USUBJID = "STUDY01-999",
+#'     PARAM = "Systolic Blood Pressure (mmHg)",
+#'     PARAMCD = "SYSBP",
+#'     AVAL = 121,
+#'     AVISIT = "BASELINE",
+#'     ADY = 1,
+#'     TRTP = "Drug A",
+#'     ABLFL = "Y",
+#'     BASE = 121,
+#'     CHG = 0,
+#'     stringsAsFactors = FALSE
+#'   )
+#' )
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' churn <- compare_key_churn(old_dom, new_dom)
+#' churn$churn_rate > 0.10
+compare_key_churn <- function(old_dom, new_dom) {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  if (!identical(old_dom@key_vars, new_dom@key_vars)) {
+    stop("`old_dom` and `new_dom` must share identical key_vars.", call. = FALSE)
+  }
+
+  key_diff <- diff_keys(old_dom, new_dom)
+  old_n_keys <- nrow(unique(old_dom@data[, old_dom@key_vars, drop = FALSE]))
+  new_n_keys <- nrow(unique(new_dom@data[, new_dom@key_vars, drop = FALSE]))
+  added_n <- nrow(key_diff$added)
+  removed_n <- nrow(key_diff$removed)
+  churn_n <- added_n + removed_n
+  net_change_n <- new_n_keys - old_n_keys
+
+  data.frame(
+    domain = as.character(old_dom@name),
+    old_n_keys = as.integer(old_n_keys),
+    new_n_keys = as.integer(new_n_keys),
+    added_n = as.integer(added_n),
+    removed_n = as.integer(removed_n),
+    churn_n = as.integer(churn_n),
+    added_rate = .safe_rate(added_n, old_n_keys),
+    removed_rate = .safe_rate(removed_n, old_n_keys),
+    churn_rate = .safe_rate(churn_n, old_n_keys),
+    net_change_n = as.integer(net_change_n),
+    net_change_rate = .safe_rate(net_change_n, old_n_keys),
+    stringsAsFactors = FALSE
+  )
+}
+
+#' Compare record volume between two domain snapshots
+#'
+#' Summarizes record-count changes across cuts, including absolute and
+#' relative change.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#'
+#' @return A one-row `data.frame` with deterministic columns:
+#'   `domain`, `old_n_records`, `new_n_records`, `absolute_change`,
+#'   `relative_change`, and `direction` (`"increase"`, `"decrease"`,
+#'   `"unchanged"`).
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()[1:4, , drop = FALSE]
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' vol <- compare_record_volume(old_dom, new_dom)
+#' vol$relative_change < -0.20
+compare_record_volume <- function(old_dom, new_dom) {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  old_n_records <- nrow(old_dom@data)
+  new_n_records <- nrow(new_dom@data)
+  absolute_change <- new_n_records - old_n_records
+
+  direction <- if (absolute_change > 0L) {
+    "increase"
+  } else if (absolute_change < 0L) {
+    "decrease"
+  } else {
+    "unchanged"
+  }
+
+  data.frame(
+    domain = as.character(old_dom@name),
+    old_n_records = as.integer(old_n_records),
+    new_n_records = as.integer(new_n_records),
+    absolute_change = as.integer(absolute_change),
+    relative_change = .safe_rate(absolute_change, old_n_records),
+    direction = direction,
+    stringsAsFactors = FALSE
+  )
+}
+
 .column_type_string <- function(x) {
   paste(class(x), collapse = "|")
 }
