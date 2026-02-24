@@ -1,9 +1,8 @@
-test_that("rule_r006_new_columns_added returns expected diff-scope object", {
+test_that("rule_r006_new_columns_added returns expected DiffFlagRule", {
   rule <- rule_r006_new_columns_added(domain = "X", key_vars = c("order_id"))
-  expect_false(is.null(rule))
-  expect_true(startsWith(rule$id, "R006"))
-  expect_identical(rule$scope, "diff")
-  expect_true(is.function(rule$fn))
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+  expect_true(startsWith(rule@id, "R006"))
+  expect_true(is.function(rule@fn))
 })
 
 test_that("rule_r006_new_columns_added flags newly added columns", {
@@ -20,7 +19,7 @@ test_that("rule_r006_new_columns_added flags newly added columns", {
   new_df$region <- "NA"
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_named(out, c("column", "status"))
   expect_equal(nrow(out), 2L)
   expect_identical(out$column, c("region", "site"))

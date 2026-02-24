@@ -1,14 +1,12 @@
 #' Rule R005 — key churn spike
 #'
-#' Builds a diff-scope rule specification that flags key churn rates above a
+#' Builds a `DiffFlagRule` that flags key churn rates above a
 #' configurable threshold between old and new cuts.
 #'
 #' @inheritParams make_rule_pack_keys
-#' @return A diff-scope rule specification list with fields
-#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
-#'   `fn(old_dom, new_dom)`.
+#' @return A `DiffFlagRule` object.
 rule_r005_key_churn_spike <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
-  base_rule <- new_flag_rule(
+  new_diff_flag_rule(
     id = "R005_KEY_CHURN_SPIKE",
     domain = domain,
     severity = "warning",
@@ -43,15 +41,5 @@ rule_r005_key_churn_spike <- function(domain, key_vars, subject_var = "USUBJID",
         stringsAsFactors = FALSE
       )
     }
-  )
-
-  list(
-    id = base_rule@id,
-    domain = base_rule@domain,
-    severity = base_rule@severity,
-    category = base_rule@category,
-    owner_team = base_rule@owner_team,
-    scope = "diff",
-    fn = base_rule@fn
   )
 }

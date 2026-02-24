@@ -31,11 +31,9 @@ duplicate-key rate above this threshold are flagged. Default \code{0.1}.}
 \item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
-A diff-scope rule specification list with fields
-\code{id}, \code{domain}, \code{severity}, \code{category}, \code{owner_team}, \code{scope}, and
-\code{fn(old_dom, new_dom)}.
+A \code{DiffFlagRule} object.
 }
 \description{
-Builds a diff-scope rule specification that flags columns newly added in
+Builds a \code{DiffFlagRule} that flags columns newly added in
 the new cut.
 }

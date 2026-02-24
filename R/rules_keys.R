@@ -1,8 +1,5 @@
 # ---------------------------------------------------------------------------
-# Module 1 — Identity, Keys & Duplicates (R001, R002, R009, R010)
-#
-# Rules R003–R008 are Snapshot-scope (they compare two snapshots) so they
-# belong in the diff engine, not in a single-domain rule pack.
+# Module 1A — Identity, Keys & Duplicates (R001, R002, R009, R010)
 # ---------------------------------------------------------------------------
 
 #' Rule pack — identity, keys, and duplicates

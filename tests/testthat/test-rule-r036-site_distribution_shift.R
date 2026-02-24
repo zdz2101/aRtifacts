@@ -1,9 +1,8 @@
-test_that("rule_r036_site_distribution_shift returns expected diff-scope object", {
+test_that("rule_r036_site_distribution_shift returns expected DiffFlagRule", {
   rule <- rule_r036_site_distribution_shift(domain = "X", key_vars = c("ID"), numeric_vars = "VAL")
-  expect_false(is.null(rule))
-  expect_true(startsWith(rule$id, "R036"))
-  expect_identical(rule$scope, "diff")
-  expect_true(is.function(rule$fn))
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+  expect_true(startsWith(rule@id, "R036"))
+  expect_true(is.function(rule@fn))
 })
 
 test_that("rule_r036_site_distribution_shift flags group-level distribution drift", {
@@ -26,7 +25,7 @@ test_that("rule_r036_site_distribution_shift flags group-level distribution drif
   old_dom <- new_domain_snapshot("X", old_df, key_vars = "ID")
   new_dom <- new_domain_snapshot("X", new_df, key_vars = "ID")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_true(nrow(out) >= 1L)
   expect_true("group" %in% names(out))
   expect_true("ks_stat" %in% names(out))
@@ -51,6 +50,6 @@ test_that("rule_r036_site_distribution_shift returns empty when there is no shif
   old_dom <- new_domain_snapshot("X", old_df, key_vars = "ID")
   new_dom <- new_domain_snapshot("X", old_df, key_vars = "ID")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_equal(nrow(out), 0L)
 })

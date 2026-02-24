@@ -130,6 +130,41 @@ FlagRule <- S7::new_class(
   }
 )
 
+#' Diff flag rule S7 class
+#'
+#' Defines a rule that compares two cuts of the same domain and returns
+#' group/row summaries of drift findings.
+#'
+#' @param id Rule identifier string.
+#' @param domain Target domain name expected in both artifacts.
+#' @param severity Severity label (e.g. `"warning"`, `"critical"`).
+#' @param category Rule category label.
+#' @param owner_team Team responsible for follow-up.
+#' @param fn Function that accepts `(old_dom, new_dom)` as
+#'   `DomainSnapshot` objects and returns a `data.frame` of findings.
+#'
+#' @name DiffFlagRule
+#' @return An S7 class object.
+#' @export
+DiffFlagRule <- S7::new_class(
+  "DiffFlagRule",
+  properties = list(
+    id = S7::class_character,
+    domain = S7::class_character,
+    severity = S7::class_character,
+    category = S7::class_character,
+    owner_team = S7::class_character,
+    fn = S7::class_any
+  ),
+  validator = function(self) {
+    issues <- character()
+    if (!is.function(self@fn)) {
+      issues <- c(issues, "`fn` must be a function.")
+    }
+    if (length(issues)) issues else NULL
+  }
+)
+
 #' Create a domain snapshot
 #'
 #' Constructs and validates a `DomainSnapshot`.
@@ -242,6 +277,55 @@ new_flag_rule <- function(id,
                           owner_team = "Biostats",
                           fn) {
   FlagRule(
+    id = id,
+    domain = domain,
+    severity = severity,
+    category = category,
+    owner_team = owner_team,
+    fn = fn
+  )
+}
+
+#' Create a diff flag rule
+#'
+#' Convenience constructor for `DiffFlagRule` objects used by
+#' `run_diff_flags()`.
+#'
+#' @param id Rule identifier.
+#' @param domain Target domain name expected in both artifacts.
+#' @param severity Severity label (for example, `"warning"`, `"critical"`).
+#' @param category Rule category label.
+#' @param owner_team Team that owns follow-up.
+#' @param fn Function that accepts `(old_dom, new_dom)` `DomainSnapshot`
+#'   objects and returns a `data.frame` of findings.
+#'
+#' @return A validated `DiffFlagRule` object.
+#' @export
+#'
+#' @examples
+#' rule <- new_diff_flag_rule(
+#'   id = "KEY_CHURN",
+#'   domain = "ADVS",
+#'   fn = function(old_dom, new_dom) {
+#'     compare_key_churn(old_dom, new_dom)
+#'   }
+#' )
+new_diff_flag_rule <- function(id,
+                               domain,
+                               severity = "warning",
+                               category = "quality",
+                               owner_team = "Biostats",
+                               fn) {
+  if (!is.function(fn)) {
+    stop("`fn` must be a function.", call. = FALSE)
+  }
+
+  n_formals <- length(formals(fn))
+  if (n_formals < 2L) {
+    stop("`fn` must accept at least two arguments: old_dom and new_dom.", call. = FALSE)
+  }
+
+  DiffFlagRule(
     id = id,
     domain = domain,
     severity = severity,

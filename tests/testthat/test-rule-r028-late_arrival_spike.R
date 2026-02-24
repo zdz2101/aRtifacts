@@ -1,9 +1,8 @@
-test_that("rule_r028_late_arrival_spike returns expected diff-scope object", {
+test_that("rule_r028_late_arrival_spike returns expected DiffFlagRule", {
   rule <- rule_r028_late_arrival_spike(domain = "X", key_vars = c("ID"), missingness_threshold = 0.1)
-  expect_false(is.null(rule))
-  expect_true(startsWith(rule$id, "R028"))
-  expect_identical(rule$scope, "diff")
-  expect_true(is.function(rule$fn))
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+  expect_true(startsWith(rule@id, "R028"))
+  expect_true(is.function(rule@fn))
 })
 
 test_that("rule_r028_late_arrival_spike flags volume spikes", {
@@ -14,7 +13,7 @@ test_that("rule_r028_late_arrival_spike flags volume spikes", {
   old_dom <- new_domain_snapshot("X", old_df, key_vars = "ID")
   new_dom <- new_domain_snapshot("X", new_df, key_vars = "ID")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_named(out, c("old_n_records", "new_n_records", "absolute_change", "relative_change", "threshold"))
   expect_equal(nrow(out), 1L)
   expect_equal(out$absolute_change, 6L)

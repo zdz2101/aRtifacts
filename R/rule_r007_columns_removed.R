@@ -1,14 +1,12 @@
 #' Rule R007 — columns removed
 #'
-#' Builds a diff-scope rule specification that flags columns present in the old
+#' Builds a `DiffFlagRule` that flags columns present in the old
 #' cut but removed in the new cut.
 #'
 #' @inheritParams make_rule_pack_keys
-#' @return A diff-scope rule specification list with fields
-#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
-#'   `fn(old_dom, new_dom)`.
+#' @return A `DiffFlagRule` object.
 rule_r007_columns_removed <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
-  base_rule <- new_flag_rule(
+  new_diff_flag_rule(
     id = "R007_COLUMNS_REMOVED",
     domain = domain,
     severity = "warning",
@@ -23,15 +21,5 @@ rule_r007_columns_removed <- function(domain, key_vars, subject_var = "USUBJID",
       if (!nrow(out)) return(out)
       out[order(out$column), , drop = FALSE]
     }
-  )
-
-  list(
-    id = base_rule@id,
-    domain = base_rule@domain,
-    severity = base_rule@severity,
-    category = base_rule@category,
-    owner_team = base_rule@owner_team,
-    scope = "diff",
-    fn = base_rule@fn
   )
 }

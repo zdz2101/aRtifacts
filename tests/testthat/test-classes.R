@@ -151,3 +151,47 @@ test_that("new_flag_rule() errors when fn is not a function", {
     regexp = "fn"
   )
 })
+
+test_that("new_diff_flag_rule() returns a DiffFlagRule", {
+  rule <- new_diff_flag_rule(
+    id = "R_DIFF",
+    domain = "orders",
+    fn = function(old_dom, new_dom) data.frame()
+  )
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+})
+
+test_that("new_diff_flag_rule() stores properties correctly", {
+  rule <- new_diff_flag_rule(
+    id = "R_DIFF",
+    domain = "orders",
+    severity = "error",
+    category = "ops_anomaly",
+    owner_team = "DM",
+    fn = function(old_dom, new_dom) data.frame()
+  )
+  expect_equal(rule@id, "R_DIFF")
+  expect_equal(rule@domain, "orders")
+  expect_equal(rule@severity, "error")
+  expect_equal(rule@category, "ops_anomaly")
+  expect_equal(rule@owner_team, "DM")
+  expect_true(is.function(rule@fn))
+})
+
+test_that("new_diff_flag_rule() errors when fn is not a function", {
+  expect_error(
+    new_diff_flag_rule(id = "R1", domain = "X", fn = "not_a_function"),
+    regexp = "fn"
+  )
+})
+
+test_that("new_diff_flag_rule() errors when fn does not accept two domains", {
+  expect_error(
+    new_diff_flag_rule(
+      id = "R1",
+      domain = "X",
+      fn = function(old_dom) data.frame()
+    ),
+    regexp = "at least two arguments"
+  )
+})

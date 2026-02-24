@@ -65,12 +65,10 @@ which R039 fires. Default \code{0.9}.}
 \item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
-A diff-scope rule specification list with fields
-\code{id}, \code{domain}, \code{severity}, \code{category}, \code{owner_team}, \code{scope}, and
-\code{fn(old_dom, new_dom)}.
+A \code{DiffFlagRule} object.
 }
 \description{
-Builds a diff-scope rule specification that compares per-group
+Builds a \code{DiffFlagRule} that compares per-group
 distributions between old and new cuts and flags groups with detectable
 drift.
 }

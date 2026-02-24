@@ -1,9 +1,8 @@
-test_that("rule_r008_column_type_drift returns expected diff-scope object", {
+test_that("rule_r008_column_type_drift returns expected DiffFlagRule", {
   rule <- rule_r008_column_type_drift(domain = "X", key_vars = c("order_id"), dup_rate_threshold = 0.2)
-  expect_false(is.null(rule))
-  expect_true(startsWith(rule$id, "R008"))
-  expect_identical(rule$scope, "diff")
-  expect_true(is.function(rule$fn))
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+  expect_true(startsWith(rule@id, "R008"))
+  expect_true(is.function(rule@fn))
 })
 
 test_that("rule_r008_column_type_drift flags column type drift", {
@@ -15,7 +14,7 @@ test_that("rule_r008_column_type_drift flags column type drift", {
   old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_named(out, c("column", "old_type", "new_type"))
   expect_equal(nrow(out), 1L)
   expect_identical(out$column, "amount")

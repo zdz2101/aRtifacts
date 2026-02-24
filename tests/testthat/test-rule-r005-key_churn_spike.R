@@ -1,9 +1,8 @@
-test_that("rule_r005_key_churn_spike returns expected diff-scope object", {
+test_that("rule_r005_key_churn_spike returns expected DiffFlagRule", {
   rule <- rule_r005_key_churn_spike(domain = "X", key_vars = c("order_id"))
-  expect_false(is.null(rule))
-  expect_true(startsWith(rule$id, "R005"))
-  expect_identical(rule$scope, "diff")
-  expect_true(is.function(rule$fn))
+  expect_true(S7::S7_inherits(rule, DiffFlagRule))
+  expect_true(startsWith(rule@id, "R005"))
+  expect_true(is.function(rule@fn))
 })
 
 test_that("rule_r005_key_churn_spike flags key churn spikes", {
@@ -13,7 +12,7 @@ test_that("rule_r005_key_churn_spike flags key churn spikes", {
   old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
-  out <- rule$fn(old_dom, new_dom)
+  out <- rule@fn(old_dom, new_dom)
   expect_named(out, c("old_n_keys", "new_n_keys", "added_n", "removed_n", "churn_n", "churn_rate", "threshold"))
   expect_equal(nrow(out), 1L)
   expect_equal(out$added_n, 5L)

@@ -68,6 +68,87 @@ run_flags <- function(artifact, rules) {
   do.call(rbind, rows)
 }
 
+#' Run diff rules between two artifact snapshots
+#'
+#' Applies each `DiffFlagRule` to matching domains in an old/new artifact pair
+#' and combines non-empty outputs.
+#'
+#' @param old_artifact Previous `ArtifactSnapshot`.
+#' @param new_artifact Current `ArtifactSnapshot`.
+#' @param rules List of `DiffFlagRule` objects.
+#'
+#' @return A `data.frame` of findings augmented with metadata columns
+#'   (`RULE_ID`, `DOMAIN`, `SEVERITY`, `CATEGORY`, `OWNER_TEAM`).
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()
+#' new_data$AVAL <- new_data$AVAL + 1
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' old_art <- new_artifact_snapshot(domains = list(ADVS = old_dom))
+#' new_art <- new_artifact_snapshot(domains = list(ADVS = new_dom))
+#' rule <- new_diff_flag_rule(
+#'   id = "SHIFT",
+#'   domain = "ADVS",
+#'   fn = function(old_dom, new_dom) compare_record_volume(old_dom, new_dom)
+#' )
+#' run_diff_flags(old_art, new_art, list(rule))
+run_diff_flags <- function(old_artifact, new_artifact, rules) {
+  if (!S7::S7_inherits(old_artifact, ArtifactSnapshot)) {
+    stop("old_artifact must be an ArtifactSnapshot.", call. = FALSE)
+  }
+  if (!S7::S7_inherits(new_artifact, ArtifactSnapshot)) {
+    stop("new_artifact must be an ArtifactSnapshot.", call. = FALSE)
+  }
+  if (!is.list(rules) || !length(rules)) return(data.frame())
+
+  rows <- list()
+  k <- 0L
+
+  for (rule in rules) {
+    if (!S7::S7_inherits(rule, DiffFlagRule)) {
+      stop("All `rules` entries must be DiffFlagRule objects.", call. = FALSE)
+    }
+
+    if (!(rule@domain %in% names(old_artifact@domains) && rule@domain %in% names(new_artifact@domains))) {
+      next
+    }
+
+    old_dom <- old_artifact@domains[[rule@domain]]
+    new_dom <- new_artifact@domains[[rule@domain]]
+    result <- rule@fn(old_dom, new_dom)
+
+    if (is.null(result) || !nrow(result)) {
+      next
+    }
+
+    if (!is.data.frame(result)) {
+      stop("Rule `", rule@id, "` must return a data.frame.", call. = FALSE)
+    }
+
+    result$RULE_ID <- rule@id
+    result$DOMAIN <- rule@domain
+    result$SEVERITY <- rule@severity
+    result$CATEGORY <- rule@category
+    result$OWNER_TEAM <- rule@owner_team
+
+    k <- k + 1L
+    rows[[k]] <- result
+  }
+
+  if (!k) return(data.frame())
+  do.call(rbind, rows)
+}
+
 #' Diff longitudinal flags
 #'
 #' Compares old and new flag tables and classifies records as introduced,

@@ -163,3 +163,58 @@ test_that("diff_flags() returns list with three elements", {
   result <- diff_flags(data.frame(), data.frame())
   expect_named(result, c("introduced", "resolved", "persisting"))
 })
+
+# ---------------------------------------------------------------------------
+# run_diff_flags()
+# ---------------------------------------------------------------------------
+
+test_that("run_diff_flags() returns flagged rows with metadata columns", {
+  old_dom <- new_domain_snapshot(
+    name = "orders",
+    data = data.frame(order_id = 1:3, amount = c(10, 20, 30), stringsAsFactors = FALSE),
+    key_vars = "order_id"
+  )
+  new_dom <- new_domain_snapshot(
+    name = "orders",
+    data = data.frame(order_id = as.character(1:3), amount = c(10, 20, 30), stringsAsFactors = FALSE),
+    key_vars = "order_id"
+  )
+  old_art <- new_artifact_snapshot(domains = list(orders = old_dom), build_id = "old")
+  new_art <- new_artifact_snapshot(domains = list(orders = new_dom), build_id = "new")
+
+  rule <- new_diff_flag_rule(
+    id = "R003_KEY_TYPE_DRIFT",
+    domain = "orders",
+    severity = "warning",
+    category = "programming_etl",
+    owner_team = "DM",
+    fn = function(old_dom, new_dom) {
+      diff <- diff_key_types(old_dom, new_dom)
+      diff[diff$changed, c("key_var", "old_type", "new_type"), drop = FALSE]
+    }
+  )
+
+  result <- run_diff_flags(old_art, new_art, list(rule))
+  expect_true(nrow(result) > 0L)
+  expect_true(all(c("RULE_ID", "DOMAIN", "SEVERITY", "CATEGORY", "OWNER_TEAM") %in% names(result)))
+  expect_equal(unique(result$RULE_ID), "R003_KEY_TYPE_DRIFT")
+})
+
+test_that("run_diff_flags() errors when a rules entry is not a DiffFlagRule", {
+  old_art <- orders_art("old")
+  new_art <- orders_art("new")
+  expect_error(
+    run_diff_flags(old_art, new_art, list("not_a_rule")),
+    regexp = "DiffFlagRule"
+  )
+})
+
+test_that("make_rule_pack_keys_diff() returns R003-R008 DiffFlagRule pack", {
+  rules <- make_rule_pack_keys_diff(
+    domain = "orders",
+    key_vars = "order_id"
+  )
+
+  expect_named(rules, c("R003", "R004", "R005", "R006", "R007", "R008"))
+  expect_true(all(vapply(rules, function(x) S7::S7_inherits(x, DiffFlagRule), logical(1))))
+})

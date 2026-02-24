@@ -1,20 +1,17 @@
 #' Rule R028 — late-arriving volume spike
 #'
-#' Builds a diff-scope rule specification that flags record-volume increases
+#' Builds a `DiffFlagRule` that flags record-volume increases
 #' above `missingness_threshold` between cuts.
 #'
 #' @inheritParams make_rule_pack_missingness
-#' @return A diff-scope rule specification list with fields
-#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
-#'   `fn(old_dom, new_dom)`.
+#' @return A `DiffFlagRule` object.
 rule_r028_late_arrival_spike <- function(domain, key_vars, required_vars = character(), subject_var = "USUBJID", group_var = "SITEID", visit_var = NULL, baseline_flag_var = NULL, missingness_threshold = 0.1, owner_team = "DM", ...) {
-  list(
+  new_diff_flag_rule(
     id = "R028_LATE_ARRIVAL_SPIKE",
     domain = domain,
     severity = "warning",
     category = "ops_anomaly",
     owner_team = owner_team,
-    scope = "diff",
     fn = function(old_dom, new_dom) {
       .assert_domain(old_dom, "old_dom")
       .assert_domain(new_dom, "new_dom")
