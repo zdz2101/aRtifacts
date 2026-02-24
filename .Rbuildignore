@@ -3,3 +3,5 @@
 ^context$
 ^aRtifacts\.Rproj$
 ^data-raw$
+^_pkgdown.yaml
+^docs$
