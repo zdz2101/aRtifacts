@@ -1,3 +1,10 @@
+#' Rule R010 — high duplicate rate by subject
+#'
+#' Builds a single-snapshot `FlagRule` that flags duplicated rows for subjects
+#' where duplicate-key rate exceeds `dup_rate_threshold`.
+#'
+#' @inheritParams make_rule_pack_keys
+#' @return A `FlagRule` object.
 rule_r010_high_dup_rate_subject <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
 new_flag_rule(
       id         = "R010_HIGH_DUP_RATE_SUBJECT",

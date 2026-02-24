@@ -1,3 +1,10 @@
+#' Rule R002 — duplicate keys
+#'
+#' Builds a single-snapshot `FlagRule` that flags rows participating in
+#' duplicated key combinations.
+#'
+#' @inheritParams make_rule_pack_keys
+#' @return A `FlagRule` object.
 rule_r002_duplicate_keys <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", owner_team = "DM", ...) {
 new_flag_rule(
       id         = "R002_DUPLICATE_KEYS",

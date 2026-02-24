@@ -1,3 +1,12 @@
+#' Rule R029 — data plateau
+#'
+#' Builds a diff-scope rule specification that flags unchanged cuts where both
+#' record volume and key churn remain flat.
+#'
+#' @inheritParams make_rule_pack_missingness
+#' @return A diff-scope rule specification list with fields
+#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
+#'   `fn(old_dom, new_dom)`.
 rule_r029_data_plateau <- function(domain, key_vars, required_vars = character(), subject_var = "USUBJID", group_var = "SITEID", visit_var = NULL, baseline_flag_var = NULL, missingness_threshold = 0.1, owner_team = "DM", ...) {
   list(
     id = "R029_DATA_PLATEAU",

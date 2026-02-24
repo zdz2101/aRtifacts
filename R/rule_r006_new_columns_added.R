@@ -1,3 +1,12 @@
+#' Rule R006 — new columns added
+#'
+#' Builds a diff-scope rule specification that flags columns newly added in
+#' the new cut.
+#'
+#' @inheritParams make_rule_pack_keys
+#' @return A diff-scope rule specification list with fields
+#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
+#'   `fn(old_dom, new_dom)`.
 rule_r006_new_columns_added <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
   base_rule <- new_flag_rule(
     id = "R006_NEW_COLUMNS_ADDED",

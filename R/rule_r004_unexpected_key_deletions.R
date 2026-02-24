@@ -1,3 +1,12 @@
+#' Rule R004 — unexpected key deletions
+#'
+#' Builds a diff-scope rule specification that flags keys present in the old
+#' cut but missing in the new cut.
+#'
+#' @inheritParams make_rule_pack_keys
+#' @return A diff-scope rule specification list with fields
+#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
+#'   `fn(old_dom, new_dom)`.
 rule_r004_unexpected_key_deletions <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
   base_rule <- new_flag_rule(
     id = "R004_UNEXPECTED_KEY_DELETIONS",

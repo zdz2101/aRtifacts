@@ -1,3 +1,13 @@
+#' Rule R036 — group-level distribution shift
+#'
+#' Builds a diff-scope rule specification that compares per-group
+#' distributions between old and new cuts and flags groups with detectable
+#' drift.
+#'
+#' @inheritParams make_rule_pack_plausibility
+#' @return A diff-scope rule specification list with fields
+#'   `id`, `domain`, `severity`, `category`, `owner_team`, `scope`, and
+#'   `fn(old_dom, new_dom)`.
 rule_r036_site_distribution_shift <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", numeric_vars = character(), non_negative_vars = character(), value_ranges = list(), visit_order_var = NULL, max_within_change = list(), iqr_multiplier = 3.0, zero_rate_threshold = 0.5, low_cv_threshold = 0.01, round_rate_threshold = 0.9, owner_team = "Biostats", ...) {
   list(
     id = "R036_GROUP_DISTRIBUTION_SHIFT",

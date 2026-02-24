@@ -1,3 +1,10 @@
+#' Rule R001 — missing key fields
+#'
+#' Builds a single-snapshot `FlagRule` that flags rows with missing or blank
+#' values in one or more key variables.
+#'
+#' @inheritParams make_rule_pack_keys
+#' @return A `FlagRule` object.
 rule_r001_key_missing <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", owner_team = "DM", ...) {
 new_flag_rule(
       id         = "R001_KEY_MISSING",
