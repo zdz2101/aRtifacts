@@ -1,0 +1,28 @@
+Package: aRtifacts
+Title: aRtifacts: Schema-Agnostic Dataset Observability Engine
+Version: 0.1.0
+Authors@R: c(
+    person("Zelos", "Zhu", , "zelos.zhu@atorusresearch.com", role = c("aut", "cre"))
+  )
+Description: A lightweight, schema-agnostic S7-based snapshot, diff, and rule
+    engine for longitudinal dataset observability. The core engine works with
+    any tabular data that has a defined key structure — no domain assumptions
+    are imposed. Bundled starter modules provide SDTM- and ADaM-oriented checks
+    as defaults; these are designed to migrate into companion packages
+    (aRtifacts.sdtm, aRtifacts.adam) as the ecosystem matures.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends: 
+    R (>= 4.1)
+Imports: 
+    S7
+Suggests: 
+    knitr,
+    rmarkdown,
+    pkgdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr

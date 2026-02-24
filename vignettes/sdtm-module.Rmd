@@ -1,0 +1,201 @@
+---
+title: "SDTM Module"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{SDTM Module}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+This vignette shows how the aRtifacts core engine applies to **SDTM**
+(Study Data Tabulation Model) datasets. Everything here uses the same
+schema-agnostic snapshot/diff/rule machinery — the only thing that makes it
+"SDTM" is the data and the variable names you pass in.
+
+> **Companion package roadmap:** The SDTM-specific helpers demonstrated
+> below are bundled in the core package today and will eventually move to a
+> dedicated `aRtifacts.sdtm` companion package.
+
+---
+
+## Step 1 — Load example LB data
+
+`example_sdtm_lb()` returns a tiny synthetic Laboratory (LB) domain. In a
+real workflow you would read your production SDTM dataset instead.
+
+```{r}
+library(aRtifacts)
+
+lb <- example_sdtm_lb()
+lb
+```
+
+> Five records, three subjects, one test (Hemoglobin). Notice that
+> subject STUDY01-002, sequence 1 has `LBSTRESN = -1.0` — a negative lab
+> value that we'll catch below.
+
+---
+
+## Step 2 — Snapshot and simulate a data refresh
+
+Let's create two snapshots representing successive data cuts. Between the
+cuts we'll introduce realistic changes: a corrected value, a partial date,
+and a duplicate key row.
+
+```{r}
+lb_old <- lb
+lb_new <- lb
+
+# Change 1: A numeric result becomes negative (data-entry error).
+lb_new$LBSTRESN[lb_new$USUBJID == "STUDY01-002" & lb_new$LBSEQ == 2] <- -2.5
+
+# Change 2: A full date is replaced with a partial date (formatting issue).
+lb_new$LBDTC[lb_new$USUBJID == "STUDY01-003" & lb_new$LBSEQ == 1] <- "2024-01"
+
+# Change 3: A new record arrives — but it duplicates an existing key.
+lb_new <- rbind(lb_new, data.frame(
+  STUDYID  = "STUDY01", DOMAIN = "LB",
+  USUBJID  = "STUDY01-003", LBSEQ = 1,
+  LBTESTCD = "HGB", LBTEST = "Hemoglobin",
+  LBORRES  = "15.0", LBORRESU = "g/dL",
+  LBSTRESN = 15.0,
+  LBDTC    = "2024-01-04",
+  VISITNUM = 1, SITEID = "SITE02",
+  stringsAsFactors = FALSE
+))
+```
+
+Now wrap each cut in a `DomainSnapshot`. The old cut is clean; the new one
+has the intentional problems.
+
+```{r}
+snap_old <- new_domain_snapshot(
+  name     = "LB",
+  data     = lb_old,
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
+)
+```
+
+> **Note:** Creating a `DomainSnapshot` for `lb_new` will **fail** because
+> the duplicate key (STUDY01-003 / LBSEQ 1) violates uniqueness. That's the
+> engine protecting you:
+
+```{r, error = TRUE}
+snap_new <- new_domain_snapshot(
+  name     = "LB",
+  data     = lb_new,
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
+)
+```
+
+> In practice you'd fix the source data. For demo purposes let's remove the
+> duplicate so we can continue:
+
+```{r}
+lb_new <- lb_new[!duplicated(lb_new[, c("STUDYID", "USUBJID", "LBSEQ")]), ]
+
+snap_new <- new_domain_snapshot(
+  name     = "LB",
+  data     = lb_new,
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
+)
+```
+
+---
+
+## Step 3 — Diff the two snapshots
+
+### Key diff
+
+```{r}
+diff_keys(snap_old, snap_new)
+```
+
+> Both snapshots have the same key combinations — no records were added or
+> removed. All changes are **value-level**.
+
+### Value diff
+
+```{r}
+diff_values(snap_old, snap_new, vars = c("LBSTRESN", "LBDTC"))
+```
+
+> Two changes surface:
+>
+> - Subject 002, seq 2: `LBSTRESN` went from 14.1 → -2.5 (the injected error).
+> - Subject 003, seq 1: `LBDTC` went from `2024-01-04` → `2024-01` (partial date).
+>
+> These are exactly the edits we made — the diff engine picks them up
+> deterministically with zero configuration.
+
+---
+
+## Step 4 — Run generalized checks
+
+`check_tabulation_domain()` applies structural and temporal checks from the
+core rule catalog. It works on any domain — here we point it at our
+modified LB dataset.
+
+```{r}
+issues <- check_tabulation_domain(
+  data              = lb_new,
+  domain            = "LB",
+  key_vars          = c("STUDYID", "USUBJID", "LBSEQ"),
+  required_vars     = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD", "LBDTC"),
+  date_vars         = "LBDTC",
+  non_negative_vars = "LBSTRESN",
+  visit_order_var   = "VISITNUM",
+  subject_var       = "USUBJID"
+)
+
+issues
+```
+
+> **Reading the output:** Each row is one finding. The `check` column maps
+> to a rule from the core catalog (e.g., `R013_DATE_FORMAT`,
+> `R033_NEGATIVE_NOT_ALLOWED`). `severity` tells you whether it's an error
+> or warning. `n` tells you how many records are affected.
+>
+> - `R013_DATE_FORMAT` — `LBDTC` has a value that isn't a full ISO date.
+> - `R033_NEGATIVE_NOT_ALLOWED` — `LBSTRESN` contains a negative value
+>   where only non-negative values are expected.
+
+---
+
+## Step 5 — Run rules as executable FlagRules
+
+If you want **row-level** detail (not just summary counts), build an
+executable rule pack and run it through the flag engine.
+
+```{r}
+art <- new_artifact_snapshot(domains = list(LB = snap_new), build_id = "cut-002")
+
+rules <- make_rule_pack_core(
+  domain            = "LB",
+  key_vars          = c("STUDYID", "USUBJID", "LBSEQ"),
+  required_vars     = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD", "LBDTC"),
+  non_negative_vars = "LBSTRESN"
+)
+
+flags <- run_flags(art, rules)
+flags
+```
+
+> Each flagged row is returned with the `RULE_ID`, `SEVERITY`, and
+> `OWNER_TEAM` that produced it. You can filter, sort, or export this table
+> into any downstream reporting pipeline.
+
+---
+
+## What's next?
+
+- See the **ADaM Module** vignette for ADSL/BDS-specific checks.
+- See the **Core Engine** vignette for the full schema-agnostic API tour.
+- Write your own SDTM rule packs using `new_flag_rule()` — the pattern is
+  identical to what `make_rule_pack_core()` does internally.

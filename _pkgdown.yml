@@ -1,0 +1,72 @@
+url: https://zdz2101.github.io/aRtifacts
+
+template:
+  bootstrap: 5
+  math-rendering: mathjax
+  light-switch: true
+  bslib:
+    preset: "flatly"
+    
+home:
+  title: aRtifacts
+  description: Schema-agnostic dataset observability engine with bundled SDTM/ADaM modules.
+
+navbar:
+  structure:
+    left: [intro, reference, articles]
+
+reference:
+  - title: Snapshot classes
+    contents:
+      - new_domain_snapshot
+      - new_artifact_snapshot
+      - DomainSnapshot
+      - ArtifactSnapshot
+  - title: Diff engine
+    contents:
+      - diff_keys
+      - diff_values
+      - diff_meta_artifact
+      - diff_flags
+  - title: Rule engine
+    contents:
+      - new_flag_rule
+      - run_flags
+      - FlagRule
+  - title: Generalized checks and catalogs
+    contents:
+      - rule_catalog_core
+      - check_tabulation_domain
+  - title: Rule pack module builders
+    desc: >
+      Use these to compose targeted rule packs or call `make_rule_pack_core()`
+      as an all-in-one shortcut.
+    contents:
+      - make_rule_pack_core
+      - make_rule_pack_keys
+      - make_rule_pack_dates
+      - make_rule_pack_missingness
+      - make_rule_pack_plausibility
+      - make_rule_pack_consistency
+  - title: Bundled SDTM/ADaM modules
+    desc: Supplemental domain-specific checks (future aRtifacts.sdtm / aRtifacts.adam)
+    contents:
+      - check_adsl
+      - check_bds
+      - validate_adam
+  - title: Example data
+    contents:
+      - example_sdtm_lb
+      - example_adsl
+      - example_advs
+
+articles:
+  - title: Core engine
+    contents:
+      - getting-started
+      - add-rule-pack
+  - title: Supplemental modules
+    contents:
+      - sdtm-module
+      - adam-module
+      - future-extensions

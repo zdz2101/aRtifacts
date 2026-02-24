@@ -1,0 +1,207 @@
+---
+title: "ADaM Module"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ADaM Module}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Overview
+
+This vignette demonstrates the **bundled ADaM module** — a set of
+conformance checks for ADaM datasets (ADSL and BDS) that ship with the core
+aRtifacts package.
+
+> **Companion package roadmap:** These ADaM-specific helpers are bundled in
+> the core today and will eventually move to a dedicated `aRtifacts.adam`
+> companion package.
+
+The checks are aligned with key concepts from the **ADaM Implementation
+Guide (ADaMIG) v1.3**: required variables, key uniqueness, population flags,
+parameter naming, treatment variables, and baseline derivation rules.
+
+---
+
+## Step 1 — Inspect the example datasets
+
+aRtifacts ships with two small synthetic ADaM datasets you can use for
+demos and testing.
+
+### ADSL — one row per subject
+
+```{r}
+library(aRtifacts)
+
+adsl <- example_adsl()
+adsl
+```
+
+> Three subjects across two sites. Notice `FASFL = "N"` for subject 003 —
+> that's intentional and valid (population flags must be Y or N, never
+> missing).
+
+### ADVS (BDS) — one or more rows per subject × parameter × timepoint
+
+```{r}
+advs <- example_advs()
+advs
+```
+
+> Five rows of systolic blood pressure. Subjects 001 and 002 have both
+> BASELINE and WEEK 4 visits; subject 003 has only BASELINE. The `ABLFL`
+> column marks which record is the baseline record for each subject (Y at
+> baseline, NA at post-baseline).
+
+---
+
+## Step 2 — Run ADSL checks
+
+`check_adsl()` verifies the structural expectations of a subject-level
+analysis dataset:
+
+- **Required variables** — `STUDYID`, `USUBJID`, `SUBJID`, `SITEID`,
+  `AGE`, `AGEU`, `SEX`, `RACE`, `ARM`, `TRT01P`
+- **USUBJID uniqueness** — every subject should appear exactly once
+- **Population flags** — at least one `*FL` variable, with values
+  restricted to Y/N
+
+```{r}
+adsl_issues <- check_adsl(adsl)
+adsl_issues
+```
+
+> **Reading the output:** An empty (zero-row) issue table means the dataset
+> passed all checks. Each row that *does* appear tells you:
+>
+> | Column | Meaning |
+> |--------|---------|
+> | `check` | Which rule fired (e.g., `ADSL_REQUIRED`, `ADSL_USUBJID_UNIQUE`) |
+> | `severity` | `error` = must fix, `warning` = should investigate |
+> | `message` | Human-readable explanation |
+> | `n` | How many records or variables are affected (NA if not applicable) |
+
+---
+
+## Step 3 — Run BDS checks
+
+`check_bds()` covers the basic data structure expectations:
+
+- **Required variables** — `STUDYID`, `USUBJID`, `PARAM`, `PARAMCD`
+- **Analysis value** — at least one of `AVAL` or `AVALC` must exist
+- **Treatment variable** — expects `TRT01P`, `TRTP`, or `TRTA`
+- **PARAM ↔ PARAMCD mapping** — must be one-to-one
+- **PARAMCD format** — ≤ 8 characters, starts with a letter
+- **Relative timing** — when multiple records per subject×parameter exist,
+  a timing variable (`ADY`, `AVISIT`, etc.) should be present
+- **Baseline derivation** — if `BASE` is populated, `ABLFL` must exist and
+  every subject×parameter with a non-null `BASE` must have at least one
+  `ABLFL = "Y"` record
+
+```{r}
+bds_issues <- check_bds(advs)
+bds_issues
+```
+
+> Again, an empty table means everything passed. If you see rows, the
+> `check` column tells you exactly which ADaMIG concept was violated.
+
+---
+
+## Step 4 — Validate everything in one call
+
+`validate_adam()` is a convenience wrapper that runs both `check_adsl()` and
+`check_bds()` and returns a structured list. You can pass a single BDS
+dataset or a named list of multiple BDS datasets.
+
+```{r}
+results <- validate_adam(
+  adsl = adsl,
+  bds  = list(ADVS = advs)
+)
+
+results$adsl
+results$bds$ADVS
+```
+
+> The output is a nested list — `$adsl` for the ADSL issue table, `$bds`
+> for a named list of BDS issue tables (one per dataset). This structure
+> makes it easy to iterate programmatically or pipe into a reporting
+> template.
+
+---
+
+## Step 5 — Combine with the core engine
+
+The ADaM module works alongside the core snapshot/diff/rule engine. Here's
+a typical end-to-end flow:
+
+1. **Snapshot** your ADVS at two data cuts.
+2. **Diff** them to see what changed.
+3. **Run flags** to catch clinical-review issues.
+4. **Run `check_bds()`** to verify ADaMIG conformance.
+
+```{r}
+# Two data cuts
+advs_v1 <- advs
+advs_v2 <- advs
+advs_v2$AVAL[advs_v2$USUBJID == "STUDY01-002" & advs_v2$AVISIT == "WEEK 4"] <- 195
+
+snap_v1 <- new_domain_snapshot("ADVS", advs_v1, key_vars = c("USUBJID", "PARAMCD", "AVISIT"))
+snap_v2 <- new_domain_snapshot("ADVS", advs_v2, key_vars = c("USUBJID", "PARAMCD", "AVISIT"))
+```
+
+### What changed?
+
+```{r}
+diff_values(snap_v1, snap_v2, vars = "AVAL")
+```
+
+> Subject 002's WEEK 4 systolic BP jumped from 136 → 195. That's a large
+> single-visit change and might warrant clinical review.
+
+### Flag it with a custom rule
+
+```{r}
+art_v2 <- new_artifact_snapshot(domains = list(ADVS = snap_v2), build_id = "cut-2")
+
+rule_high_bp <- new_flag_rule(
+  id         = "HIGH_SYSBP",
+  domain     = "ADVS",
+  severity   = "warning",
+  category   = "clinical_review",
+  owner_team = "Medical Monitor",
+  fn = function(df) {
+    out <- df[df$PARAMCD == "SYSBP" & !is.na(df$AVAL) & df$AVAL > 180, , drop = FALSE]
+    if (!nrow(out)) return(data.frame())
+    out[, c("USUBJID", "PARAMCD", "AVISIT", "AVAL"), drop = FALSE]
+  }
+)
+
+run_flags(art_v2, list(rule_high_bp))
+```
+
+> The flag identifies subject 002 at WEEK 4 with a systolic BP of 195.
+> The `OWNER_TEAM` column tells you who should investigate.
+
+### Confirm ADaMIG conformance
+
+```{r}
+check_bds(advs_v2)
+```
+
+> No structural issues — the dataset is still ADaMIG-compliant even with
+> the clinically notable value.
+
+---
+
+## What's next?
+
+- See the **SDTM Module** vignette for SDTM domain checks.
+- See the **Core Engine** vignette for the full schema-agnostic API tour.
+- Browse `rule_catalog_core()` for the complete list of built-in
+  observability rules you can instantiate with `make_rule_pack_core()`.

@@ -1,0 +1,325 @@
+---
+title: "The Road Ahead — Extensions, Ecosystems, and the Browser"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The Road Ahead — Extensions, Ecosystems, and the Browser}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Why a "road ahead" vignette?
+
+aRtifacts ships today as a deliberately **small** engine: snapshots, diffs,
+and rules.
+That minimalism is a feature, not a limitation — it means the core never
+needs to know what your data *means*, only what makes each row unique and
+what properties it should satisfy.
+
+Everything domain-specific — be it clinical, financial, manufacturing, or
+genomic — belongs in **extension modules** that talk the language of that
+world while relying on the same deterministic engine underneath.
+
+This vignette paints the picture of where that idea leads.
+
+---
+
+## 1 — Therapeutic-area extensions
+
+The bundled SDTM and ADaM checks are a proof of concept, not the ceiling.
+Imagine companion packages tuned to an entire therapeutic area:
+
+| Extension | Focus | Example rules |
+|-----------|-------|---------------|
+| `aRtifacts.oncology` | RECIST, tumor assessments | Best overall response derivation, target-lesion completeness per visit |
+| `aRtifacts.vaccines` | Immunogenicity, reactogenicity | Seroconversion flag consistency, grading-scale alignment with FDA toxicity tables |
+| `aRtifacts.cardio` | ECG, vital-sign trending | QTc derivation checks, Bazett vs. Fridericia concordance |
+| `aRtifacts.neuro` | Cognitive-scale scoring | ADAS-Cog item-to-total reconciliation, MMSE floor/ceiling detection |
+| `aRtifacts.RWE` | Claims, EHR, registries | ICD-10 code validity, enrollment-gap detection, index-date anchoring |
+
+Each extension is just a collection of `FlagRule` objects and optional
+convenience checkers — exactly the same pattern used by `check_adsl()` and
+`check_bds()` today.
+Because `FlagRule` is an S7 class with a pure-function predicate, packaging
+new rules is as simple as writing functions that return `TRUE` / `FALSE` per
+row or per domain.
+
+> **For contributors:** Writing a therapeutic-area module requires zero
+> knowledge of the diff engine.
+> You define rules; the engine runs them.
+
+---
+
+## 2 — Risk-Based Quality Management (RBQM)
+
+Regulatory guidance (ICH E6 R2, and more recently R3) emphasizes
+**risk-proportionate** approaches to data quality.
+aRtifacts' architecture maps naturally onto an RBQM workflow:
+
+### Severity tiers
+
+A `FlagRule` can carry a severity property — `"critical"`, `"major"`,
+`"minor"` — allowing organizations to classify risks centrally and filter
+downstream reporting.
+
+```{r eval = FALSE}
+high_risk <- new_flag_rule(
+  id          = "RBQM-001",
+  description = "Subject missing informed-consent date",
+  severity    = "critical",
+  predicate   = function(row) is.na(row[["RFICDTC"]])
+)
+```
+
+### Longitudinal risk scoring
+
+Because `diff_flags()` tracks **which flags appeared, disappeared, or
+persisted** between two builds, you get a ready-made time-series of risk
+signals per domain, per site, per study:
+ 
+```
+Build 12   →   Build 13
+ critical: 3        critical: 1   ← 2 resolved
+ major: 17          major: 19     ← 2 new, trend watch
+```
+
+A downstream dashboard can consume the `diff_flags()` output directly —
+no ETL step required.
+
+### Key Risk Indicators (KRIs)
+
+`run_flags()` output is a tidy data frame.
+Aggregating flag counts by site, country, or study yields KRIs that feed
+directly into RBQM central-monitoring displays:
+
+```{r eval = FALSE}
+flags <- run_flags(snapshot, rules)
+kri   <- aggregate(flag ~ site, data = flags, FUN = length)
+```
+
+> **The takeaway:** aRtifacts doesn't replace your RBQM platform — it gives
+> your RBQM platform a deterministic, version-controlled data feed with
+> zero manual curation.
+
+---
+
+## 3 — Organization-specific terminology and style
+
+Every organization has its own naming conventions, controlled terminology,
+and review expectations.
+The engine is deliberately silent about these — but extension modules can
+enforce them rigorously:
+
+### Custom terminology dictionaries
+
+```{r eval = FALSE}
+# Hypothetical aRtifacts.myorg module
+org_terms <- list(
+  RACE = c("WHITE", "BLACK OR AFRICAN AMERICAN",
+           "ASIAN", "AMERICAN INDIAN OR ALASKA NATIVE",
+           "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER",
+           "MULTIPLE", "NOT REPORTED", "UNKNOWN"),
+  SEX  = c("M", "F", "U", "UNDIFFERENTIATED")
+)
+
+term_rules <- lapply(names(org_terms), function(var) {
+  allowed <- org_terms[[var]]
+  new_flag_rule(
+    id          = paste0("TERM-", var),
+    description = paste(var, "must be in org codelist"),
+    predicate   = function(row) row[[var]] %in% allowed
+  )
+})
+```
+
+### Variable-naming conventions
+
+```{r eval = FALSE}
+naming_rule <- new_flag_rule(
+  id          = "STYLE-001",
+  description = "All variables must be uppercase, 8 chars max",
+  predicate   = function(row) {
+    nms <- names(row)
+    all(nms == toupper(nms)) && all(nchar(nms) <= 8)
+  }
+)
+```
+
+### Metadata-driven rule generation
+
+For organizations that maintain a metadata repository (define.xml, a spec
+database, an internal data dictionary), rules can be **generated
+programmatically** from that repository — one `FlagRule` per variable,
+type-check, codelist, or cross-domain relationship:
+
+```{r eval = FALSE}
+# Pseudocode: generate rules from a define.xml parse
+for (var_def in parse_define_xml("define2-0-0.xml")) {
+  rule <- new_flag_rule(
+    id          = paste0("DEF-", var_def$OID),
+    description = paste(var_def$Name, "codelist check"),
+    predicate   = make_codelist_predicate(var_def$CodeList)
+  )
+}
+```
+
+> **The pattern:** Your metadata is the single source of truth.
+> aRtifacts turns it into executable checks — no copy-paste, no drift.
+
+---
+
+## 4 — Beyond clinical: other industries
+
+Because the engine knows nothing about clinical trials, it works anywhere
+you have keyed tabular data and care about quality over time:
+
+- **Finance / Accounting** — Reconcile GL snapshots across periods; flag
+  journal entries that violate segregation-of-duties rules.
+- **Manufacturing / IoT** — Snapshot sensor readings by batch + timestamp;
+  diff successive batches to catch drift.
+- **Genomics / Bioinformatics** — Snapshot variant-call tables; flag
+  unexpected allele-frequency shifts between pipeline runs.
+- **Survey / Social science** — Track questionnaire data across collection
+  waves; detect impossible transitions (e.g., age decreasing).
+
+The companion-package pattern is identical: define `FlagRule` objects that
+speak the language of your domain, and the core engine handles the rest.
+
+---
+
+## 5 — Running in the browser with R-WASM
+
+One of the most exciting developments in the R ecosystem is
+[webR](https://docs.r-wasm.org/webr/latest/) — a build of R that compiles
+to WebAssembly and runs **entirely in the browser**, no server required.
+
+aRtifacts is a natural fit for R-WASM because of three deliberate design
+choices:
+
+### Minimal dependency footprint
+
+aRtifacts imports exactly one package: **S7**.
+S7 is a pure-R package with no compiled code.
+That means the entire aRtifacts + S7 stack can be loaded in a webR session
+with no native compilation step — just install and go.
+ 
+```js
+// JavaScript — loading aRtifacts inside a webR session
+const webR = new WebR();
+await webR.init();
+await webR.installPackages(['S7', 'aRtifacts']);
+await webR.evalR('library(aRtifacts)');
+```
+
+### Pure-function architecture
+
+Every function in aRtifacts is referentially transparent: same inputs,
+same outputs, no side effects, no file-system access, no database
+connections.
+That is exactly the execution model WebAssembly enforces — making
+aRtifacts one of the most WASM-friendly R packages by design.
+
+### What this unlocks
+
+| Scenario | How it works |
+|----------|-------------|
+| **Client-side data review** | A reviewer opens a static HTML app, drops two CSVs, and instantly sees a diff — nothing leaves their laptop. |
+| **Shinylive dashboards** | A Shinylive app (Shiny for R in WASM) embeds aRtifacts for interactive snapshot comparison, rule execution, and flag trending — deployed as a static site on GitHub Pages or SharePoint. |
+| **Offline / air-gapped environments** | Validated environments with no internet access can bundle a WASM build; auditors run checks on-site without installing R. |
+| **Training and education** | Interactive tutorials (e.g., via learnr / webR-powered quarto docs) let learners experiment with snapshots and rules in the browser. |
+| **Embedded review widgets** | A `<webr-widget>` tag in a Quarto document lets readers re-run aRtifacts code cells live, turning static reports into interactive notebooks. |
+
+### A glimpse: Shinylive + aRtifacts
+
+```{r eval = FALSE}
+# This Shiny app can be deployed as a Shinylive static site
+library(shiny)
+library(aRtifacts)
+
+ui <- fluidPage(
+  titlePanel("aRtifacts — Browser-Native Data Diff"),
+  fileInput("file_v1", "Upload baseline CSV"),
+  fileInput("file_v2", "Upload updated CSV"),
+  textInput("keys", "Key columns (comma-separated)", value = "USUBJID"),
+  actionButton("go", "Compare"),
+  tableOutput("diff_out")
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$go, {
+    keys <- trimws(strsplit(input$keys, ",")[[1]])
+    v1 <- new_domain_snapshot("data", read.csv(input$file_v1$datapath),
+                              key_vars = keys, build_id = "v1")
+    v2 <- new_domain_snapshot("data", read.csv(input$file_v2$datapath),
+                              key_vars = keys, build_id = "v2")
+    output$diff_out <- renderTable(diff_values(v1, v2))
+  })
+}
+
+shinyApp(ui, server)
+```
+
+> **Zero infrastructure, zero servers, zero install.**  
+> A static HTML file, a browser, and the full power of aRtifacts.
+
+---
+
+## 6 — The ecosystem vision
+
+Putting it all together, the long-term picture looks like this:
+
+```
+                    ┌───────────────────────────┐
+                    │     aRtifacts  (core)      │
+                    │  snapshots · diffs · rules  │
+                    └─────────────┬───────────────┘
+                                  │
+              ┌───────────────────┼───────────────────┐
+              │                   │                    │
+     ┌────────▼────────┐ ┌───────▼────────┐ ┌────────▼────────┐
+     │ aRtifacts.sdtm  │ │ aRtifacts.adam │ │ aRtifacts.myorg │
+     │  SDTM rules +   │ │  ADaM rules + │ │  org terminology │
+     │  tabulation QC   │ │  BDS / ADSL   │ │  + style rules   │
+     └────────┬─────────┘ └───────┬────────┘ └────────┬────────┘
+              │                   │                    │
+              ▼                   ▼                    ▼
+     ┌─────────────────────────────────────────────────────────┐
+     │        Therapeutic-area & industry extensions            │
+     │  .oncology · .vaccines · .cardio · .finance · .genomics │
+     └─────────────────────────┬───────────────────────────────┘
+                               │
+              ┌────────────────┼────────────────┐
+              │                │                 │
+        ┌─────▼─────┐  ┌──────▼──────┐  ┌───────▼───────┐
+        │  Desktop R │  │  Shinylive  │  │  webR widget  │
+        │  (server)  │  │  (browser)  │  │  (embedded)   │
+        └────────────┘  └─────────────┘  └───────────────┘
+```
+
+Every box in this diagram shares the same `DomainSnapshot` →
+`FlagRule` → `diff_flags()` pipeline.
+The only difference is **which rules** you load and **where R runs**.
+
+---
+
+## Getting involved
+
+aRtifacts is open source and contribution-friendly.
+Whether you want to:
+
+- **Add rules** for a therapeutic area you know well,
+- **Build an org module** that encodes your company's standards,
+- **Create a Shinylive demo** that showcases browser-native data review, or
+- **Improve the core** with better diff algorithms or richer metadata,
+
+the architecture is designed to make your contribution self-contained and
+composable.
+
+> **Start small:** write one `FlagRule`, wrap it in a test, submit a PR.
+> That's the atomic unit of contribution — and it's all you need to make
+> the ecosystem a little better.
+
+Happy building.

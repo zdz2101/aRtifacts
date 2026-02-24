@@ -1,0 +1,214 @@
+---
+title: "Add a New Rule Pack"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Add a New Rule Pack}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Why create a custom rule pack?
+
+`aRtifacts` ships with a core catalog and module builders, but most teams also
+need project- or organization-specific checks. A **rule pack** is just a
+function that returns a list of `FlagRule` objects.
+
+This vignette shows a practical pattern you can copy:
+
+1. Write a pack constructor.
+2. Run it on an artifact snapshot.
+3. Track introduced/resolved/persisting flags across cuts.
+
+---
+
+## Step 1 — Start from a target domain
+
+```{r}
+library(aRtifacts)
+
+lb <- example_sdtm_lb()
+head(lb)
+```
+
+We'll target LB-like data keyed by `STUDYID`, `USUBJID`, `LBSEQ`.
+
+---
+
+## Step 2 — Define a custom pack constructor
+
+A pack constructor should:
+
+- accept configuration (`domain`, thresholds, ownership),
+- create one or more `new_flag_rule(...)` objects,
+- return a plain list of those rules.
+
+```{r}
+make_rule_pack_lab_custom <- function(domain = "LB",
+                                      owner_team = "Data Management",
+                                      hgb_min = 6,
+                                      hgb_max = 22) {
+  list(
+
+    # Rule 1: Hemoglobin plausibility window
+    new_flag_rule(
+      id = "LAB001_HGB_OUT_OF_RANGE",
+      domain = domain,
+      severity = "warning",
+      category = "clinical_review",
+      owner_team = owner_team,
+      fn = function(df) {
+        needed <- c("USUBJID", "LBTESTCD", "LBSTRESN")
+        if (!all(needed %in% names(df))) return(data.frame())
+
+        testcd <- as.character(df$LBTESTCD)
+        value <- suppressWarnings(as.numeric(df$LBSTRESN))
+        bad <- testcd == "HGB" & !is.na(value) & (value < hgb_min | value > hgb_max)
+        if (!any(bad)) return(data.frame())
+
+        df[bad, c("USUBJID", "LBTESTCD", "LBSTRESN"), drop = FALSE]
+      }
+    ),
+
+    # Rule 2: Result unit should be present when result is present
+    new_flag_rule(
+      id = "LAB002_RESULT_WITHOUT_UNIT",
+      domain = domain,
+      severity = "error",
+      category = "data_entry",
+      owner_team = owner_team,
+      fn = function(df) {
+        needed <- c("USUBJID", "LBTESTCD", "LBORRES", "LBORRESU")
+        if (!all(needed %in% names(df))) return(data.frame())
+
+        result_present <- !is.na(df$LBORRES) & nzchar(as.character(df$LBORRES))
+        unit_missing <- is.na(df$LBORRESU) | !nzchar(as.character(df$LBORRESU))
+        bad <- result_present & unit_missing
+        if (!any(bad)) return(data.frame())
+
+        df[bad, c("USUBJID", "LBTESTCD", "LBORRES", "LBORRESU"), drop = FALSE]
+      }
+    ),
+
+    # Rule 3: Duplicate test on same date for same subject
+    new_flag_rule(
+      id = "LAB003_DUP_SUBJECT_TEST_DATE",
+      domain = domain,
+      severity = "warning",
+      category = "ops_anomaly",
+      owner_team = owner_team,
+      fn = function(df) {
+        needed <- c("USUBJID", "LBTESTCD", "LBDTC")
+        if (!all(needed %in% names(df))) return(data.frame())
+
+        keys <- df[, needed, drop = FALSE]
+        dup <- duplicated(keys) | duplicated(keys, fromLast = TRUE)
+        if (!any(dup)) return(data.frame())
+
+        df[dup, needed, drop = FALSE]
+      }
+    )
+  )
+}
+```
+
+---
+
+## Step 3 — Run custom pack on an artifact snapshot
+
+```{r}
+snap <- new_domain_snapshot(
+  name = "LB",
+  data = lb,
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
+)
+
+art <- new_artifact_snapshot(
+  domains = list(LB = snap),
+  build_id = "cut-001"
+)
+
+custom_rules <- make_rule_pack_lab_custom(domain = "LB")
+
+flags_v1 <- run_flags(art, custom_rules)
+flags_v1
+```
+
+The output contains your flagged rows plus standardized metadata:
+
+- `RULE_ID`
+- `DOMAIN`
+- `SEVERITY`
+- `CATEGORY`
+- `OWNER_TEAM`
+
+---
+
+## Step 4 — Compare flags between cuts
+
+Now simulate a new cut with one resolved issue and one newly introduced issue.
+
+```{r}
+lb_v2 <- lb
+
+# Resolve an existing issue from sample data (negative LBSTRESN)
+lb_v2$LBSTRESN[lb_v2$USUBJID == "STUDY01-002" & lb_v2$LBSEQ == 1] <- 13.8
+
+# Introduce a new issue: missing unit
+lb_v2$LBORRESU[lb_v2$USUBJID == "STUDY01-003" & lb_v2$LBSEQ == 1] <- ""
+
+snap_v2 <- new_domain_snapshot(
+  name = "LB",
+  data = lb_v2,
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
+)
+
+art_v2 <- new_artifact_snapshot(
+  domains = list(LB = snap_v2),
+  build_id = "cut-002"
+)
+
+flags_v2 <- run_flags(art_v2, custom_rules)
+
+flag_changes <- diff_flags(
+  old_flags = flags_v1,
+  new_flags = flags_v2,
+  by = c("USUBJID", "DOMAIN", "RULE_ID")
+)
+
+flag_changes
+```
+
+This gives you longitudinal observability:
+
+- `introduced`: new findings,
+- `resolved`: findings that disappeared,
+- `persisting`: findings still present.
+
+---
+
+## Step 5 — Productionize your pack
+
+For real projects, move your pack constructor into package code:
+
+- place constructor in an `R/` file (for example, `R/rule_packs_lab.R`),
+- add tests under `tests/testthat/` (one test file per pack/module),
+- document expected input columns and output behavior,
+- version your rule IDs and avoid reusing old IDs with new semantics.
+
+A useful pattern is to keep IDs stable and add new IDs instead of changing
+what an existing ID means.
+
+---
+
+## What’s next?
+
+- Use `make_rule_pack_core()` + your custom pack together:
+  `all_rules <- c(make_rule_pack_core(...), make_rule_pack_lab_custom(...))`
+- Split large custom packs into smaller module builders (similar to
+  `make_rule_pack_keys()`, `make_rule_pack_dates()`, etc.).
+- If your checks depend on a standard/metadata file, pass it as an explicit
+  argument to the pack constructor.

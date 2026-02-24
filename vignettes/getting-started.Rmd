@@ -1,0 +1,192 @@
+---
+title: "Getting Started — Core Engine"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started — Core Engine}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## What is aRtifacts?
+ 
+aRtifacts is a **schema-agnostic** observability engine for tabular data.
+If your data lives in a `data.frame` and you can name the columns that make
+each row unique, aRtifacts can snapshot it, diff it, and run quality rules
+against it — regardless of whether it's clinical, financial, operational, or
+anything else.
+
+This vignette walks through the core engine using a plain, made-up dataset
+so you can see the mechanics **without** any domain-specific jargon.
+
+---
+
+## Step 1 — Create a domain snapshot
+
+A **domain snapshot** is an immutable capture of one table at one point in
+time. You tell it the table name, hand it a `data.frame`, and declare which
+columns form the unique key.
+
+```{r}
+library(aRtifacts)
+
+# Imagine a simple orders table.
+orders_v1 <- data.frame(
+  order_id   = c(101, 102, 103),
+  customer   = c("Alice", "Bob", "Carol"),
+  amount     = c(250, 480, 120),
+  status     = c("shipped", "pending", "shipped"),
+  order_date = c("2025-06-01", "2025-06-03", "2025-06-04"),
+  stringsAsFactors = FALSE
+)
+
+snap_v1 <- new_domain_snapshot(
+  name     = "orders",
+  data     = orders_v1,
+  key_vars = "order_id"
+)
+```
+
+> **What just happened?**
+> `new_domain_snapshot()` validated that `order_id` exists in the data and
+> that every row has a unique value. If either check fails, you get an
+> immediate error — no silent corruption downstream.
+
+---
+
+## Step 2 — Make a second snapshot and diff
+
+Now suppose a new extract arrives: one order amount was corrected, a new
+order was added, and an existing order was removed.
+
+```{r}
+orders_v2 <- data.frame(
+  order_id   = c(101, 103, 104),
+  customer   = c("Alice", "Carol", "Dave"),
+  amount     = c(250, 135, 310),
+  status     = c("shipped", "shipped", "pending"),
+  order_date = c("2025-06-01", "2025-06-04", "2025-06-10"),
+  stringsAsFactors = FALSE
+)
+
+snap_v2 <- new_domain_snapshot(
+  name     = "orders",
+  data     = orders_v2,
+  key_vars = "order_id"
+)
+```
+
+### Key diff — who was added or removed?
+
+```{r}
+diff_keys(snap_v1, snap_v2)
+```
+
+> `added` shows order 104 (Dave) appeared. `removed` shows order 102 (Bob)
+> disappeared. This is purely key-level — it doesn't look at values.
+
+### Value diff — what changed on matching rows?
+
+```{r}
+diff_values(snap_v1, snap_v2, vars = c("amount", "status"))
+```
+
+> Carol's `amount` moved from 120 → 135. Only rows that exist in **both**
+> snapshots are compared; added/removed rows are handled by `diff_keys()`.
+
+---
+
+## Step 3 — Bundle into an artifact snapshot
+
+An **artifact snapshot** groups one or more domain snapshots together with
+build metadata (like a Git SHA or a run ID). This is useful when you have
+multiple related tables that move together.
+
+```{r}
+art_v1 <- new_artifact_snapshot(
+  domains     = list(orders = snap_v1),
+  build_id    = "pipeline-run-041",
+  code_sha    = "abc123",
+  inputs_hash = "hash_v1"
+)
+
+art_v2 <- new_artifact_snapshot(
+  domains     = list(orders = snap_v2),
+  build_id    = "pipeline-run-042",
+  code_sha    = "abc123",
+  inputs_hash = "hash_v2"
+)
+
+diff_meta_artifact(art_v1, art_v2)
+```
+
+> The metadata diff tells you *which build properties changed* between
+> two runs. Here the `build_id` and `inputs_hash` changed but `code_sha`
+> stayed the same — meaning the code didn't change, but the data did.
+
+---
+
+## Step 4 — Write and run a flag rule
+
+A **flag rule** is a small function that receives a `data.frame` and returns
+the rows that violate some condition. You wrap it in `new_flag_rule()` so the
+engine tracks its ID, severity, and ownership.
+
+```{r}
+rule_high_amount <- new_flag_rule(
+  id         = "HIGH_AMOUNT",
+  domain     = "orders",
+  severity   = "warning",
+  category   = "business_logic",
+  owner_team = "Finance",
+  fn = function(df) {
+    flagged <- df[!is.na(df$amount) & df$amount > 300, , drop = FALSE]
+    if (!nrow(flagged)) return(data.frame())
+    flagged[, c("order_id", "customer", "amount"), drop = FALSE]
+  }
+)
+
+flags_v1 <- run_flags(art_v1, list(rule_high_amount))
+flags_v2 <- run_flags(art_v2, list(rule_high_amount))
+```
+
+> `run_flags()` applies every rule to its target domain inside the artifact
+> and returns a single combined table of all flagged rows, annotated with
+> `RULE_ID`, `SEVERITY`, and `OWNER_TEAM`.
+
+```{r}
+flags_v1
+flags_v2
+```
+
+---
+
+## Step 5 — Track flags over time
+
+`diff_flags()` compares two flag tables and classifies each finding as
+**introduced** (new), **resolved** (gone), or **persisting** (still there).
+
+```{r}
+diff_flags(flags_v1, flags_v2, by = c("order_id", "DOMAIN", "RULE_ID"))
+```
+
+> Bob's high-amount flag was *resolved* (his row is gone). Dave's is
+> *introduced* (new row with amount > 300). This is how you track
+> data-quality trends across pipeline runs or data cuts.
+
+---
+
+## What's next?
+
+The core engine shown above works with **any** keyed tabular data.
+SDTM and ADaM checks are available as **bundled supplemental modules** —
+see the companion vignettes:
+ 
+- **SDTM Module** — snapshot and check SDTM domain tables
+- **ADaM Module** — validate ADSL, BDS, and explore the core rule catalog
+
+You can also build your own domain-specific rule packs for any schema by
+following the same `new_flag_rule()` + `run_flags()` pattern shown above.
