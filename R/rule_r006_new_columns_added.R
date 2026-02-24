@@ -1,4 +1,4 @@
-rule_r006_new_columns_added <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
+rule_r006_new_columns_added <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
   base_rule <- new_flag_rule(
     id = "R006_NEW_COLUMNS_ADDED",
     domain = domain,

@@ -1,4 +1,4 @@
-rule_r023_missingness_by_visit <- function(domain, visit_var = NULL, key_vars = character(), site_var = "SITEID", subject_var = "USUBJID", missingness_threshold = 0.1, owner_team = "DM", ...) {
+rule_r023_missingness_by_visit <- function(domain, visit_var = NULL, key_vars = character(), group_var = "SITEID", subject_var = "USUBJID", missingness_threshold = 0.1, owner_team = "DM", ...) {
 new_flag_rule(
       id         = "R023_MISSINGNESS_BY_VISIT",
       domain     = domain,
@@ -8,7 +8,7 @@ new_flag_rule(
       fn = function(df) {
         vv <- visit_var
         if (is.null(vv) || !(vv %in% names(df)) || !nrow(df)) return(data.frame())
-        check_vars <- setdiff(names(df), c(key_vars, site_var, subject_var, vv))
+        check_vars <- setdiff(names(df), c(key_vars, group_var, subject_var, vv))
         if (!length(check_vars)) return(data.frame())
         visits <- unique(df[[vv]])
         out <- list(); k <- 0L

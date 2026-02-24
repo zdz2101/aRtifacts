@@ -30,7 +30,7 @@ test_that("R021, R022 and R023 flag high missingness overall/by group", {
     domain = "X",
     key_vars = c("ID"),
     subject_var = "USUBJID",
-    site_var = "SITEID",
+    group_var = "SITEID",
     visit_var = "VISIT",
     missingness_threshold = 0.3
   )

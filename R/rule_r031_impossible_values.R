@@ -1,8 +1,4 @@
-rule_r031_impossible_values <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", value_ranges = list(), owner_team = "Biostats", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r031_impossible_values <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", value_ranges = list(), owner_team = "Biostats", ...) {
   if (length(value_ranges)) {
     new_flag_rule(
       id         = "R031_IMPOSSIBLE_VALUES",
@@ -19,7 +15,7 @@ rule_r031_impossible_values <- function(domain, key_vars, subject_var = "USUBJID
           bad    <- !is.na(vals) & (vals < bounds[1] | vals > bounds[2])
           if (!any(bad)) next
           k <- k + 1L
-          piece <- df[bad, .ctx(df, v), drop = FALSE]
+          piece <- df[bad, .select_context_columns(df, key_vars, subject_var, group_var, v), drop = FALSE]
           piece$VARIABLE  <- v
           piece$VALUE     <- vals[bad]
           piece$RANGE_MIN <- bounds[1]

@@ -1,8 +1,4 @@
-rule_r037_implausible_change <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", visit_order_var = NULL, max_within_change = list(), owner_team = "Biostats", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r037_implausible_change <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", visit_order_var = NULL, max_within_change = list(), owner_team = "Biostats", ...) {
   if (!is.null(visit_order_var) && length(max_within_change)) {
     new_flag_rule(
       id         = "R037_IMPLAUSIBLE_CHANGE",
@@ -30,7 +26,7 @@ rule_r037_implausible_change <- function(domain, key_vars, subject_var = "USUBJI
           }
           if (!length(bad_idx)) next
           k <- k + 1L
-          piece <- sorted[bad_idx, .ctx(sorted, c(v, visit_order_var)), drop = FALSE]
+          piece <- sorted[bad_idx, .select_context_columns(sorted, key_vars, subject_var, group_var, c(v, visit_order_var)), drop = FALSE]
           piece$VARIABLE  <- v
           piece$VALUE     <- suppressWarnings(as.numeric(sorted[[v]][bad_idx]))
           piece$THRESHOLD <- threshold

@@ -1,8 +1,4 @@
-rule_r014_end_without_start <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", start_end_pairs = list(), owner_team = "DM", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r014_end_without_start <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", start_end_pairs = list(), owner_team = "DM", ...) {
   if (length(start_end_pairs)) {
     new_flag_rule(
       id         = "R014_END_WITHOUT_START",
@@ -21,7 +17,7 @@ rule_r014_end_without_start <- function(domain, key_vars, subject_var = "USUBJID
           bad <- is.na(sd) & !is.na(ed)
           if (!any(bad)) next
           k <- k + 1L
-          piece <- df[bad, .ctx(df, c(s, e)), drop = FALSE]
+          piece <- df[bad, .select_context_columns(df, key_vars, subject_var, group_var, c(s, e)), drop = FALSE]
           piece$START_VAR <- s; piece$END_VAR <- e
           out[[k]] <- piece
         }

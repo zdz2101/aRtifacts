@@ -1,8 +1,4 @@
-rule_r047_seq_gaps <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", seq_vars = character(), owner_team = "Standards", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r047_seq_gaps <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", seq_vars = character(), owner_team = "Standards", ...) {
   if (length(seq_vars)) {
     new_flag_rule(
       id         = "R047_SEQ_GAPS",
@@ -27,7 +23,7 @@ rule_r047_seq_gaps <- function(domain, key_vars, subject_var = "USUBJID", site_v
             has_gap <- any(diff(seqs) > 1L)
             if (!has_dup && !has_gap) next
             k <- k + 1L
-            piece <- df[idx, .ctx(df, sv), drop = FALSE]
+            piece <- df[idx, .select_context_columns(df, key_vars, subject_var, group_var, sv), drop = FALSE]
             piece$SEQ_VAR <- sv
             piece$ISSUE   <- if (has_dup) "Duplicate sequence" else "Gap in sequence"
             out[[k]] <- piece

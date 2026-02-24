@@ -1,8 +1,4 @@
-rule_r015_time_without_date <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", time_date_pairs = list(), owner_team = "DM", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r015_time_without_date <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", time_date_pairs = list(), owner_team = "DM", ...) {
   if (length(time_date_pairs)) {
     new_flag_rule(
       id         = "R015_TIME_WITHOUT_DATE",
@@ -21,7 +17,7 @@ rule_r015_time_without_date <- function(domain, key_vars, subject_var = "USUBJID
           bad <- t_present & d_missing
           if (!any(bad)) next
           k <- k + 1L
-          piece <- df[bad, .ctx(df, c(tv, dv)), drop = FALSE]
+          piece <- df[bad, .select_context_columns(df, key_vars, subject_var, group_var, c(tv, dv)), drop = FALSE]
           piece$TIME_VAR <- tv; piece$DATE_VAR <- dv
           out[[k]] <- piece
         }

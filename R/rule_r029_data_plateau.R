@@ -1,4 +1,4 @@
-rule_r029_data_plateau <- function(domain, key_vars, required_vars = character(), subject_var = "USUBJID", site_var = "SITEID", visit_var = NULL, baseline_flag_var = NULL, missingness_threshold = 0.1, owner_team = "DM", ...) {
+rule_r029_data_plateau <- function(domain, key_vars, required_vars = character(), subject_var = "USUBJID", group_var = "SITEID", visit_var = NULL, baseline_flag_var = NULL, missingness_threshold = 0.1, owner_team = "DM", ...) {
   list(
     id = "R029_DATA_PLATEAU",
     domain = domain,

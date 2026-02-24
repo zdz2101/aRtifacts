@@ -1,8 +1,4 @@
-rule_r040_impossible_combos <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", impossible_combos = list(), owner_team = "Standards", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r040_impossible_combos <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", impossible_combos = list(), owner_team = "Standards", ...) {
   if (length(impossible_combos)) {
     new_flag_rule(
       id         = "R040_IMPOSSIBLE_COMBOS",
@@ -23,7 +19,7 @@ rule_r040_impossible_combos <- function(domain, key_vars, subject_var = "USUBJID
           }
           if (!any(bad, na.rm = TRUE)) next
           k <- k + 1L
-          piece <- df[which(bad), .ctx(df, vars), drop = FALSE]
+          piece <- df[which(bad), .select_context_columns(df, key_vars, subject_var, group_var, vars), drop = FALSE]
           piece$COMBO <- paste(paste(vars, combo, sep = "="), collapse = " & ")
           out[[k]] <- piece
         }

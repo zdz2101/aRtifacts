@@ -1,4 +1,4 @@
-rule_r003_key_type_drift <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
+rule_r003_key_type_drift <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", dup_rate_threshold = 0.1, owner_team = "DM", ...) {
   base_rule <- new_flag_rule(
     id = "R003_KEY_TYPE_DRIFT",
     domain = domain,

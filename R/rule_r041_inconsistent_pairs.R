@@ -1,8 +1,4 @@
-rule_r041_inconsistent_pairs <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", inconsistent_pairs = list(), owner_team = "Standards", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r041_inconsistent_pairs <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", inconsistent_pairs = list(), owner_team = "Standards", ...) {
   if (length(inconsistent_pairs)) {
     new_flag_rule(
       id         = "R041_INCONSISTENT_PAIRS",
@@ -23,7 +19,7 @@ rule_r041_inconsistent_pairs <- function(domain, key_vars, subject_var = "USUBJI
           }
           if (!any(bad, na.rm = TRUE)) next
           k <- k + 1L
-          piece <- df[which(bad), .ctx(df, vars), drop = FALSE]
+          piece <- df[which(bad), .select_context_columns(df, key_vars, subject_var, group_var, vars), drop = FALSE]
           piece$INCONSISTENCY <- paste(paste(vars, pair, sep = "="), collapse = " & ")
           out[[k]] <- piece
         }

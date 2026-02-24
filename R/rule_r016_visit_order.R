@@ -1,8 +1,4 @@
-rule_r016_visit_order <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", visit_order_var = NULL, owner_team = "DM", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r016_visit_order <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", visit_order_var = NULL, owner_team = "DM", ...) {
   if (!is.null(visit_order_var)) {
     new_flag_rule(
       id         = "R016_VISIT_ORDER",
@@ -26,7 +22,7 @@ rule_r016_visit_order <- function(domain, key_vars, subject_var = "USUBJID", sit
           }
         }
         if (!length(bad_idx)) return(data.frame())
-        df[bad_idx, .ctx(df, visit_order_var), drop = FALSE]
+        df[bad_idx, .select_context_columns(df, key_vars, subject_var, group_var, visit_order_var), drop = FALSE]
       }
     )
   }

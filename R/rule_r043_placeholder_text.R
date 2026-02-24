@@ -1,8 +1,4 @@
-rule_r043_placeholder_text <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", placeholder_patterns = NULL, owner_team = "Standards", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r043_placeholder_text <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", placeholder_patterns = NULL, owner_team = "Standards", ...) {
   if (is.null(placeholder_patterns)) {
     placeholder_patterns <- c(
       "^N/?A$", "^TBD$", "^TBC$", "^UNK(NOWN)?$", "^MISSING$",
@@ -30,7 +26,7 @@ rule_r043_placeholder_text <- function(domain, key_vars, subject_var = "USUBJID"
         )
         if (!any(bad)) next
         k <- k + 1L
-        piece <- df[bad, .ctx(df, v), drop = FALSE]
+        piece <- df[bad, .select_context_columns(df, key_vars, subject_var, group_var, v), drop = FALSE]
         piece$VARIABLE    <- v
         piece$BAD_VALUE   <- vals[bad]
         out[[k]] <- piece

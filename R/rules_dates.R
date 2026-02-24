@@ -27,7 +27,7 @@
 #' @param domain Domain name targeted by the rules.
 #' @param key_vars Character vector of key variables.
 #' @param subject_var Subject identifier variable. Default `"USUBJID"`.
-#' @param site_var Site identifier variable. Default `"SITEID"`.
+#' @param group_var Group identifier variable. Default `"SITEID"`.
 #' @param start_end_pairs List of two-element character vectors naming a
 #'   start/end date pair, e.g. `list(c("AESTDTC", "AEENDTC"))`.
 #' @param date_vars Character vector of variables expected to hold full
@@ -60,7 +60,7 @@
 make_rule_pack_dates <- function(domain,
                                  key_vars,
                                  subject_var     = "USUBJID",
-                                 site_var        = "SITEID",
+                                 group_var        = "SITEID",
                                  start_end_pairs = list(),
                                  date_vars       = character(),
                                  time_date_pairs = list(),
@@ -71,16 +71,16 @@ make_rule_pack_dates <- function(domain,
                                  owner_team      = "DM",
                                  ...) {
   rules <- list(
-    R011 = rule_r011_start_after_end(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R012 = rule_r012_date_outside_study(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R013 = rule_r013_date_format(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R014 = rule_r014_end_without_start(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R015 = rule_r015_time_without_date(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R016 = rule_r016_visit_order(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R017 = rule_r017_identical_timestamps(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R018 = rule_r018_future_dated(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R019 = rule_r019_scheduled_gap(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
-    R020 = rule_r020_timezone_inconsistency(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...)
+    R011 = rule_r011_start_after_end(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R012 = rule_r012_date_outside_study(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R013 = rule_r013_date_format(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R014 = rule_r014_end_without_start(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R015 = rule_r015_time_without_date(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R016 = rule_r016_visit_order(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R017 = rule_r017_identical_timestamps(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R018 = rule_r018_future_dated(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R019 = rule_r019_scheduled_gap(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...),
+    R020 = rule_r020_timezone_inconsistency(domain = domain, key_vars = key_vars, subject_var = subject_var, group_var = group_var, start_end_pairs = start_end_pairs, date_vars = date_vars, time_date_pairs = time_date_pairs, visit_order_var = visit_order_var, study_start = study_start, study_end = study_end, cutoff_date = cutoff_date, owner_team = owner_team, ...)
   )
 
   Filter(Negate(is.null), rules)

@@ -1,7 +1,4 @@
-rule_r001_key_missing <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", owner_team = "DM", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
+rule_r001_key_missing <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", owner_team = "DM", ...) {
 new_flag_rule(
       id         = "R001_KEY_MISSING",
       domain     = domain,
@@ -16,7 +13,7 @@ new_flag_rule(
             df[, present, drop = FALSE] == ""
         ) > 0
         if (!any(miss)) return(data.frame())
-        df[miss, .ctx(df), drop = FALSE]
+        df[miss, .select_context_columns(df, key_vars, subject_var, group_var), drop = FALSE]
       }
     )
 }

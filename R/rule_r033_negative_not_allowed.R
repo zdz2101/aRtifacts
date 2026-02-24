@@ -1,8 +1,4 @@
-rule_r033_negative_not_allowed <- function(domain, key_vars, subject_var = "USUBJID", site_var = "SITEID", non_negative_vars = character(), owner_team = "Biostats", ...) {
-  .ctx <- function(df, extra = character()) {
-    intersect(c(key_vars, subject_var, site_var, extra), names(df))
-  }
-
+rule_r033_negative_not_allowed <- function(domain, key_vars, subject_var = "USUBJID", group_var = "SITEID", non_negative_vars = character(), owner_team = "Biostats", ...) {
   if (length(non_negative_vars)) {
     new_flag_rule(
       id         = "R033_NEGATIVE_NOT_ALLOWED",
@@ -18,7 +14,7 @@ rule_r033_negative_not_allowed <- function(domain, key_vars, subject_var = "USUB
           bad  <- !is.na(vals) & vals < 0
           if (!any(bad)) next
           k <- k + 1L
-          piece <- df[bad, .ctx(df, v), drop = FALSE]
+          piece <- df[bad, .select_context_columns(df, key_vars, subject_var, group_var, v), drop = FALSE]
           piece$VARIABLE <- v
           piece$VALUE    <- vals[bad]
           out[[k]] <- piece

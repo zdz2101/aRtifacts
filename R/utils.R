@@ -59,6 +59,11 @@
   lr_ok && rl_ok
 }
 
+.select_context_columns <- function(df, key_vars, subject_var = NULL, group_var = NULL, extra = character()) {
+  cols <- unique(c(key_vars, subject_var, group_var, extra))
+  intersect(cols, names(df))
+}
+
 # S7 registers class names with a package-namespace prefix when installed
 # (e.g. "aRtifacts::DomainSnapshot"), so base-R inherits(x, "DomainSnapshot")
 # always returns FALSE outside devtools::load_all(). Use S7::S7_inherits()
