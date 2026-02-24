@@ -40,10 +40,10 @@ Imagine companion packages tuned to an entire therapeutic area:
 | `aRtifacts.neuro` | Cognitive-scale scoring | ADAS-Cog item-to-total reconciliation, MMSE floor/ceiling detection |
 | `aRtifacts.RWE` | Claims, EHR, registries | ICD-10 code validity, enrollment-gap detection, index-date anchoring |
 
-Each extension is just a collection of `FlagRule` objects and optional
+Each extension is just a collection of `CoreRule` objects and optional
 convenience checkers — exactly the same pattern used by `check_adsl()` and
 `check_bds()` today.
-Because `FlagRule` is an S7 class with a pure-function predicate, packaging
+Because `CoreRule` is an S7 class with a pure-function evaluator, packaging
 new rules is as simple as writing functions that return `TRUE` / `FALSE` per
 row or per domain.
 
@@ -203,7 +203,7 @@ you have keyed tabular data and care about quality over time:
 - **Survey / Social science** — Track questionnaire data across collection
   waves; detect impossible transitions (e.g., age decreasing).
 
-The companion-package pattern is identical: define `FlagRule` objects that
+The companion-package pattern is identical: define `CoreRule` objects that
 speak the language of your domain, and the core engine handles the rest.
 
 ---
@@ -318,7 +318,7 @@ Putting it all together, the long-term picture looks like this:
 ```
 
 Every box in this diagram shares the same `DomainSnapshot` →
-`FlagRule` → `diff_flags()` pipeline.
+`CoreRule` → `run_rules()` → `diff_flags()` pipeline.
 The only difference is **which rules** you load and **where R runs**.
 
 ---
@@ -336,7 +336,7 @@ Whether you want to:
 the architecture is designed to make your contribution self-contained and
 composable.
 
-> **Start small:** write one `FlagRule`, wrap it in a test, submit a PR.
+> **Start small:** write one `new_rule()` constructor, wrap it in a test, submit a PR.
 > That's the atomic unit of contribution — and it's all you need to make
 > the ecosystem a little better.
 

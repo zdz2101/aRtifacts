@@ -166,6 +166,20 @@ flags_v1
 flags_v2
 ```
 
+### Showcase — run bundled Core50 packs
+
+Beyond custom rules, you can run built-in bundles directly.
+
+```{r eval = FALSE}
+bundle_rules <- c(
+  pack_core_50_schema(domain = "orders"),
+  pack_core_50_a1(domain = "orders", key_vars = "order_id"),
+  pack_core_50_a2(domain = "orders", key_vars = "order_id")
+)
+
+bundle_flags <- run_rules(new_rule_context(current = art_v2), bundle_rules)
+```
+
 ---
 
 ## Step 5 — Track flags over time

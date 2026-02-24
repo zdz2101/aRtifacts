@@ -39,12 +39,12 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 
 ### Rule files
 - One rule constructor per file.
-- Naming pattern: `R/core50_rule_<axis>_<id>_<slug>.R`
-- Constructor naming pattern: `rule_<axis>_<id>_<slug>()`
+- Naming pattern: `R/rule_<family>_<id>_<slug>.R`
+- Constructor naming pattern: `rule_<family>_<id>_<slug>()`
 
 Examples:
-- `R/core50_rule_schema_001_required_columns_present.R`
-- `R/core50_rule_a3_grp_001_subject_visit_monotonicity.R`
+- `R/rule_sch_001_new_columns_added.R`
+- `R/rule_xdom_006_visit_mismatch_across_domains.R`
 
 ### Pack files
 - One file per topology pack: `R/core50_rules_<topology>.R`
@@ -55,12 +55,12 @@ Examples:
 ## Rule Design Contract
 
 Each rule constructor must return a `CoreRule` via `new_rule()` with:
-- stable `rule_id` and human-readable metadata,
+- stable `id` and human-readable metadata,
 - declared `topology`,
 - appropriate identity/match/delta specs when needed,
-- an `evaluate(context)` function that returns a standardized data frame.
+- an `fn` evaluator matching dispatcher input for the rule topology.
 
-The `evaluate()` implementation should be deterministic, side-effect free, and scoped to the declared topology.
+Rule evaluation should be deterministic, side-effect free, and scoped to the declared topology.
 
 ## Development Workflow
 
@@ -76,7 +76,10 @@ Core tests live in `tests/testthat/` and should focus on:
 - class constructors and validation,
 - execution dispatch behavior (`run_rules()`),
 - pack coverage and catalog alignment,
-- representative topology behavior.
+- representative topology behavior,
+- one-file-per-rule tests in `test-rule_*.R` with minimal inline fixtures.
+
+Prefer direct `new_domain_snapshot()` / `new_artifact_snapshot()` setup in each rule test. Use synthetic keys (for example, `.ROWID`) only when needed to allow intentional business-key violations.
 
 Use minimal fixtures and explicit expectations. Avoid coupling tests to transient ordering unless ordering is part of the contract.
 

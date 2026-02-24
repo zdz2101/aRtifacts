@@ -160,6 +160,32 @@ flags
 > Typical IDs you will see for this example include date and value checks
 > such as `TMP-001` and `DE-002`.
 
+### Showcase — SDTM-oriented bundle mix
+
+For richer coverage, combine multiple built-in bundles in one run.
+
+```{r eval = FALSE}
+sdtm_rules <- c(
+  pack_core_50_schema(domain = "LB"),
+  pack_core_50_a1(
+    domain = "LB",
+    key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
+    date_var = "LBDTC",
+    numeric_var = "LBSTRESN",
+    numeric_min = 0,
+    numeric_max = 1000
+  ),
+  pack_core_50_a2(
+    domain = "LB",
+    key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
+    site_var = "SITEID",
+    subject_var = "USUBJID"
+  )
+)
+
+sdtm_flags <- run_rules(new_rule_context(current = art), sdtm_rules)
+```
+
 ---
 
 ## Step 5 — Run rules as executable Core50 packs

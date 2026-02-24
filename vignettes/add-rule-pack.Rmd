@@ -15,7 +15,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 
 `aRtifacts` ships with a core catalog and module builders, but most teams also
 need project- or organization-specific checks. A **rule pack** is just a
-function that returns a list of `FlagRule` objects.
+function that returns a list of `CoreRule` objects.
 
 This vignette shows a practical pattern you can copy:
 
@@ -152,7 +152,7 @@ The output contains your flagged rows plus standardized metadata:
 - `RULE_ID`
 - `DOMAIN`
 - `SEVERITY`
-- `CATEGORY`
+- `INTENT`
 - `OWNER_TEAM`
 
 ---
@@ -212,6 +212,38 @@ For real projects, move your pack constructor into package code:
 
 A useful pattern is to keep IDs stable and add new IDs instead of changing
 what an existing ID means.
+
+---
+
+## Step 6 — Showcase bundle composition
+
+You can combine built-in Core50 packs with your custom pack in one run.
+
+```{r eval = FALSE}
+core_rules <- c(
+  pack_core_50_schema(domain = "LB"),
+  pack_core_50_a1(
+    domain = "LB",
+    key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
+    date_var = "LBDTC",
+    numeric_var = "LBSTRESN",
+    numeric_min = 0,
+    numeric_max = 1000
+  ),
+  pack_core_50_a2(
+    domain = "LB",
+    key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
+    site_var = "SITEID",
+    subject_var = "USUBJID"
+  )
+)
+
+all_rules <- c(core_rules, make_rule_pack_lab_custom(domain = "LB"))
+flags <- run_rules(new_rule_context(current = art_v2), all_rules)
+```
+
+This gives one consolidated findings table while keeping stable rule IDs
+and ownership metadata across bundles.
 
 ---
 

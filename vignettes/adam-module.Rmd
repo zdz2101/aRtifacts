@@ -191,6 +191,32 @@ run_rules(ctx, list(rule_high_bp))
 > The flag identifies subject 002 at WEEK 4 with a systolic BP of 195.
 > The `OWNER_TEAM` column tells you who should investigate.
 
+### Showcase — ADaM bundle composition
+
+You can mix A1/A2 row- and group-level bundles for ADVS-style checks.
+
+```{r eval = FALSE}
+adam_rules <- c(
+  pack_core_50_a1(
+    domain = "ADVS",
+    key_vars = c("USUBJID", "PARAMCD", "AVISIT"),
+    date_var = "ADT",
+    numeric_var = "AVAL",
+    numeric_min = 0,
+    numeric_max = 400
+  ),
+  pack_core_50_a2(
+    domain = "ADVS",
+    key_vars = c("USUBJID", "PARAMCD", "AVISIT"),
+    site_var = "SITEID",
+    subject_var = "USUBJID",
+    skew_value_var = "AVAL"
+  )
+)
+
+adam_flags <- run_rules(new_rule_context(current = art_v2), adam_rules)
+```
+
 ### Confirm ADaMIG conformance
 
 ```{r}
