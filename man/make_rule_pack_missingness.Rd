@@ -9,7 +9,7 @@ make_rule_pack_missingness(
   key_vars,
   required_vars = character(),
   subject_var = "USUBJID",
-  site_var = "SITEID",
+  group_var = "SITEID",
   visit_var = NULL,
   baseline_flag_var = NULL,
   missingness_threshold = 0.1,
@@ -27,7 +27,7 @@ and non-missing in every record (R024).}
 
 \item{subject_var}{Subject identifier variable. Default \code{"USUBJID"}.}
 
-\item{site_var}{Site identifier variable. Default \code{"SITEID"}.}
+\item{group_var}{Group identifier variable. Default \code{"SITEID"}.}
 
 \item{visit_var}{Optional variable that identifies visit or timepoint
 (used by R023).}

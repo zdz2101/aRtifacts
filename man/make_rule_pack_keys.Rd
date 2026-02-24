@@ -8,7 +8,7 @@ make_rule_pack_keys(
   domain,
   key_vars,
   subject_var = "USUBJID",
-  site_var = "SITEID",
+  group_var = "SITEID",
   dup_rate_threshold = 0.1,
   owner_team = "DM",
   ...
@@ -21,7 +21,7 @@ make_rule_pack_keys(
 
 \item{subject_var}{Subject identifier variable. Default \code{"USUBJID"}.}
 
-\item{site_var}{Site identifier variable. Default \code{"SITEID"}.}
+\item{group_var}{Group identifier variable. Default \code{"SITEID"}.}
 
 \item{dup_rate_threshold}{Numeric [0, 1]. Sites or subjects with a
 duplicate-key rate above this threshold are flagged. Default \code{0.1}.}

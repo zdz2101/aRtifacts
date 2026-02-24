@@ -8,7 +8,7 @@ make_rule_pack_plausibility(
   domain,
   key_vars,
   subject_var = "USUBJID",
-  site_var = "SITEID",
+  group_var = "SITEID",
   numeric_vars = character(),
   non_negative_vars = character(),
   value_ranges = list(),
@@ -29,7 +29,7 @@ make_rule_pack_plausibility(
 
 \item{subject_var}{Subject identifier variable. Default \code{"USUBJID"}.}
 
-\item{site_var}{Site identifier variable. Default \code{"SITEID"}.}
+\item{group_var}{Group identifier variable. Default \code{"SITEID"}.}
 
 \item{numeric_vars}{Character vector of numeric variables to include in
 the statistical checks (R034, R035, R037, R038, R039).}

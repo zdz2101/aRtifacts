@@ -8,7 +8,7 @@ make_rule_pack_dates(
   domain,
   key_vars,
   subject_var = "USUBJID",
-  site_var = "SITEID",
+  group_var = "SITEID",
   start_end_pairs = list(),
   date_vars = character(),
   time_date_pairs = list(),
@@ -27,7 +27,7 @@ make_rule_pack_dates(
 
 \item{subject_var}{Subject identifier variable. Default \code{"USUBJID"}.}
 
-\item{site_var}{Site identifier variable. Default \code{"SITEID"}.}
+\item{group_var}{Group identifier variable. Default \code{"SITEID"}.}
 
 \item{start_end_pairs}{List of two-element character vectors naming a
 start/end date pair, e.g. \code{list(c("AESTDTC", "AEENDTC"))}.}

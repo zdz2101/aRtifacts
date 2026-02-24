@@ -8,7 +8,7 @@ make_rule_pack_consistency(
   domain,
   key_vars,
   subject_var = "USUBJID",
-  site_var = "SITEID",
+  group_var = "SITEID",
   impossible_combos = list(),
   inconsistent_pairs = list(),
   categorical_vars = character(),
@@ -27,7 +27,7 @@ make_rule_pack_consistency(
 
 \item{subject_var}{Subject identifier variable. Default \code{"USUBJID"}.}
 
-\item{site_var}{Site identifier variable. Default \code{"SITEID"}.}
+\item{group_var}{Group identifier variable. Default \code{"SITEID"}.}
 
 \item{impossible_combos}{List of named character vectors that define
 forbidden combinations. Each element should be a named vector where
