@@ -2,12 +2,10 @@ pandoc: 3.6.3
 pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
-  adam-module: adam-module.html
   add-rule-pack: add-rule-pack.html
   future-extensions: future-extensions.html
   getting-started: getting-started.html
-  sdtm-module: sdtm-module.html
-last_built: 2026-02-24T05:43Z
+last_built: 2026-02-24T21:49Z
 urls:
   reference: https://zdz2101.github.io/aRtifacts/reference
   article: https://zdz2101.github.io/aRtifacts/articles

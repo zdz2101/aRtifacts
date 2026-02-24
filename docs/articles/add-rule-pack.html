@@ -73,7 +73,7 @@
 <p><code>aRtifacts</code> ships with a core catalog and module builders,
 but most teams also need project- or organization-specific checks. A
 <strong>rule pack</strong> is just a function that returns a list of
-<code>FlagRule</code> objects.</p>
+<code>CoreRule</code> objects.</p>
 <p>This vignette shows a practical pattern you can copy:</p>
 <ol style="list-style-type: decimal">
 <li>Write a pack constructor.</li>
@@ -86,7 +86,7 @@ but most teams also need project- or organization-specific checks. A
 <h2 id="step-1-start-from-a-target-domain">Step 1 — Start from a target domain<a class="anchor" aria-label="anchor" href="#step-1-start-from-a-target-domain"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">aRtifacts</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">lb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/example_sdtm_lb.html">example_sdtm_lb</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lb</span><span class="op">)</span></span>
@@ -113,7 +113,7 @@ but most teams also need project- or organization-specific checks. A
 <ul>
 <li>accept configuration (<code>domain</code>, thresholds,
 ownership),</li>
-<li>create one or more <code>new_flag_rule(...)</code> objects,</li>
+<li>create one or more <code>new_rule(...)</code> objects,</li>
 <li>return a plain list of those rules.</li>
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -124,61 +124,70 @@ ownership),</li>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span></span>
 <span>    <span class="co"># Rule 1: Hemoglobin plausibility window</span></span>
-<span>    <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
 <span>      id <span class="op">=</span> <span class="st">"LAB001_HGB_OUT_OF_RANGE"</span>,</span>
+<span>      title <span class="op">=</span> <span class="st">"Hemoglobin out of range"</span>,</span>
+<span>      topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>      scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>      intent <span class="op">=</span> <span class="st">"clinical_review"</span>,</span>
 <span>      domain <span class="op">=</span> <span class="va">domain</span>,</span>
 <span>      severity <span class="op">=</span> <span class="st">"warning"</span>,</span>
-<span>      category <span class="op">=</span> <span class="st">"clinical_review"</span>,</span>
 <span>      owner_team <span class="op">=</span> <span class="va">owner_team</span>,</span>
-<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">needed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBSTRESN"</span><span class="op">)</span></span>
-<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">testcd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBTESTCD</span><span class="op">)</span></span>
-<span>        <span class="va">value</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBSTRESN</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">testcd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBTESTCD</span><span class="op">)</span></span>
+<span>        <span class="va">value</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/warning.html" class="external-link">suppressWarnings</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBSTRESN</span><span class="op">)</span><span class="op">)</span></span>
 <span>        <span class="va">bad</span> <span class="op">&lt;-</span> <span class="va">testcd</span> <span class="op">==</span> <span class="st">"HGB"</span> <span class="op">&amp;</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span> <span class="op">&amp;</span> <span class="op">(</span><span class="va">value</span> <span class="op">&lt;</span> <span class="va">hgb_min</span> <span class="op">|</span> <span class="va">value</span> <span class="op">&gt;</span> <span class="va">hgb_max</span><span class="op">)</span></span>
 <span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">bad</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">df</span><span class="op">[</span><span class="va">bad</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBSTRESN"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>        <span class="va">data</span><span class="op">[</span><span class="va">bad</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBSTRESN"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>      <span class="op">}</span></span>
 <span>    <span class="op">)</span>,</span>
 <span></span>
 <span>    <span class="co"># Rule 2: Result unit should be present when result is present</span></span>
-<span>    <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
 <span>      id <span class="op">=</span> <span class="st">"LAB002_RESULT_WITHOUT_UNIT"</span>,</span>
+<span>      title <span class="op">=</span> <span class="st">"Result present without unit"</span>,</span>
+<span>      topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>      scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>      intent <span class="op">=</span> <span class="st">"data_entry"</span>,</span>
 <span>      domain <span class="op">=</span> <span class="va">domain</span>,</span>
 <span>      severity <span class="op">=</span> <span class="st">"error"</span>,</span>
-<span>      category <span class="op">=</span> <span class="st">"data_entry"</span>,</span>
 <span>      owner_team <span class="op">=</span> <span class="va">owner_team</span>,</span>
-<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">needed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBORRES"</span>, <span class="st">"LBORRESU"</span><span class="op">)</span></span>
-<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">result_present</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBORRES</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBORRES</span><span class="op">)</span><span class="op">)</span></span>
-<span>        <span class="va">unit_missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBORRESU</span><span class="op">)</span> <span class="op">|</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">LBORRESU</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">result_present</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBORRES</span><span class="op">)</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBORRES</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="va">unit_missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBORRESU</span><span class="op">)</span> <span class="op">|</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">LBORRESU</span><span class="op">)</span><span class="op">)</span></span>
 <span>        <span class="va">bad</span> <span class="op">&lt;-</span> <span class="va">result_present</span> <span class="op">&amp;</span> <span class="va">unit_missing</span></span>
 <span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">bad</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">df</span><span class="op">[</span><span class="va">bad</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBORRES"</span>, <span class="st">"LBORRESU"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>        <span class="va">data</span><span class="op">[</span><span class="va">bad</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBORRES"</span>, <span class="st">"LBORRESU"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>      <span class="op">}</span></span>
 <span>    <span class="op">)</span>,</span>
 <span></span>
 <span>    <span class="co"># Rule 3: Duplicate test on same date for same subject</span></span>
-<span>    <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
 <span>      id <span class="op">=</span> <span class="st">"LAB003_DUP_SUBJECT_TEST_DATE"</span>,</span>
+<span>      title <span class="op">=</span> <span class="st">"Duplicate subject/test/date"</span>,</span>
+<span>      topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>      scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>      intent <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
 <span>      domain <span class="op">=</span> <span class="va">domain</span>,</span>
 <span>      severity <span class="op">=</span> <span class="st">"warning"</span>,</span>
-<span>      category <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
 <span>      owner_team <span class="op">=</span> <span class="va">owner_team</span>,</span>
-<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
 <span>        <span class="va">needed</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"LBTESTCD"</span>, <span class="st">"LBDTC"</span><span class="op">)</span></span>
-<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">needed</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">keys</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">[</span>, <span class="va">needed</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>        <span class="va">keys</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span>, <span class="va">needed</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>        <span class="va">dup</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">duplicated</a></span><span class="op">(</span><span class="va">keys</span><span class="op">)</span> <span class="op">|</span> <span class="fu"><a href="https://rdrr.io/r/base/duplicated.html" class="external-link">duplicated</a></span><span class="op">(</span><span class="va">keys</span>, fromLast <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span>        <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/any.html" class="external-link">any</a></span><span class="op">(</span><span class="va">dup</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span>        <span class="va">df</span><span class="op">[</span><span class="va">dup</span>, <span class="va">needed</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>        <span class="va">data</span><span class="op">[</span><span class="va">dup</span>, <span class="va">needed</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>      <span class="op">}</span></span>
 <span>    <span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
@@ -202,18 +211,19 @@ ownership),</li>
 <span></span>
 <span><span class="va">custom_rules</span> <span class="op">&lt;-</span> <span class="fu">make_rule_pack_lab_custom</span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"LB"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">art</span>, <span class="va">custom_rules</span><span class="op">)</span></span>
+<span><span class="va">ctx_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art</span><span class="op">)</span></span>
+<span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v1</span>, <span class="va">custom_rules</span><span class="op">)</span></span>
 <span><span class="va">flags_v1</span></span>
-<span><span class="co">#&gt;       USUBJID LBTESTCD LBSTRESN                 RULE_ID DOMAIN SEVERITY</span></span>
-<span><span class="co">#&gt; 3 STUDY01-002      HGB       -1 LAB001_HGB_OUT_OF_RANGE     LB  warning</span></span>
-<span><span class="co">#&gt;          CATEGORY      OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 3 clinical_review Data Management</span></span></code></pre></div>
+<span><span class="co">#&gt;       USUBJID LBTESTCD LBSTRESN                 RULE_ID              RULE_TITLE</span></span>
+<span><span class="co">#&gt; 3 STUDY01-002      HGB       -1 LAB001_HGB_OUT_OF_RANGE Hemoglobin out of range</span></span>
+<span><span class="co">#&gt;   TOPOLOGY  SCOPE          INTENT SEVERITY      OWNER_TEAM</span></span>
+<span><span class="co">#&gt; 3       A1 record clinical_review  warning Data Management</span></span></code></pre></div>
 <p>The output contains your flagged rows plus standardized metadata:</p>
 <ul>
 <li><code>RULE_ID</code></li>
 <li><code>DOMAIN</code></li>
 <li><code>SEVERITY</code></li>
-<li><code>CATEGORY</code></li>
+<li><code>INTENT</code></li>
 <li><code>OWNER_TEAM</code></li>
 </ul>
 <hr>
@@ -243,31 +253,44 @@ introduced issue.</p>
 <span>  build_id <span class="op">=</span> <span class="st">"cut-002"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">art_v2</span>, <span class="va">custom_rules</span><span class="op">)</span></span>
+<span><span class="va">ctx_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
+<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v2</span>, <span class="va">custom_rules</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">flag_changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/diff_flags.html">diff_flags</a></span><span class="op">(</span></span>
+<span><span class="va">compare_flag_states</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">ensure_key_cols</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>, <span class="va">cols</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">df</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>    <span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">cols</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">col</span> <span class="kw">in</span> <span class="va">missing</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">out</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA_character_</span></span>
+<span>    <span class="op">}</span></span>
+<span>    <span class="va">out</span><span class="op">[</span>, <span class="va">cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>  <span class="op">}</span></span>
+<span></span>
+<span>  <span class="va">old_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">new_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">old_key</span><span class="op">$</span><span class="va">.present_old</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span>  <span class="va">new_key</span><span class="op">$</span><span class="va">.present_new</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span></span>
+<span>  <span class="va">merged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">old_key</span>, <span class="va">new_key</span>, by <span class="op">=</span> <span class="va">by</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="va">merged</span><span class="op">$</span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_old</span><span class="op">)</span>,</span>
+<span>    <span class="st">"introduced"</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_new</span><span class="op">)</span>, <span class="st">"resolved"</span>, <span class="st">"persisting"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">merged</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">by</span>, <span class="st">"status"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="va">flag_changes</span> <span class="op">&lt;-</span> <span class="fu">compare_flag_states</span><span class="op">(</span></span>
 <span>  old_flags <span class="op">=</span> <span class="va">flags_v1</span>,</span>
 <span>  new_flags <span class="op">=</span> <span class="va">flags_v2</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"DOMAIN"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">flag_changes</span></span>
-<span><span class="co">#&gt; $introduced</span></span>
-<span><span class="co">#&gt;       USUBJID LBTESTCD LBORRES LBORRESU                    RULE_ID DOMAIN</span></span>
-<span><span class="co">#&gt; 5 STUDY01-003      HGB    15.0          LAB002_RESULT_WITHOUT_UNIT     LB</span></span>
-<span><span class="co">#&gt;   SEVERITY   CATEGORY      OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 5    error data_entry Data Management</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $resolved</span></span>
-<span><span class="co">#&gt;       USUBJID LBTESTCD LBSTRESN                 RULE_ID DOMAIN SEVERITY</span></span>
-<span><span class="co">#&gt; 3 STUDY01-002      HGB       -1 LAB001_HGB_OUT_OF_RANGE     LB  warning</span></span>
-<span><span class="co">#&gt;          CATEGORY      OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 3 clinical_review Data Management</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $persisting</span></span>
-<span><span class="co">#&gt; [1] USUBJID    LBTESTCD   LBORRES    LBORRESU   RULE_ID    DOMAIN     SEVERITY  </span></span>
-<span><span class="co">#&gt; [8] CATEGORY   OWNER_TEAM</span></span>
-<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span></code></pre></div>
+<span><span class="co">#&gt;       USUBJID DOMAIN                    RULE_ID     status</span></span>
+<span><span class="co">#&gt; 1 STUDY01-002   &lt;NA&gt;    LAB001_HGB_OUT_OF_RANGE   resolved</span></span>
+<span><span class="co">#&gt; 2 STUDY01-003   &lt;NA&gt; LAB002_RESULT_WITHOUT_UNIT introduced</span></span></code></pre></div>
 <p>This gives you longitudinal observability:</p>
 <ul>
 <li>
@@ -297,14 +320,44 @@ changing what an existing ID means.</p>
 <hr>
 </div>
 <div class="section level2">
+<h2 id="step-6-showcase-bundle-composition">Step 6 — Showcase bundle composition<a class="anchor" aria-label="anchor" href="#step-6-showcase-bundle-composition"></a>
+</h2>
+<p>You can combine built-in Core50 packs with your custom pack in one
+run.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">core_rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_schema.html">pack_core_50_schema</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"LB"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_a1.html">pack_core_50_a1</a></span><span class="op">(</span></span>
+<span>    domain <span class="op">=</span> <span class="st">"LB"</span>,</span>
+<span>    key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"LBSEQ"</span><span class="op">)</span>,</span>
+<span>    date_var <span class="op">=</span> <span class="st">"LBDTC"</span>,</span>
+<span>    numeric_var <span class="op">=</span> <span class="st">"LBSTRESN"</span>,</span>
+<span>    numeric_min <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>    numeric_max <span class="op">=</span> <span class="fl">1000</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_a2.html">pack_core_50_a2</a></span><span class="op">(</span></span>
+<span>    domain <span class="op">=</span> <span class="st">"LB"</span>,</span>
+<span>    key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"STUDYID"</span>, <span class="st">"USUBJID"</span>, <span class="st">"LBSEQ"</span><span class="op">)</span>,</span>
+<span>    site_var <span class="op">=</span> <span class="st">"SITEID"</span>,</span>
+<span>    subject_var <span class="op">=</span> <span class="st">"USUBJID"</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">all_rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">core_rules</span>, <span class="fu">make_rule_pack_lab_custom</span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"LB"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span>, <span class="va">all_rules</span><span class="op">)</span></span></code></pre></div>
+<p>This gives one consolidated findings table while keeping stable rule
+IDs and ownership metadata across bundles.</p>
+<hr>
+</div>
+<div class="section level2">
 <h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
 </h2>
 <ul>
-<li>Use <code><a href="../reference/make_rule_pack_core.html">make_rule_pack_core()</a></code> + your custom pack together:
-<code>all_rules &lt;- c(make_rule_pack_core(...), make_rule_pack_lab_custom(...))</code>
+<li>Use <code><a href="../reference/pack_core_50_a1.html">pack_core_50_a1()</a></code> + your custom pack together:
+<code>all_rules &lt;- c(pack_core_50_a1(...), make_rule_pack_lab_custom(...))</code>
 </li>
 <li>Split large custom packs into smaller module builders (similar to
-<code><a href="../reference/make_rule_pack_keys.html">make_rule_pack_keys()</a></code>, <code><a href="../reference/make_rule_pack_dates.html">make_rule_pack_dates()</a></code>,
+<code><a href="../reference/pack_core_50_a1.html">pack_core_50_a1()</a></code>, <code><a href="../reference/pack_core_50_a2.html">pack_core_50_a2()</a></code>,
 etc.).</li>
 <li>If your checks depend on a standard/metadata file, pass it as an
 explicit argument to the pack constructor.</li>

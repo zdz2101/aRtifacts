@@ -288,8 +288,8 @@ new_flag_rule <- function(id,
 
 #' Create a diff flag rule
 #'
-#' Convenience constructor for `DiffFlagRule` objects used by
-#' `run_diff_flags()`.
+#' Convenience constructor for `DiffFlagRule` objects used in custom
+#' snapshot-to-snapshot comparison workflows.
 #'
 #' @param id Rule identifier.
 #' @param domain Target domain name expected in both artifacts.

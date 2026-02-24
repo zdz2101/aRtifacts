@@ -93,17 +93,18 @@
 <td>Deterministically compare two snapshots — key additions/removals, cell-level value changes, and build metadata</td>
 </tr>
 <tr>
-<td><strong>Flag</strong></td>
-<td>Compose and execute data-quality rules (<code>FlagRule</code>) against any domain; the engine attaches rule metadata to every flagged row</td>
-</tr>
-<tr>
-<td><strong>Track</strong></td>
-<td>Classify flags across data cuts as <em>introduced</em>, <em>persisting</em>, or <em>resolved</em> using <code><a href="reference/diff_flags.html">diff_flags()</a></code>
+<td><strong>Rules</strong></td>
+<td>Compose and execute topology-aware data-quality rules (<code>CoreRule</code>) with <code><a href="reference/new_rule.html">new_rule()</a></code> and <code><a href="reference/run_rules.html">run_rules()</a></code>
 </td>
 </tr>
 <tr>
 <td><strong>Check</strong></td>
 <td>Run structural and temporal checks against the built-in 50-rule observability catalog, or against ADaM (ADSL / BDS) conventions</td>
+</tr>
+<tr>
+<td><strong>Core50</strong></td>
+<td>Execute topology-dispatched Core50 rules (<code>A0</code>-<code>A7</code>) with <code><a href="reference/run_rules.html">run_rules()</a></code>
+</td>
 </tr>
 </tbody>
 </table>
@@ -113,7 +114,7 @@
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">aRtifacts</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- 1. Snapshot two data cuts ---------------------------------------------------</span></span>
 <span><span class="va">snap_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span></span>
@@ -135,13 +136,29 @@
 <span><span class="co"># --- 3. Flag it ------------------------------------------------------------------</span></span>
 <span><span class="va">art_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ADVS <span class="op">=</span> <span class="va">snap_v2</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-2"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rule_high_bp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>  id     <span class="op">=</span> <span class="st">"HIGH_SYSBP"</span>,</span>
+<span><span class="va">rule_high_bp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="st">"TMP-900"</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"High systolic BP"</span>,</span>
+<span>  topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>  intent <span class="op">=</span> <span class="st">"clinical_review"</span>,</span>
 <span>  domain <span class="op">=</span> <span class="st">"ADVS"</span>,</span>
-<span>  fn     <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="va">df</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">AVAL</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">df</span><span class="op">$</span><span class="va">PARAMCD</span> <span class="op">==</span> <span class="st">"SYSBP"</span> <span class="op">&amp;</span> <span class="va">df</span><span class="op">$</span><span class="va">AVAL</span> <span class="op">&gt;</span> <span class="fl">180</span>, <span class="op">]</span></span>
+<span>  owner_team <span class="op">=</span> <span class="st">"Medical Monitor"</span>,</span>
+<span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">AVAL</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">PARAMCD</span> <span class="op">==</span> <span class="st">"SYSBP"</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">AVAL</span> <span class="op">&gt;</span> <span class="fl">180</span>, <span class="op">]</span></span>
+<span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">art_v2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_bp</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ctx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_bp</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># --- 3b. Core50 packaged path (A1 example) --------------------------------------</span></span>
+<span><span class="va">core_rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rule_id_001_missing_key_fields.html">rule_id_001_missing_key_fields</a></span><span class="op">(</span></span>
+<span>  domain <span class="op">=</span> <span class="st">"ADVS"</span>,</span>
+<span>  key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"PARAMCD"</span>, <span class="st">"AVISIT"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">core_rule</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># --- 4. Confirm ADaMIG conformance -----------------------------------------------</span></span>
 <span><span class="fu"><a href="reference/check_bds.html">check_bds</a></span><span class="op">(</span><span class="va">advs_v2</span><span class="op">)</span>   <span class="co"># returns empty issue table — dataset is still valid</span></span></code></pre></div>
@@ -178,9 +195,9 @@
 </tr>
 <tr>
 <td>
-<code>FlagRule</code> / <code><a href="reference/new_flag_rule.html">new_flag_rule()</a></code>
+<code>CoreRule</code> / <code><a href="reference/new_rule.html">new_rule()</a></code>
 </td>
-<td>Composable, executable data-quality rule</td>
+<td>Topology-aware Core50 rule definition (<code>A0</code>-<code>A7</code>)</td>
 </tr>
 <tr>
 <td><code><a href="reference/diff_keys.html">diff_keys()</a></code></td>
@@ -195,12 +212,9 @@
 <td>Build metadata comparison between two artifacts</td>
 </tr>
 <tr>
-<td><code><a href="reference/run_flags.html">run_flags()</a></code></td>
-<td>Execute a list of <code>FlagRule</code>s and collect flagged rows</td>
-</tr>
-<tr>
-<td><code><a href="reference/diff_flags.html">diff_flags()</a></code></td>
-<td>Longitudinal flag classification (introduced / persisting / resolved)</td>
+<td><code><a href="reference/run_rules.html">run_rules()</a></code></td>
+<td>Execute topology-dispatched <code>CoreRule</code>s with <code>RuleContext</code>
+</td>
 </tr>
 </tbody>
 </table>
@@ -223,12 +237,10 @@
 <td>Reference table of 50 high-ROI observability rules</td>
 </tr>
 <tr>
-<td><code><a href="reference/check_tabulation_domain.html">check_tabulation_domain()</a></code></td>
-<td>Structural / temporal checks mapped to catalog rules</td>
-</tr>
-<tr>
-<td><code><a href="reference/make_rule_pack_core.html">make_rule_pack_core()</a></code></td>
-<td>Build executable <code>FlagRule</code> objects from catalog rules</td>
+<td>
+<code><a href="reference/pack_core_50_a1.html">pack_core_50_a1()</a></code> … <code><a href="reference/pack_core_50_a7.html">pack_core_50_a7()</a></code>
+</td>
+<td>Build axis-based Core50 packs by topology</td>
 </tr>
 </tbody>
 </table>
@@ -287,12 +299,8 @@
 <td>End-to-end schema-agnostic walkthrough</td>
 </tr>
 <tr>
-<td><a href="vignettes/adam-module.Rmd">ADaM Module</a></td>
-<td>ADaMIG conformance checks for ADSL and BDS</td>
-</tr>
-<tr>
-<td><a href="vignettes/sdtm-module.Rmd">SDTM Module</a></td>
-<td>Generalized tabulation domain checks</td>
+<td><a href="vignettes/add-rule-pack.Rmd">Add a New Rule Pack</a></td>
+<td>Build, run, and track a custom rule pack across cuts</td>
 </tr>
 <tr>
 <td><a href="vignettes/future-extensions.Rmd">Future Extensions</a></td>

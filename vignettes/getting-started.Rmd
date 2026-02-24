@@ -184,11 +184,11 @@ bundle_flags <- run_rules(new_rule_context(current = art_v2), bundle_rules)
 
 ## Step 5 — Track flags over time
 
-`diff_flags()` compares two flag tables and classifies each finding as
+Compare two flag tables by key and classify each finding as
 **introduced** (new), **resolved** (gone), or **persisting** (still there).
 
 ```{r}
-diff_flags(flags_v1, flags_v2, by = c("order_id", "DOMAIN", "RULE_ID"))
+compare_flag_states(flags_v1, flags_v2, by = c("order_id", "DOMAIN", "RULE_ID"))
 ```
 
 > Bob's high-amount flag was *resolved* (his row is gone). Dave's is
@@ -200,11 +200,10 @@ diff_flags(flags_v1, flags_v2, by = c("order_id", "DOMAIN", "RULE_ID"))
 ## What's next?
 
 The core engine shown above works with **any** keyed tabular data.
-SDTM and ADaM checks are available as **bundled supplemental modules** —
-see the companion vignettes:
- 
-- **SDTM Module** — snapshot and check SDTM domain tables
-- **ADaM Module** — validate ADSL, BDS, and explore the core rule catalog
+From here:
 
-You can also build your own domain-specific rule packs for any schema by
-following the same `new_rule()` + `run_rules()` pattern shown above.
+- See **Add a New Rule Pack** for a practical custom-pack authoring pattern.
+- See **The Road Ahead** for extension architecture and ecosystem direction.
+
+You can also build domain-specific rule packs for any schema by following the
+same `new_rule()` + `run_rules()` pattern shown above.

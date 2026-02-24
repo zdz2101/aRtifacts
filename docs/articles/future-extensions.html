@@ -131,10 +131,10 @@ anchoring</td>
 </tr>
 </tbody>
 </table>
-<p>Each extension is just a collection of <code>FlagRule</code> objects
+<p>Each extension is just a collection of <code>CoreRule</code> objects
 and optional convenience checkers — exactly the same pattern used by
 <code><a href="../reference/check_adsl.html">check_adsl()</a></code> and <code><a href="../reference/check_bds.html">check_bds()</a></code> today. Because
-<code>FlagRule</code> is an S7 class with a pure-function predicate,
+<code>CoreRule</code> is an S7 class with a pure-function evaluator,
 packaging new rules is as simple as writing functions that return
 <code>TRUE</code> / <code>FALSE</code> per row or per domain.</p>
 <blockquote>
@@ -153,39 +153,44 @@ aRtifacts’ architecture maps naturally onto an RBQM workflow:</p>
 <div class="section level3">
 <h3 id="severity-tiers">Severity tiers<a class="anchor" aria-label="anchor" href="#severity-tiers"></a>
 </h3>
-<p>A <code>FlagRule</code> can carry a severity property —
+<p>A <code>CoreRule</code> can carry a severity property —
 <code>"critical"</code>, <code>"major"</code>, <code>"minor"</code> —
 allowing organizations to classify risks centrally and filter downstream
 reporting.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">high_risk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>  id          <span class="op">=</span> <span class="st">"RBQM-001"</span>,</span>
-<span>  description <span class="op">=</span> <span class="st">"Subject missing informed-consent date"</span>,</span>
-<span>  severity    <span class="op">=</span> <span class="st">"critical"</span>,</span>
-<span>  predicate   <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">row</span><span class="op">[[</span><span class="st">"RFICDTC"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">high_risk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="st">"RBQM-001"</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"Subject missing informed-consent date"</span>,</span>
+<span>  topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>  intent <span class="op">=</span> <span class="st">"clinical_review"</span>,</span>
+<span>  domain <span class="op">=</span> <span class="st">"DM"</span>,</span>
+<span>  severity <span class="op">=</span> <span class="st">"critical"</span>,</span>
+<span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="va">data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="st">"RFICDTC"</span><span class="op">]</span><span class="op">]</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="longitudinal-risk-scoring">Longitudinal risk scoring<a class="anchor" aria-label="anchor" href="#longitudinal-risk-scoring"></a>
 </h3>
-<p>Because <code><a href="../reference/diff_flags.html">diff_flags()</a></code> tracks <strong>which flags
-appeared, disappeared, or persisted</strong> between two builds, you get
-a ready-made time-series of risk signals per domain, per site, per
-study:</p>
+<p>Because you can compare <code><a href="../reference/run_rules.html">run_rules()</a></code> outputs between two
+builds and track <strong>which flags appeared, disappeared, or
+persisted</strong>, you get a ready-made time-series of risk signals per
+domain, per site, per study:</p>
 <pre><code>Build 12   →   Build 13
  critical: 3        critical: 1   ← 2 resolved
  major: 17          major: 19     ← 2 new, trend watch</code></pre>
-<p>A downstream dashboard can consume the <code><a href="../reference/diff_flags.html">diff_flags()</a></code>
-output directly — no ETL step required.</p>
+<p>A downstream dashboard can consume this flag-state delta output
+directly — no ETL step required.</p>
 </div>
 <div class="section level3">
 <h3 id="key-risk-indicators-kris">Key Risk Indicators (KRIs)<a class="anchor" aria-label="anchor" href="#key-risk-indicators-kris"></a>
 </h3>
-<p><code><a href="../reference/run_flags.html">run_flags()</a></code> output is a tidy data frame. Aggregating
+<p><code><a href="../reference/run_rules.html">run_rules()</a></code> output is a tidy data frame. Aggregating
 flag counts by site, country, or study yields KRIs that feed directly
 into RBQM central-monitoring displays:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">snapshot</span>, <span class="va">rules</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">ctx</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">snapshot</span><span class="op">)</span></span>
+<span><span class="va">flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="va">rules</span><span class="op">)</span></span>
 <span><span class="va">kri</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aggregate.html" class="external-link">aggregate</a></span><span class="op">(</span><span class="va">flag</span> <span class="op">~</span> <span class="va">site</span>, data <span class="op">=</span> <span class="va">flags</span>, FUN <span class="op">=</span> <span class="va">length</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><strong>The takeaway:</strong> aRtifacts doesn’t replace your RBQM
@@ -216,10 +221,14 @@ about these — but extension modules can enforce them rigorously:</p>
 <span></span>
 <span><span class="va">term_rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">org_terms</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">var</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">allowed</span> <span class="op">&lt;-</span> <span class="va">org_terms</span><span class="op">[[</span><span class="va">var</span><span class="op">]</span><span class="op">]</span></span>
-<span>  <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>    id          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"TERM-"</span>, <span class="va">var</span><span class="op">)</span>,</span>
-<span>    description <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">var</span>, <span class="st">"must be in org codelist"</span><span class="op">)</span>,</span>
-<span>    predicate   <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="va">row</span><span class="op">[[</span><span class="va">var</span><span class="op">]</span><span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">allowed</span></span>
+<span>  <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>    id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"TERM-"</span>, <span class="va">var</span><span class="op">)</span>,</span>
+<span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">var</span>, <span class="st">"must be in org codelist"</span><span class="op">)</span>,</span>
+<span>    topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>    scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>    intent <span class="op">=</span> <span class="st">"data_entry"</span>,</span>
+<span>    domain <span class="op">=</span> <span class="st">"DM"</span>,</span>
+<span>    fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="va">data</span><span class="op">[[</span><span class="va">var</span><span class="op">]</span><span class="op">]</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">allowed</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -227,12 +236,17 @@ about these — but extension modules can enforce them rigorously:</p>
 <h3 id="variable-naming-conventions">Variable-naming conventions<a class="anchor" aria-label="anchor" href="#variable-naming-conventions"></a>
 </h3>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">naming_rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>  id          <span class="op">=</span> <span class="st">"STYLE-001"</span>,</span>
-<span>  description <span class="op">=</span> <span class="st">"All variables must be uppercase, 8 chars max"</span>,</span>
-<span>  predicate   <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">row</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">row</span><span class="op">)</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">nms</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">nms</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="va">nms</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">8</span><span class="op">)</span></span>
+<code class="sourceCode R"><span> <span class="va">naming_rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="st">"STYLE-001"</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"All variables must be uppercase, 8 chars max"</span>,</span>
+<span>  topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>  intent <span class="op">=</span> <span class="st">"programming_etl"</span>,</span>
+<span>  domain <span class="op">=</span> <span class="st">"DM"</span>,</span>
+<span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">nms</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">nms</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">toupper</a></span><span class="op">(</span><span class="va">nms</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nchar</a></span><span class="op">(</span><span class="va">nms</span><span class="op">)</span> <span class="op">&lt;=</span> <span class="fl">8</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="va">data</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -242,15 +256,19 @@ about these — but extension modules can enforce them rigorously:</p>
 <p>For organizations that maintain a metadata repository (define.xml, a
 spec database, an internal data dictionary), rules can be
 <strong>generated programmatically</strong> from that repository — one
-<code>FlagRule</code> per variable, type-check, codelist, or
+<code>CoreRule</code> per variable, type-check, codelist, or
 cross-domain relationship:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Pseudocode: generate rules from a define.xml parse</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">var_def</span> <span class="kw">in</span> <span class="fu">parse_define_xml</span><span class="op">(</span><span class="st">"define2-0-0.xml"</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>    id          <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"DEF-"</span>, <span class="va">var_def</span><span class="op">$</span><span class="va">OID</span><span class="op">)</span>,</span>
-<span>    description <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">var_def</span><span class="op">$</span><span class="va">Name</span>, <span class="st">"codelist check"</span><span class="op">)</span>,</span>
-<span>    predicate   <span class="op">=</span> <span class="fu">make_codelist_predicate</span><span class="op">(</span><span class="va">var_def</span><span class="op">$</span><span class="va">CodeList</span><span class="op">)</span></span>
+<span>  <span class="va">rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>    id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"DEF-"</span>, <span class="va">var_def</span><span class="op">$</span><span class="va">OID</span><span class="op">)</span>,</span>
+<span>    title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">var_def</span><span class="op">$</span><span class="va">Name</span>, <span class="st">"codelist check"</span><span class="op">)</span>,</span>
+<span>    topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>    scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>    intent <span class="op">=</span> <span class="st">"data_entry"</span>,</span>
+<span>    domain <span class="op">=</span> <span class="st">"DM"</span>,</span>
+<span>    fn <span class="op">=</span> <span class="fu">make_codelist_rule_fn</span><span class="op">(</span><span class="va">var_def</span><span class="op">$</span><span class="va">CodeList</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <blockquote>
@@ -285,7 +303,7 @@ across collection waves; detect impossible transitions (e.g., age
 decreasing).</li>
 </ul>
 <p>The companion-package pattern is identical: define
-<code>FlagRule</code> objects that speak the language of your domain,
+<code>CoreRule</code> objects that speak the language of your domain,
 and the core engine handles the rest.</p>
 <hr>
 </div>
@@ -368,7 +386,7 @@ interactive notebooks.</td>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># This Shiny app can be deployed as a Shinylive static site</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/" class="external-link">shiny</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">aRtifacts</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/fluidPage.html" class="external-link">fluidPage</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/titlePanel.html" class="external-link">titlePanel</a></span><span class="op">(</span><span class="st">"aRtifacts — Browser-Native Data Diff"</span><span class="op">)</span>,</span>
@@ -429,9 +447,9 @@ A static HTML file, a browser, and the full power of aRtifacts.</p>
         │  (server)  │  │  (browser)  │  │  (embedded)   │
         └────────────┘  └─────────────┘  └───────────────┘</code></pre>
 <p>Every box in this diagram shares the same <code>DomainSnapshot</code>
-→ <code>FlagRule</code> → <code><a href="../reference/diff_flags.html">diff_flags()</a></code> pipeline. The only
-difference is <strong>which rules</strong> you load and <strong>where R
-runs</strong>.</p>
+→ <code>CoreRule</code> → <code><a href="../reference/run_rules.html">run_rules()</a></code> → flag-state
+comparison pipeline. The only difference is <strong>which rules</strong>
+you load and <strong>where R runs</strong>.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -456,9 +474,10 @@ richer metadata,</li>
 <p>the architecture is designed to make your contribution self-contained
 and composable.</p>
 <blockquote>
-<p><strong>Start small:</strong> write one <code>FlagRule</code>, wrap
-it in a test, submit a PR. That’s the atomic unit of contribution — and
-it’s all you need to make the ecosystem a little better.</p>
+<p><strong>Start small:</strong> write one <code><a href="../reference/new_rule.html">new_rule()</a></code>
+constructor, wrap it in a test, submit a PR. That’s the atomic unit of
+contribution — and it’s all you need to make the ecosystem a little
+better.</p>
 </blockquote>
 <p>Happy building.</p>
 </div>

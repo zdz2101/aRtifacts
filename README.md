@@ -29,8 +29,7 @@ devtools::install_local("path/to/aRtifacts")
 |---|---|
 | **Snapshot** | Capture a set of keyed tables at a point in time as immutable `DomainSnapshot` / `ArtifactSnapshot` objects |
 | **Diff** | Deterministically compare two snapshots — key additions/removals, cell-level value changes, and build metadata |
-| **Flag** | Compose and execute data-quality rules (`FlagRule`) against any domain; the engine attaches rule metadata to every flagged row |
-| **Track** | Classify flags across data cuts as *introduced*, *persisting*, or *resolved* using `diff_flags()` |
+| **Rules** | Compose and execute topology-aware data-quality rules (`CoreRule`) with `new_rule()` and `run_rules()` |
 | **Check** | Run structural and temporal checks against the built-in 50-rule observability catalog, or against ADaM (ADSL / BDS) conventions |
 | **Core50** | Execute topology-dispatched Core50 rules (`A0`-`A7`) with `run_rules()` |
 
@@ -104,7 +103,7 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 | `diff_values()` | Cell-level value changes on matched keys |
 | `diff_meta_artifact()` | Build metadata comparison between two artifacts |
 | `run_rules()` | Execute topology-dispatched `CoreRule`s with `RuleContext` |
-| `diff_flags()` | Longitudinal flag classification (introduced / persisting / resolved) |
+| `compare_flag_states()` | Compare flag findings across runs (`introduced` / `resolved` / `persisting`) |
 
 ### Generalized rule catalog
 
@@ -132,8 +131,7 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 | Vignette | What it covers |
 |---|---|
 | [Getting Started](vignettes/getting-started.Rmd) | End-to-end schema-agnostic walkthrough |
-| [ADaM Module](vignettes/adam-module.Rmd) | ADaMIG conformance checks for ADSL and BDS |
-| [SDTM Module](vignettes/sdtm-module.Rmd) | SDTM checks via Core50 axis packs |
+| [Add a New Rule Pack](vignettes/add-rule-pack.Rmd) | Build, run, and track a custom rule pack across cuts |
 | [Future Extensions](vignettes/future-extensions.Rmd) | Roadmap and planned capabilities |
 
 ---

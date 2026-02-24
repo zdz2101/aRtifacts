@@ -88,7 +88,7 @@ table at one point in time. You tell it the table name, hand it a
 <code>data.frame</code>, and declare which columns form the unique
 key.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">aRtifacts</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Imagine a simple orders table.</span></span>
 <span><span class="va">orders_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -192,7 +192,7 @@ together.</p>
 <span><span class="fu"><a href="../reference/diff_meta_artifact.html">diff_meta_artifact</a></span><span class="op">(</span><span class="va">art_v1</span>, <span class="va">art_v2</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     field              old              new changed</span></span>
 <span><span class="co">#&gt; spec_version spec_version             &lt;NA&gt;             &lt;NA&gt;   FALSE</span></span>
-<span><span class="co">#&gt; data_cut         data_cut       2026-02-23       2026-02-23   FALSE</span></span>
+<span><span class="co">#&gt; data_cut         data_cut       2026-02-24       2026-02-24   FALSE</span></span>
 <span><span class="co">#&gt; build_id         build_id pipeline-run-041 pipeline-run-042    TRUE</span></span>
 <span><span class="co">#&gt; code_sha         code_sha           abc123           abc123   FALSE</span></span>
 <span><span class="co">#&gt; inputs_hash   inputs_hash          hash_v1          hash_v2    TRUE</span></span></code></pre></div>
@@ -205,72 +205,100 @@ same — meaning the code didn’t change, but the data did.</p>
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-4-write-and-run-a-flag-rule">Step 4 — Write and run a flag rule<a class="anchor" aria-label="anchor" href="#step-4-write-and-run-a-flag-rule"></a>
+<h2 id="step-4-write-and-run-a-core50-rule">Step 4 — Write and run a Core50 rule<a class="anchor" aria-label="anchor" href="#step-4-write-and-run-a-core50-rule"></a>
 </h2>
-<p>A <strong>flag rule</strong> is a small function that receives a
-<code>data.frame</code> and returns the rows that violate some
-condition. You wrap it in <code><a href="../reference/new_flag_rule.html">new_flag_rule()</a></code> so the engine
-tracks its ID, severity, and ownership.</p>
+<p>A <strong>Core50 rule</strong> is a topology-aware function. For
+row-level checks in a single snapshot, use topology <code>A1</code> and
+run with <code><a href="../reference/run_rules.html">run_rules()</a></code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rule_high_amount</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_flag_rule.html">new_flag_rule</a></span><span class="op">(</span></span>
-<span>  id         <span class="op">=</span> <span class="st">"HIGH_AMOUNT"</span>,</span>
+<code class="sourceCode R"><span><span class="va">rule_high_amount</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>  id         <span class="op">=</span> <span class="st">"TMP-900"</span>,</span>
+<span>  title      <span class="op">=</span> <span class="st">"High amount"</span>,</span>
+<span>  topology   <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  scope      <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>  intent     <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
 <span>  domain     <span class="op">=</span> <span class="st">"orders"</span>,</span>
-<span>  severity   <span class="op">=</span> <span class="st">"warning"</span>,</span>
-<span>  category   <span class="op">=</span> <span class="st">"business_logic"</span>,</span>
 <span>  owner_team <span class="op">=</span> <span class="st">"Finance"</span>,</span>
-<span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">flagged</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">amount</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">df</span><span class="op">$</span><span class="va">amount</span> <span class="op">&gt;</span> <span class="fl">300</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">flagged</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">amount</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">amount</span> <span class="op">&gt;</span> <span class="fl">300</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">flagged</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
 <span>    <span class="va">flagged</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"order_id"</span>, <span class="st">"customer"</span>, <span class="st">"amount"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">art_v1</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_flags.html">run_flags</a></span><span class="op">(</span><span class="va">art_v2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">ctx_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v1</span><span class="op">)</span></span>
+<span><span class="va">ctx_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v1</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
-<p><code><a href="../reference/run_flags.html">run_flags()</a></code> applies every rule to its target domain
-inside the artifact and returns a single combined table of all flagged
+<p><code><a href="../reference/run_rules.html">run_rules()</a></code> applies every rule according to its topology
+and target domain and returns a single combined table of all flagged
 rows, annotated with <code>RULE_ID</code>, <code>SEVERITY</code>, and
 <code>OWNER_TEAM</code>.</p>
 </blockquote>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">flags_v1</span></span>
-<span><span class="co">#&gt;   order_id customer amount     RULE_ID DOMAIN SEVERITY       CATEGORY</span></span>
-<span><span class="co">#&gt; 2      102      Bob    480 HIGH_AMOUNT orders  warning business_logic</span></span>
-<span><span class="co">#&gt;   OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 2    Finance</span></span>
+<span><span class="co">#&gt;   order_id customer amount RULE_ID  RULE_TITLE TOPOLOGY  SCOPE      INTENT</span></span>
+<span><span class="co">#&gt; 2      102      Bob    480 TMP-900 High amount       A1 record ops_anomaly</span></span>
+<span><span class="co">#&gt;   SEVERITY OWNER_TEAM</span></span>
+<span><span class="co">#&gt; 2  warning    Finance</span></span>
 <span><span class="va">flags_v2</span></span>
-<span><span class="co">#&gt;   order_id customer amount     RULE_ID DOMAIN SEVERITY       CATEGORY</span></span>
-<span><span class="co">#&gt; 3      104     Dave    310 HIGH_AMOUNT orders  warning business_logic</span></span>
-<span><span class="co">#&gt;   OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 3    Finance</span></span></code></pre></div>
+<span><span class="co">#&gt;   order_id customer amount RULE_ID  RULE_TITLE TOPOLOGY  SCOPE      INTENT</span></span>
+<span><span class="co">#&gt; 3      104     Dave    310 TMP-900 High amount       A1 record ops_anomaly</span></span>
+<span><span class="co">#&gt;   SEVERITY OWNER_TEAM</span></span>
+<span><span class="co">#&gt; 3  warning    Finance</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="showcase-run-bundled-core50-packs">Showcase — run bundled Core50 packs<a class="anchor" aria-label="anchor" href="#showcase-run-bundled-core50-packs"></a>
+</h3>
+<p>Beyond custom rules, you can run built-in bundles directly.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bundle_rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_schema.html">pack_core_50_schema</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_a1.html">pack_core_50_a1</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span>, key_vars <span class="op">=</span> <span class="st">"order_id"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="../reference/pack_core_50_a2.html">pack_core_50_a2</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span>, key_vars <span class="op">=</span> <span class="st">"order_id"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">bundle_flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span>, <span class="va">bundle_rules</span><span class="op">)</span></span></code></pre></div>
 <hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="step-5-track-flags-over-time">Step 5 — Track flags over time<a class="anchor" aria-label="anchor" href="#step-5-track-flags-over-time"></a>
 </h2>
-<p><code><a href="../reference/diff_flags.html">diff_flags()</a></code> compares two flag tables and classifies
-each finding as <strong>introduced</strong> (new),
-<strong>resolved</strong> (gone), or <strong>persisting</strong> (still
-there).</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/diff_flags.html">diff_flags</a></span><span class="op">(</span><span class="va">flags_v1</span>, <span class="va">flags_v2</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"order_id"</span>, <span class="st">"DOMAIN"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $introduced</span></span>
-<span><span class="co">#&gt;   order_id customer amount     RULE_ID DOMAIN SEVERITY       CATEGORY</span></span>
-<span><span class="co">#&gt; 3      104     Dave    310 HIGH_AMOUNT orders  warning business_logic</span></span>
-<span><span class="co">#&gt;   OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 3    Finance</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $resolved</span></span>
-<span><span class="co">#&gt;   order_id customer amount     RULE_ID DOMAIN SEVERITY       CATEGORY</span></span>
-<span><span class="co">#&gt; 2      102      Bob    480 HIGH_AMOUNT orders  warning business_logic</span></span>
-<span><span class="co">#&gt;   OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 2    Finance</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $persisting</span></span>
-<span><span class="co">#&gt; [1] order_id   customer   amount     RULE_ID    DOMAIN     SEVERITY   CATEGORY  </span></span>
-<span><span class="co">#&gt; [8] OWNER_TEAM</span></span>
-<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span></code></pre></div>
+<p>Compare two flag tables by key and classify each finding as
+<strong>introduced</strong> (new), <strong>resolved</strong> (gone), or
+<strong>persisting</strong> (still there).</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">compare_flag_states</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">ensure_key_cols</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>, <span class="va">cols</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">df</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>    <span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">cols</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">col</span> <span class="kw">in</span> <span class="va">missing</span><span class="op">)</span> <span class="op">{</span></span>
+<span>      <span class="va">out</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA_character_</span></span>
+<span>    <span class="op">}</span></span>
+<span>    <span class="va">out</span><span class="op">[</span>, <span class="va">cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>  <span class="op">}</span></span>
+<span></span>
+<span>  <span class="va">old_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">new_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">old_key</span><span class="op">$</span><span class="va">.present_old</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span>  <span class="va">new_key</span><span class="op">$</span><span class="va">.present_new</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span></span>
+<span>  <span class="va">merged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">old_key</span>, <span class="va">new_key</span>, by <span class="op">=</span> <span class="va">by</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>  <span class="va">merged</span><span class="op">$</span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_old</span><span class="op">)</span>,</span>
+<span>    <span class="st">"introduced"</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_new</span><span class="op">)</span>, <span class="st">"resolved"</span>, <span class="st">"persisting"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span>  <span class="va">merged</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">by</span>, <span class="st">"status"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="fu">compare_flag_states</span><span class="op">(</span><span class="va">flags_v1</span>, <span class="va">flags_v2</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"order_id"</span>, <span class="st">"DOMAIN"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   order_id DOMAIN RULE_ID     status</span></span>
+<span><span class="co">#&gt; 1      102   &lt;NA&gt; TMP-900   resolved</span></span>
+<span><span class="co">#&gt; 2      104   &lt;NA&gt; TMP-900 introduced</span></span></code></pre></div>
 <blockquote>
 <p>Bob’s high-amount flag was <em>resolved</em> (his row is gone).
 Dave’s is <em>introduced</em> (new row with amount &gt; 300). This is
@@ -282,19 +310,16 @@ how you track data-quality trends across pipeline runs or data cuts.</p>
 <h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
 </h2>
 <p>The core engine shown above works with <strong>any</strong> keyed
-tabular data. SDTM and ADaM checks are available as <strong>bundled
-supplemental modules</strong> — see the companion vignettes:</p>
+tabular data. From here:</p>
 <ul>
-<li>
-<strong>SDTM Module</strong> — snapshot and check SDTM domain
-tables</li>
-<li>
-<strong>ADaM Module</strong> — validate ADSL, BDS, and explore the
-core rule catalog</li>
+<li>See <strong>Add a New Rule Pack</strong> for a practical custom-pack
+authoring pattern.</li>
+<li>See <strong>The Road Ahead</strong> for extension architecture and
+ecosystem direction.</li>
 </ul>
-<p>You can also build your own domain-specific rule packs for any schema
-by following the same <code><a href="../reference/new_flag_rule.html">new_flag_rule()</a></code> +
-<code><a href="../reference/run_flags.html">run_flags()</a></code> pattern shown above.</p>
+<p>You can also build domain-specific rule packs for any schema by
+following the same <code><a href="../reference/new_rule.html">new_rule()</a></code> + <code><a href="../reference/run_rules.html">run_rules()</a></code>
+pattern shown above.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

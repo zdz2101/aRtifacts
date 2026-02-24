@@ -80,8 +80,8 @@ high_risk <- new_rule(
 
 ### Longitudinal risk scoring
 
-Because `diff_flags()` tracks **which flags appeared, disappeared, or
-persisted** between two builds, you get a ready-made time-series of risk
+Because you can compare `run_rules()` outputs between two builds and track
+**which flags appeared, disappeared, or persisted**, you get a ready-made time-series of risk
 signals per domain, per site, per study:
  
 ```
@@ -90,7 +90,7 @@ Build 12   →   Build 13
  major: 17          major: 19     ← 2 new, trend watch
 ```
 
-A downstream dashboard can consume the `diff_flags()` output directly —
+A downstream dashboard can consume this flag-state delta output directly —
 no ETL step required.
 
 ### Key Risk Indicators (KRIs)
@@ -318,7 +318,7 @@ Putting it all together, the long-term picture looks like this:
 ```
 
 Every box in this diagram shares the same `DomainSnapshot` →
-`CoreRule` → `run_rules()` → `diff_flags()` pipeline.
+`CoreRule` → `run_rules()` → flag-state comparison pipeline.
 The only difference is **which rules** you load and **where R runs**.
 
 ---

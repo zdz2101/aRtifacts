@@ -649,3 +649,79 @@ diff_meta_artifact <- function(old_art, new_art) {
     stringsAsFactors = FALSE
   )
 }
+
+#' Compare flag states between two runs
+#'
+#' Compares two flag tables (typically outputs from `run_rules()`) and
+#' classifies each unique key as `"introduced"`, `"resolved"`, or
+#' `"persisting"`.
+#'
+#' @param old_flags Previous run flag table.
+#' @param new_flags Current run flag table.
+#' @param by Character vector of key columns used to identify a finding across
+#'   runs. Defaults to `c("USUBJID", "DOMAIN", "RULE_ID")`.
+#'
+#' @return A deterministic `data.frame` with columns `by` plus `status`.
+#' @export
+#'
+#' @examples
+#' old_flags <- data.frame(
+#'   USUBJID = c("01", "02"),
+#'   DOMAIN = c("ADVS", "ADVS"),
+#'   RULE_ID = c("TMP-900", "TMP-900"),
+#'   stringsAsFactors = FALSE
+#' )
+#' new_flags <- data.frame(
+#'   USUBJID = c("02", "03"),
+#'   DOMAIN = c("ADVS", "ADVS"),
+#'   RULE_ID = c("TMP-900", "TMP-900"),
+#'   stringsAsFactors = FALSE
+#' )
+#'
+#' compare_flag_states(old_flags, new_flags)
+compare_flag_states <- function(old_flags,
+                                new_flags,
+                                by = c("USUBJID", "DOMAIN", "RULE_ID")) {
+  if (!is.data.frame(old_flags)) {
+    stop("`old_flags` must be a data.frame.", call. = FALSE)
+  }
+
+  if (!is.data.frame(new_flags)) {
+    stop("`new_flags` must be a data.frame.", call. = FALSE)
+  }
+
+  if (!is.character(by) || !length(by) || anyNA(by) || any(!nzchar(by))) {
+    stop("`by` must be a non-empty character vector of key columns.", call. = FALSE)
+  }
+
+  by <- unique(by)
+
+  ensure_key_cols <- function(df, cols) {
+    out <- as.data.frame(df, stringsAsFactors = FALSE)
+    missing <- setdiff(cols, names(out))
+    for (col in missing) {
+      out[[col]] <- NA_character_
+    }
+    out[, cols, drop = FALSE]
+  }
+
+  old_key <- unique(ensure_key_cols(old_flags, by))
+  new_key <- unique(ensure_key_cols(new_flags, by))
+  old_key$.present_old <- TRUE
+  new_key$.present_new <- TRUE
+
+  merged <- merge(old_key, new_key, by = by, all = TRUE)
+  merged$status <- ifelse(
+    is.na(merged$.present_old),
+    "introduced",
+    ifelse(is.na(merged$.present_new), "resolved", "persisting")
+  )
+
+  merged <- merged[, c(by, "status"), drop = FALSE]
+  if (!nrow(merged)) {
+    return(merged)
+  }
+
+  ord <- do.call(order, c(merged[, by, drop = FALSE], list(na.last = TRUE)))
+  merged[ord, , drop = FALSE]
+}

@@ -54,8 +54,8 @@ Instead, it provides:
     │  - diff_keys()             │
     │  - diff_values()           │
     │  - diff_meta()             │
-    │  - run_flags()             │
-    │  - diff_flags()            │
+    │  - run_rules()             │
+    │  - compare flag states     │
     └─────────────▲──────────────┘
                   │
     ┌─────────────┴──────────────┐
@@ -186,7 +186,7 @@ FlagRule(
 ### Running Rules
 
 ``` r
-results <- run_flags(artifact, rules)
+results <- run_rules(new_rule_context(current = artifact), rules)
 ```
 
 Example output:
@@ -200,7 +200,7 @@ Example output:
 ## 7. Longitudinal Flag Intelligence
 
 ``` r
-diff_flags(old_flags, new_flags)
+compare_flag_states(old_flags, new_flags, by = c("USUBJID", "DOMAIN", "RULE_ID"))
 ```
 
 Example output:

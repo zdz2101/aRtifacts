@@ -31,8 +31,8 @@ objects and returns a \code{data.frame} of findings.}
 A validated \code{DiffFlagRule} object.
 }
 \description{
-Convenience constructor for \code{DiffFlagRule} objects used by
-\code{run_diff_flags()}.
+Convenience constructor for \code{DiffFlagRule} objects used in custom
+snapshot-to-snapshot comparison workflows.
 }
 \examples{
 rule <- new_diff_flag_rule(

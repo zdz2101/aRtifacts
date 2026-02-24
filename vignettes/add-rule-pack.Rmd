@@ -184,7 +184,7 @@ art_v2 <- new_artifact_snapshot(
 ctx_v2 <- new_rule_context(current = art_v2)
 flags_v2 <- run_rules(ctx_v2, custom_rules)
 
-flag_changes <- diff_flags(
+flag_changes <- compare_flag_states(
   old_flags = flags_v1,
   new_flags = flags_v2,
   by = c("USUBJID", "DOMAIN", "RULE_ID")
@@ -213,13 +213,13 @@ For real projects, move your pack constructor into package code:
 A useful pattern is to keep IDs stable and add new IDs instead of changing
 what an existing ID means.
 
----
+---dev
 
 ## Step 6 — Showcase bundle composition
 
 You can combine built-in Core50 packs with your custom pack in one run.
 
-```{r eval = FALSE}
+```{r}
 core_rules <- c(
   pack_core_50_schema(domain = "LB"),
   pack_core_50_a1(

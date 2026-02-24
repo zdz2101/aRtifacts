@@ -137,14 +137,8 @@
 
         </dt>
         <dd>Compare distribution shift between two domain snapshots</dd>
-      </dl><dl><dt>
-
-          <code><a href="diff_flags.html">diff_flags()</a></code>
-
-        </dt>
-        <dd>Diff longitudinal flags</dd>
       </dl></div><div class="section level2">
-      <h2 id="rule-engine">Rule engine<a class="anchor" aria-label="anchor" href="#rule-engine"></a></h2>
+      <h2 id="core-rule-engine">Core rule engine<a class="anchor" aria-label="anchor" href="#core-rule-engine"></a></h2>
 
 
 
@@ -155,6 +149,101 @@
 
 
       <dl><dt>
+
+          <code><a href="CoreRule.html">CoreRule()</a></code>
+
+        </dt>
+        <dd>Core rule S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="RuleContext.html">RuleContext()</a></code>
+
+        </dt>
+        <dd>Rule context S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="new_rule.html">new_rule()</a></code>
+
+        </dt>
+        <dd>Create a topology-aware rule</dd>
+      </dl><dl><dt>
+
+          <code><a href="new_rule_context.html">new_rule_context()</a></code>
+
+        </dt>
+        <dd>Create a rule context</dd>
+      </dl><dl><dt>
+
+          <code><a href="run_rules.html">run_rules()</a></code>
+
+        </dt>
+        <dd>Run topology-dispatched rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_rule.html">register_rule()</a></code>
+
+        </dt>
+        <dd>Register a core rule</dd>
+      </dl><dl><dt>
+
+          <code><a href="get_rule.html">get_rule()</a></code>
+
+        </dt>
+        <dd>Get a registered core rule</dd>
+      </dl><dl><dt>
+
+          <code><a href="list_rules.html">list_rules()</a></code>
+
+        </dt>
+        <dd>List registered core rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="clear_rule_registry.html">clear_rule_registry()</a></code>
+
+        </dt>
+        <dd>Clear registered core rules</dd>
+      </dl></div><div class="section level2">
+      <h2 id="legacy-spec-classes">Legacy/spec classes<a class="anchor" aria-label="anchor" href="#legacy-spec-classes"></a></h2>
+
+      <div class="section-desc"><p>Exported legacy constructors and matching specs retained in the API surface.</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="FlagRule.html">FlagRule()</a></code>
+
+        </dt>
+        <dd>Flag rule S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="DiffFlagRule.html">DiffFlagRule()</a></code>
+
+        </dt>
+        <dd>Diff flag rule S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="IdentitySpec.html">IdentitySpec()</a></code>
+
+        </dt>
+        <dd>Identity spec S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="MatchSpec.html">MatchSpec()</a></code>
+
+        </dt>
+        <dd>Match spec S7 class</dd>
+      </dl><dl><dt>
+
+          <code><a href="DeltaSpec.html">DeltaSpec()</a></code>
+
+        </dt>
+        <dd>Delta spec S7 class</dd>
+      </dl><dl><dt>
 
           <code><a href="new_flag_rule.html">new_flag_rule()</a></code>
 
@@ -168,30 +257,137 @@
         <dd>Create a diff flag rule</dd>
       </dl><dl><dt>
 
-          <code><a href="run_flags.html">run_flags()</a></code>
+          <code><a href="new_identity_spec.html">new_identity_spec()</a></code>
 
         </dt>
-        <dd>Run rule flags on an artifact snapshot</dd>
+        <dd>Create an identity spec</dd>
       </dl><dl><dt>
 
-          <code><a href="run_diff_flags.html">run_diff_flags()</a></code>
+          <code><a href="new_match_spec.html">new_match_spec()</a></code>
 
         </dt>
-        <dd>Run diff rules between two artifact snapshots</dd>
+        <dd>Create a match spec</dd>
       </dl><dl><dt>
 
-          <code><a href="FlagRule.html">FlagRule()</a></code>
+          <code><a href="new_delta_spec.html">new_delta_spec()</a></code>
 
         </dt>
-        <dd>Flag rule S7 class</dd>
-      </dl><dl><dt>
-
-          <code><a href="DiffFlagRule.html">DiffFlagRule()</a></code>
-
-        </dt>
-        <dd>Diff flag rule S7 class</dd>
+        <dd>Create a delta spec</dd>
       </dl></div><div class="section level2">
-      <h2 id="generalized-checks-and-catalogs">Generalized checks and catalogs<a class="anchor" aria-label="anchor" href="#generalized-checks-and-catalogs"></a></h2>
+      <h2 id="core-packs-and-registration">Core50 packs and registration<a class="anchor" aria-label="anchor" href="#core-packs-and-registration"></a></h2>
+
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="pack_core_50.html">pack_core_50()</a></code>
+
+        </dt>
+        <dd>Build Core50 rule pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_schema.html">pack_core_50_schema()</a></code>
+
+        </dt>
+        <dd>Build A0 schema pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a1.html">pack_core_50_a1()</a></code>
+
+        </dt>
+        <dd>Build A1 intra-domain row pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a2.html">pack_core_50_a2()</a></code>
+
+        </dt>
+        <dd>Build A2 intra-domain group pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a3.html">pack_core_50_a3()</a></code>
+
+        </dt>
+        <dd>Build A3 cross-domain relational pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a4.html">pack_core_50_a4()</a></code>
+
+        </dt>
+        <dd>Build A4 cross-domain aggregate pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a5.html">pack_core_50_a5()</a></code>
+
+        </dt>
+        <dd>Build A5 cross-snapshot row pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a6.html">pack_core_50_a6()</a></code>
+
+        </dt>
+        <dd>Build A6 cross-snapshot aggregate pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="pack_core_50_a7.html">pack_core_50_a7()</a></code>
+
+        </dt>
+        <dd>Build A7 cross-domain + cross-snapshot pack</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_schema.html">register_core_50_schema()</a></code>
+
+        </dt>
+        <dd>Register A0 schema rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a1.html">register_core_50_a1()</a></code>
+
+        </dt>
+        <dd>Register A1 intra-domain row rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a2.html">register_core_50_a2()</a></code>
+
+        </dt>
+        <dd>Register A2 intra-domain group rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a3.html">register_core_50_a3()</a></code>
+
+        </dt>
+        <dd>Register A3 cross-domain relational rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a4.html">register_core_50_a4()</a></code>
+
+        </dt>
+        <dd>Register A4 cross-domain aggregate rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a5.html">register_core_50_a5()</a></code>
+
+        </dt>
+        <dd>Register A5 cross-snapshot row rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a6.html">register_core_50_a6()</a></code>
+
+        </dt>
+        <dd>Register A6 cross-snapshot aggregate rules</dd>
+      </dl><dl><dt>
+
+          <code><a href="register_core_50_a7.html">register_core_50_a7()</a></code>
+
+        </dt>
+        <dd>Register A7 cross-domain + cross-snapshot rules</dd>
+      </dl></div><div class="section level2">
+      <h2 id="catalogs-and-module-checks">Catalogs and module checks<a class="anchor" aria-label="anchor" href="#catalogs-and-module-checks"></a></h2>
 
 
 
@@ -206,167 +402,8 @@
           <code><a href="rule_catalog_core.html">rule_catalog_core()</a></code>
 
         </dt>
-        <dd>Built-in core observability rule catalog</dd>
+        <dd>Core observability rule catalog</dd>
       </dl><dl><dt>
-
-          <code><a href="check_tabulation_domain.html">check_tabulation_domain()</a></code>
-
-        </dt>
-        <dd>Generalized tabulation checks</dd>
-      </dl></div><div class="section level2">
-      <h2 id="rule-pack-module-builders">Rule pack module builders<a class="anchor" aria-label="anchor" href="#rule-pack-module-builders"></a></h2>
-
-      <div class="section-desc"><p>Use these to compose targeted rule packs or call <code><a href="../reference/make_rule_pack_core.html">make_rule_pack_core()</a></code> as an all-in-one shortcut.</p></div>
-
-
-    </div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="make_rule_pack_core.html">make_rule_pack_core()</a></code>
-
-        </dt>
-        <dd>Build a practical starter rule pack from the core catalog</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_keys.html">make_rule_pack_keys()</a></code>
-
-        </dt>
-        <dd>Rule pack — identity, keys, and duplicates</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_keys_diff.html">make_rule_pack_keys_diff()</a></code>
-
-        </dt>
-        <dd>Diff rule pack — identity, keys, and schema drift</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_dates.html">make_rule_pack_dates()</a></code>
-
-        </dt>
-        <dd>Rule pack — date and time consistency</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_missingness.html">make_rule_pack_missingness()</a></code>
-
-        </dt>
-        <dd>Rule pack — missingness and completeness</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_plausibility.html">make_rule_pack_plausibility()</a></code>
-
-        </dt>
-        <dd>Rule pack — plausibility and range checks</dd>
-      </dl><dl><dt>
-
-          <code><a href="make_rule_pack_consistency.html">make_rule_pack_consistency()</a></code>
-
-        </dt>
-        <dd>Rule pack — cross-field and relational consistency</dd>
-      </dl></div><div class="section level2">
-      <h2 id="individual-rule-constructors">Individual rule constructors<a class="anchor" aria-label="anchor" href="#individual-rule-constructors"></a></h2>
-
-      <div class="section-desc"><p>All bundled rule constructors (<code>rule_r###_*</code>).</p></div>
-
-
-    </div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="rule_r001_key_missing.html">rule_r001_key_missing()</a></code>
-
-        </dt>
-        <dd>Rule R001 — missing key fields</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r002_duplicate_keys.html">rule_r002_duplicate_keys()</a></code>
-
-        </dt>
-        <dd>Rule R002 — duplicate keys</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r003_key_type_drift.html">rule_r003_key_type_drift()</a></code>
-
-        </dt>
-        <dd>Rule R003 — key type drift</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r004_unexpected_key_deletions.html">rule_r004_unexpected_key_deletions()</a></code>
-
-        </dt>
-        <dd>Rule R004 — unexpected key deletions</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r005_key_churn_spike.html">rule_r005_key_churn_spike()</a></code>
-
-        </dt>
-        <dd>Rule R005 — key churn spike</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r006_new_columns_added.html">rule_r006_new_columns_added()</a></code>
-
-        </dt>
-        <dd>Rule R006 — new columns added</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r007_columns_removed.html">rule_r007_columns_removed()</a></code>
-
-        </dt>
-        <dd>Rule R007 — columns removed</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r008_column_type_drift.html">rule_r008_column_type_drift()</a></code>
-
-        </dt>
-        <dd>Rule R008 — column type drift</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r009_high_dup_rate_site.html">rule_r009_high_dup_rate_site()</a></code>
-
-        </dt>
-        <dd>Rule R009 — high duplicate rate by group</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r010_high_dup_rate_subject.html">rule_r010_high_dup_rate_subject()</a></code>
-
-        </dt>
-        <dd>Rule R010 — high duplicate rate by subject</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r028_late_arrival_spike.html">rule_r028_late_arrival_spike()</a></code>
-
-        </dt>
-        <dd>Rule R028 — late-arriving volume spike</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r029_data_plateau.html">rule_r029_data_plateau()</a></code>
-
-        </dt>
-        <dd>Rule R029 — data plateau</dd>
-      </dl><dl><dt>
-
-          <code><a href="rule_r036_site_distribution_shift.html">rule_r036_site_distribution_shift()</a></code>
-
-        </dt>
-        <dd>Rule R036 — group-level distribution shift</dd>
-      </dl></div><div class="section level2">
-      <h2 id="bundled-sdtm-adam-modules">Bundled SDTM/ADaM modules<a class="anchor" aria-label="anchor" href="#bundled-sdtm-adam-modules"></a></h2>
-
-      <div class="section-desc"><p>Supplemental domain-specific checks (future aRtifacts.sdtm / aRtifacts.adam)</p></div>
-
-
-    </div><div class="section level2">
-
-
-
-
-      <dl><dt>
 
           <code><a href="check_adsl.html">check_adsl()</a></code>
 
@@ -384,6 +421,305 @@
 
         </dt>
         <dd>Validate ADaM inputs across ADSL and BDS datasets</dd>
+      </dl></div><div class="section level2">
+      <h2 id="individual-rule-constructors">Individual rule constructors<a class="anchor" aria-label="anchor" href="#individual-rule-constructors"></a></h2>
+
+      <div class="section-desc"><p>All bundled rule constructors (<code>rule_*</code>).</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="rule_both_001_new_ae_without_new_ex.html">rule_both_001_new_ae_without_new_ex()</a></code>
+
+        </dt>
+        <dd>BOTH-001: New AE without new EX</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_both_002_dose_changed_lab_worsened.html">rule_both_002_dose_changed_lab_worsened()</a></code>
+
+        </dt>
+        <dd>BOTH-002: Dose changed and lab worsened</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_both_003_subject_removed_dm_present_elsewhere.html">rule_both_003_subject_removed_dm_present_elsewhere()</a></code>
+
+        </dt>
+        <dd>BOTH-003: Subject removed from DM but present elsewhere</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_both_004_risk_score_escalation_trend.html">rule_both_004_risk_score_escalation_trend()</a></code>
+
+        </dt>
+        <dd>BOTH-004: Risk score escalation trend</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_de_001_required_field_missing_conditionally.html">rule_de_001_required_field_missing_conditionally()</a></code>
+
+        </dt>
+        <dd>DE-001: Required field missing conditionally</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_de_002_out_of_range_numeric_values.html">rule_de_002_out_of_range_numeric_values()</a></code>
+
+        </dt>
+        <dd>DE-002: Out-of-range numeric values</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_de_003_invalid_categorical_code.html">rule_de_003_invalid_categorical_code()</a></code>
+
+        </dt>
+        <dd>DE-003: Invalid categorical code</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_de_004_negative_duration.html">rule_de_004_negative_duration()</a></code>
+
+        </dt>
+        <dd>DE-004: Negative duration</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_de_005_impossible_logical_combination.html">rule_de_005_impossible_logical_combination()</a></code>
+
+        </dt>
+        <dd>DE-005: Impossible logical combination</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_grp_001_excessive_missingness_rate.html">rule_grp_001_excessive_missingness_rate()</a></code>
+
+        </dt>
+        <dd>GRP-001: Excessive missingness rate</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_grp_002_subject_excessive_event_frequency.html">rule_grp_002_subject_excessive_event_frequency()</a></code>
+
+        </dt>
+        <dd>GRP-002: Subject with excessive event frequency</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_grp_003_repeated_identical_lab_values.html">rule_grp_003_repeated_identical_lab_values()</a></code>
+
+        </dt>
+        <dd>GRP-003: Repeated identical lab values</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_grp_004_site_level_outlier_rate.html">rule_grp_004_site_level_outlier_rate()</a></code>
+
+        </dt>
+        <dd>GRP-004: Site-level outlier rate</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_grp_005_distribution_skew_anomaly.html">rule_grp_005_distribution_skew_anomaly()</a></code>
+
+        </dt>
+        <dd>GRP-005: Distribution skew anomaly</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_id_001_missing_key_fields.html">rule_id_001_missing_key_fields()</a></code>
+
+        </dt>
+        <dd>ID-001: Missing key fields</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_id_002_duplicate_keys.html">rule_id_002_duplicate_keys()</a></code>
+
+        </dt>
+        <dd>ID-002: Duplicate keys</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_id_003_high_duplicate_rate_by_site.html">rule_id_003_high_duplicate_rate_by_site()</a></code>
+
+        </dt>
+        <dd>ID-003: High duplicate rate by site</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_id_004_high_duplicate_rate_by_subject.html">rule_id_004_high_duplicate_rate_by_subject()</a></code>
+
+        </dt>
+        <dd>ID-004: High duplicate rate by subject</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_sch_001_new_columns_added.html">rule_sch_001_new_columns_added()</a></code>
+
+        </dt>
+        <dd>SCH-001: New columns added</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_sch_002_columns_removed.html">rule_sch_002_columns_removed()</a></code>
+
+        </dt>
+        <dd>SCH-002: Columns removed</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_sch_003_column_type_drift.html">rule_sch_003_column_type_drift()</a></code>
+
+        </dt>
+        <dd>SCH-003: Column type drift</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_001_unexpected_key_deletions.html">rule_snap_001_unexpected_key_deletions()</a></code>
+
+        </dt>
+        <dd>SNAP-001: Unexpected key deletions</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_002_record_changed_unexpectedly.html">rule_snap_002_record_changed_unexpectedly()</a></code>
+
+        </dt>
+        <dd>SNAP-002: Record changed unexpectedly</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_003_record_reappeared.html">rule_snap_003_record_reappeared()</a></code>
+
+        </dt>
+        <dd>SNAP-003: Record reappeared</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_004_identity_drift.html">rule_snap_004_identity_drift()</a></code>
+
+        </dt>
+        <dd>SNAP-004: Identity drift</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_005_critical_field_modified_post_lock.html">rule_snap_005_critical_field_modified_post_lock()</a></code>
+
+        </dt>
+        <dd>SNAP-005: Critical field modified post-lock</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_006_row_count_spike_drop.html">rule_snap_006_row_count_spike_drop()</a></code>
+
+        </dt>
+        <dd>SNAP-006: Row count spike/drop</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_007_key_churn_spike.html">rule_snap_007_key_churn_spike()</a></code>
+
+        </dt>
+        <dd>SNAP-007: Key churn spike</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_008_missingness_rate_drift.html">rule_snap_008_missingness_rate_drift()</a></code>
+
+        </dt>
+        <dd>SNAP-008: Missingness rate drift</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_009_distribution_drift.html">rule_snap_009_distribution_drift()</a></code>
+
+        </dt>
+        <dd>SNAP-009: Distribution drift</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_010_site_metric_drift.html">rule_snap_010_site_metric_drift()</a></code>
+
+        </dt>
+        <dd>SNAP-010: Site metric drift</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_snap_011_event_rate_change_anomaly.html">rule_snap_011_event_rate_change_anomaly()</a></code>
+
+        </dt>
+        <dd>SNAP-011: Event rate change anomaly</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_tmp_001_invalid_date_format.html">rule_tmp_001_invalid_date_format()</a></code>
+
+        </dt>
+        <dd>TMP-001: Invalid date format</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_tmp_002_start_after_end.html">rule_tmp_002_start_after_end()</a></code>
+
+        </dt>
+        <dd>TMP-002: Start date after end date</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_tmp_003_end_without_start.html">rule_tmp_003_end_without_start()</a></code>
+
+        </dt>
+        <dd>TMP-003: End date without start</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_tmp_004_time_without_date.html">rule_tmp_004_time_without_date()</a></code>
+
+        </dt>
+        <dd>TMP-004: Time without date</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xagg_001_subject_count_mismatch.html">rule_xagg_001_subject_count_mismatch()</a></code>
+
+        </dt>
+        <dd>XAGG-001: Subject count mismatch</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xagg_002_visit_count_mismatch.html">rule_xagg_002_visit_count_mismatch()</a></code>
+
+        </dt>
+        <dd>XAGG-002: Visit count mismatch</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xagg_003_domain_completeness_imbalance.html">rule_xagg_003_domain_completeness_imbalance()</a></code>
+
+        </dt>
+        <dd>XAGG-003: Domain completeness imbalance</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xagg_004_exposure_event_rate_discrepancy.html">rule_xagg_004_exposure_event_rate_discrepancy()</a></code>
+
+        </dt>
+        <dd>XAGG-004: Exposure vs event rate discrepancy</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_001_ae_without_dm.html">rule_xdom_001_ae_without_dm()</a></code>
+
+        </dt>
+        <dd>XDOM-001: AE without DM</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_002_ex_without_dm.html">rule_xdom_002_ex_without_dm()</a></code>
+
+        </dt>
+        <dd>XDOM-002: EX without DM</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_003_lb_without_expected_visit.html">rule_xdom_003_lb_without_expected_visit()</a></code>
+
+        </dt>
+        <dd>XDOM-003: LB without expected visit</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_004_cm_outside_ae_window.html">rule_xdom_004_cm_outside_ae_window()</a></code>
+
+        </dt>
+        <dd>XDOM-004: CM outside AE window</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_005_ae_outside_exposure_window.html">rule_xdom_005_ae_outside_exposure_window()</a></code>
+
+        </dt>
+        <dd>XDOM-005: AE outside exposure window</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_006_visit_mismatch_across_domains.html">rule_xdom_006_visit_mismatch_across_domains()</a></code>
+
+        </dt>
+        <dd>XDOM-006: Visit mismatch across domains</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_007_orphan_child_records.html">rule_xdom_007_orphan_child_records()</a></code>
+
+        </dt>
+        <dd>XDOM-007: Orphan records in child domain</dd>
+      </dl><dl><dt>
+
+          <code><a href="rule_xdom_008_demographic_inconsistency.html">rule_xdom_008_demographic_inconsistency()</a></code>
+
+        </dt>
+        <dd>XDOM-008: Demographic inconsistency across domains</dd>
       </dl></div><div class="section level2">
       <h2 id="example-data">Example data<a class="anchor" aria-label="anchor" href="#example-data"></a></h2>
 
