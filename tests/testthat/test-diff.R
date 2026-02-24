@@ -84,6 +84,54 @@ test_that("diff_keys() errors when key_vars differ between snapshots", {
 })
 
 # ---------------------------------------------------------------------------
+# compare_flag_states()
+# ---------------------------------------------------------------------------
+
+test_that("compare_flag_states() classifies introduced/resolved/persisting", {
+  old_flags <- data.frame(
+    USUBJID = c("01", "02"),
+    DOMAIN = c("ADVS", "ADVS"),
+    RULE_ID = c("TMP-900", "TMP-900"),
+    stringsAsFactors = FALSE
+  )
+  new_flags <- data.frame(
+    USUBJID = c("02", "03"),
+    DOMAIN = c("ADVS", "ADVS"),
+    RULE_ID = c("TMP-900", "TMP-900"),
+    stringsAsFactors = FALSE
+  )
+
+  out <- compare_flag_states(old_flags, new_flags)
+  expect_named(out, c("USUBJID", "DOMAIN", "RULE_ID", "status"))
+  expect_equal(nrow(out), 3L)
+  expect_setequal(out$status, c("introduced", "resolved", "persisting"))
+})
+
+test_that("compare_flag_states() handles missing key columns", {
+  old_flags <- data.frame(USUBJID = "01", RULE_ID = "TMP-900", stringsAsFactors = FALSE)
+  new_flags <- data.frame(USUBJID = "01", DOMAIN = "ADVS", stringsAsFactors = FALSE)
+
+  out <- compare_flag_states(old_flags, new_flags, by = c("USUBJID", "DOMAIN", "RULE_ID"))
+  expect_named(out, c("USUBJID", "DOMAIN", "RULE_ID", "status"))
+  expect_true(nrow(out) >= 1L)
+})
+
+test_that("compare_flag_states() returns empty output for empty inputs", {
+  old_flags <- data.frame()
+  new_flags <- data.frame()
+
+  out <- compare_flag_states(old_flags, new_flags, by = c("USUBJID", "DOMAIN", "RULE_ID"))
+  expect_named(out, c("USUBJID", "DOMAIN", "RULE_ID", "status"))
+  expect_equal(nrow(out), 0L)
+})
+
+test_that("compare_flag_states() validates inputs", {
+  expect_error(compare_flag_states(list(), data.frame()), regexp = "old_flags")
+  expect_error(compare_flag_states(data.frame(), list()), regexp = "new_flags")
+  expect_error(compare_flag_states(data.frame(), data.frame(), by = character(0)), regexp = "by")
+})
+
+# ---------------------------------------------------------------------------
 # diff_values()
 # ---------------------------------------------------------------------------
 

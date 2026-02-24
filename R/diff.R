@@ -699,16 +699,17 @@ compare_flag_states <- function(old_flags,
   ensure_key_cols <- function(df, cols) {
     out <- as.data.frame(df, stringsAsFactors = FALSE)
     missing <- setdiff(cols, names(out))
+    n <- nrow(out)
     for (col in missing) {
-      out[[col]] <- NA_character_
+      out[[col]] <- rep(NA_character_, n)
     }
     out[, cols, drop = FALSE]
   }
 
   old_key <- unique(ensure_key_cols(old_flags, by))
   new_key <- unique(ensure_key_cols(new_flags, by))
-  old_key$.present_old <- TRUE
-  new_key$.present_new <- TRUE
+  old_key$.present_old <- rep(TRUE, nrow(old_key))
+  new_key$.present_new <- rep(TRUE, nrow(new_key))
 
   merged <- merge(old_key, new_key, by = by, all = TRUE)
   merged$status <- ifelse(
