@@ -2,16 +2,41 @@
 # diff_keys()
 # ---------------------------------------------------------------------------
 
+orders_df <- function() {
+  data.frame(
+    order_id = c(101L, 102L, 103L),
+    customer = c("Alice", "Bob", "Carol"),
+    amount = c(250, 480, 120),
+    stringsAsFactors = FALSE
+  )
+}
+
+orders_dom <- function(build_id = "build-1") {
+  new_domain_snapshot(
+    name = "orders",
+    data = orders_df(),
+    key_vars = "order_id",
+    build_id = build_id
+  )
+}
+
+orders_art <- function(build_id = "build-1") {
+  new_artifact_snapshot(
+    domains = list(orders = orders_dom(build_id = build_id)),
+    build_id = build_id
+  )
+}
+
 test_that("diff_keys() returns empty added/removed when snapshots are identical", {
-  dom <- .dom_orders()
+  dom <- orders_dom()
   result <- diff_keys(dom, dom)
   expect_equal(nrow(result$added), 0L)
   expect_equal(nrow(result$removed), 0L)
 })
 
 test_that("diff_keys() detects an added key", {
-  old_dom <- .dom_orders()
-  new_df  <- rbind(.df_orders(), data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE))
+  old_dom <- orders_dom()
+  new_df  <- rbind(orders_df(), data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE))
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
   result <- diff_keys(old_dom, new_dom)
@@ -21,8 +46,8 @@ test_that("diff_keys() detects an added key", {
 })
 
 test_that("diff_keys() detects a removed key", {
-  old_dom <- .dom_orders()
-  new_df  <- .df_orders()[-1, ]   # remove order 101
+  old_dom <- orders_dom()
+  new_df  <- orders_df()[-1, ]   # remove order 101
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
   result <- diff_keys(old_dom, new_dom)
@@ -32,9 +57,9 @@ test_that("diff_keys() detects a removed key", {
 })
 
 test_that("diff_keys() handles simultaneous additions and removals", {
-  old_dom <- .dom_orders()
+  old_dom <- orders_dom()
   new_df  <- rbind(
-    .df_orders()[-1, ],   # remove 101
+    orders_df()[-1, ],   # remove 101
     data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE)
   )
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
@@ -45,16 +70,16 @@ test_that("diff_keys() handles simultaneous additions and removals", {
 })
 
 test_that("diff_keys() errors when old_dom is not a DomainSnapshot", {
-  expect_error(diff_keys(data.frame(), .dom_orders()), regexp = "old_dom")
+  expect_error(diff_keys(data.frame(), orders_dom()), regexp = "old_dom")
 })
 
 test_that("diff_keys() errors when new_dom is not a DomainSnapshot", {
-  expect_error(diff_keys(.dom_orders(), data.frame()), regexp = "new_dom")
+  expect_error(diff_keys(orders_dom(), data.frame()), regexp = "new_dom")
 })
 
 test_that("diff_keys() errors when key_vars differ between snapshots", {
-  dom1 <- new_domain_snapshot("x", .df_orders(), key_vars = "order_id")
-  dom2 <- new_domain_snapshot("x", .df_orders(), key_vars = "customer")
+  dom1 <- new_domain_snapshot("x", orders_df(), key_vars = "order_id")
+  dom2 <- new_domain_snapshot("x", orders_df(), key_vars = "customer")
   expect_error(diff_keys(dom1, dom2), regexp = "key_vars")
 })
 
@@ -63,14 +88,14 @@ test_that("diff_keys() errors when key_vars differ between snapshots", {
 # ---------------------------------------------------------------------------
 
 test_that("diff_values() returns empty data.frame when data is identical", {
-  dom    <- .dom_orders()
+  dom    <- orders_dom()
   result <- diff_values(dom, dom, vars = "amount")
   expect_equal(nrow(result), 0L)
 })
 
 test_that("diff_values() detects a changed numeric value", {
-  old_dom <- .dom_orders()
-  new_df  <- .df_orders()
+  old_dom <- orders_dom()
+  new_df  <- orders_df()
   new_df$amount[new_df$order_id == 102L] <- 999
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
@@ -82,8 +107,8 @@ test_that("diff_values() detects a changed numeric value", {
 })
 
 test_that("diff_values() detects a changed character value", {
-  old_dom <- .dom_orders()
-  new_df  <- .df_orders()
+  old_dom <- orders_dom()
+  new_df  <- orders_df()
   new_df$customer[new_df$order_id == 101L] <- "Alicia"
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
@@ -94,8 +119,8 @@ test_that("diff_values() detects a changed character value", {
 })
 
 test_that("diff_values() handles multiple changed variables", {
-  old_dom <- .dom_orders()
-  new_df  <- .df_orders()
+  old_dom <- orders_dom()
+  new_df  <- orders_df()
   new_df$amount[1]   <- 1
   new_df$customer[2] <- "Bobby"
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
@@ -106,16 +131,16 @@ test_that("diff_values() handles multiple changed variables", {
 })
 
 test_that("diff_values() returns empty when var is not present in data", {
-  dom    <- .dom_orders()
+  dom    <- orders_dom()
   result <- diff_values(dom, dom, vars = "NONEXISTENT")
   expect_equal(nrow(result), 0L)
 })
 
 test_that("diff_values() detects NA-to-value change", {
-  old_df  <- .df_orders()
+  old_df  <- orders_df()
   old_df$amount[1] <- NA
   old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
-  new_dom <- .dom_orders()
+  new_dom <- orders_dom()
 
   result <- diff_values(old_dom, new_dom, vars = "amount")
   expect_equal(nrow(result), 1L)
@@ -124,13 +149,132 @@ test_that("diff_values() detects NA-to-value change", {
 })
 
 test_that("diff_values() errors when old_dom is not a DomainSnapshot", {
-  expect_error(diff_values(list(), .dom_orders()), regexp = "old_dom")
+  expect_error(diff_values(list(), orders_dom()), regexp = "old_dom")
 })
 
 test_that("diff_values() errors when key_vars differ", {
-  dom1 <- new_domain_snapshot("x", .df_orders(), key_vars = "order_id")
-  dom2 <- new_domain_snapshot("x", .df_orders(), key_vars = "customer")
+  dom1 <- new_domain_snapshot("x", orders_df(), key_vars = "order_id")
+  dom2 <- new_domain_snapshot("x", orders_df(), key_vars = "customer")
   expect_error(diff_values(dom1, dom2), regexp = "key_vars")
+})
+
+# ---------------------------------------------------------------------------
+# diff_key_types()
+# ---------------------------------------------------------------------------
+
+test_that("diff_key_types() reports unchanged key type when snapshots match", {
+  dom <- orders_dom()
+  result <- diff_key_types(dom, dom)
+
+  expect_named(result, c("key_var", "old_type", "new_type", "changed"))
+  expect_equal(nrow(result), 1L)
+  expect_identical(result$key_var, "order_id")
+  expect_false(result$changed)
+})
+
+test_that("diff_key_types() detects key type drift", {
+  old_dom <- orders_dom()
+  new_df <- orders_df()
+  new_df$order_id <- as.character(new_df$order_id)
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  result <- diff_key_types(old_dom, new_dom)
+  expect_equal(nrow(result), 1L)
+  expect_identical(result$key_var, "order_id")
+  expect_true(result$changed)
+  expect_equal(result$old_type, "integer")
+  expect_equal(result$new_type, "character")
+})
+
+test_that("diff_key_types() errors for non-domain input", {
+  expect_error(diff_key_types(list(), orders_dom()), regexp = "old_dom")
+  expect_error(diff_key_types(orders_dom(), list()), regexp = "new_dom")
+})
+
+# ---------------------------------------------------------------------------
+# diff_columns()
+# ---------------------------------------------------------------------------
+
+test_that("diff_columns() reports unchanged schema when columns match", {
+  dom <- orders_dom()
+  result <- diff_columns(dom, dom)
+
+  expect_named(result, c("column", "old_present", "new_present", "status", "changed"))
+  expect_identical(result$column, sort(names(orders_df())))
+  expect_true(all(result$status == "unchanged"))
+  expect_true(all(!result$changed))
+})
+
+test_that("diff_columns() detects added and removed columns deterministically", {
+  old_dom <- orders_dom()
+  new_df <- orders_df()[, c("order_id", "amount"), drop = FALSE]
+  new_df$region <- "NA"
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  result <- diff_columns(old_dom, new_dom)
+  expect_identical(result$column, sort(unique(c(names(old_dom@data), names(new_dom@data)))))
+
+  removed_row <- result[result$column == "customer", ]
+  added_row <- result[result$column == "region", ]
+
+  expect_equal(removed_row$status, "removed")
+  expect_true(removed_row$changed)
+  expect_equal(added_row$status, "added")
+  expect_true(added_row$changed)
+})
+
+test_that("diff_columns() errors for non-domain input", {
+  expect_error(diff_columns(data.frame(), orders_dom()), regexp = "old_dom")
+  expect_error(diff_columns(orders_dom(), data.frame()), regexp = "new_dom")
+})
+
+# ---------------------------------------------------------------------------
+# diff_column_types()
+# ---------------------------------------------------------------------------
+
+test_that("diff_column_types() reports unchanged shared types when snapshots match", {
+  dom <- orders_dom()
+  result <- diff_column_types(dom, dom)
+
+  expect_named(result, c("column", "old_type", "new_type", "changed"))
+  expect_identical(result$column, sort(names(orders_df())))
+  expect_true(all(!result$changed))
+})
+
+test_that("diff_column_types() detects type drift on shared columns", {
+  old_dom <- orders_dom()
+  new_df <- orders_df()
+  new_df$amount <- as.character(new_df$amount)
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  result <- diff_column_types(old_dom, new_dom)
+  amount_row <- result[result$column == "amount", ]
+
+  expect_equal(amount_row$old_type, "numeric")
+  expect_equal(amount_row$new_type, "character")
+  expect_true(amount_row$changed)
+})
+
+test_that("diff_column_types() returns empty data.frame when there are no shared columns", {
+  old_dom <- new_domain_snapshot(
+    "old",
+    data.frame(id = 1:2, value = c("A", "B"), stringsAsFactors = FALSE),
+    key_vars = "id"
+  )
+  new_dom <- new_domain_snapshot(
+    "new",
+    data.frame(key = 1:2, amount = c(1, 2), stringsAsFactors = FALSE),
+    key_vars = "key"
+  )
+
+  result <- diff_column_types(old_dom, new_dom)
+  expect_equal(nrow(result), 0L)
+  expect_named(result, c("column", "old_type", "new_type", "changed"))
+})
+
+test_that("diff_column_types() errors for non-domain input", {
+  expect_error(diff_column_types(list(), orders_dom()), regexp = "old_dom")
+  expect_error(diff_column_types(orders_dom(), list()), regexp = "new_dom")
 })
 
 # ---------------------------------------------------------------------------
@@ -138,8 +282,8 @@ test_that("diff_values() errors when key_vars differ", {
 # ---------------------------------------------------------------------------
 
 test_that("diff_meta_artifact() returns a 5-row data.frame with correct columns", {
-  art1   <- .art_orders("build-1")
-  art2   <- .art_orders("build-2")
+  art1   <- orders_art("build-1")
+  art2   <- orders_art("build-2")
   result <- diff_meta_artifact(art1, art2)
 
   expect_equal(nrow(result), 5L)
@@ -147,8 +291,8 @@ test_that("diff_meta_artifact() returns a 5-row data.frame with correct columns"
 })
 
 test_that("diff_meta_artifact() flags build_id change as changed = TRUE", {
-  art1   <- .art_orders("build-1")
-  art2   <- .art_orders("build-2")
+  art1   <- orders_art("build-1")
+  art2   <- orders_art("build-2")
   result <- diff_meta_artifact(art1, art2)
 
   bid_row <- result[result$field == "build_id", ]
@@ -158,15 +302,15 @@ test_that("diff_meta_artifact() flags build_id change as changed = TRUE", {
 })
 
 test_that("diff_meta_artifact() marks unchanged fields as changed = FALSE", {
-  art    <- .art_orders()
+  art    <- orders_art()
   result <- diff_meta_artifact(art, art)
   expect_true(all(!result$changed))
 })
 
 test_that("diff_meta_artifact() errors when old_art is not an ArtifactSnapshot", {
-  expect_error(diff_meta_artifact(list(), .art_orders()), regexp = "old_art")
+  expect_error(diff_meta_artifact(list(), orders_art()), regexp = "old_art")
 })
 
 test_that("diff_meta_artifact() errors when new_art is not an ArtifactSnapshot", {
-  expect_error(diff_meta_artifact(.art_orders(), list()), regexp = "new_art")
+  expect_error(diff_meta_artifact(orders_art(), list()), regexp = "new_art")
 })

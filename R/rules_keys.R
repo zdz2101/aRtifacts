@@ -49,12 +49,6 @@ make_rule_pack_keys <- function(domain,
   rules <- list(
     R001 = rule_r001_key_missing(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
     R002 = rule_r002_duplicate_keys(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R003 = rule_r003_key_type_drift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R004 = rule_r004_column_added(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R005 = rule_r005_column_removed(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R006 = rule_r006_column_type_drift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R007 = rule_r007_key_distribution_shift(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
-    R008 = rule_r008_key_level_outlier(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
     R009 = rule_r009_high_dup_rate_site(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...),
     R010 = rule_r010_high_dup_rate_subject(domain = domain, key_vars = key_vars, subject_var = subject_var, site_var = site_var, dup_rate_threshold = dup_rate_threshold, owner_team = owner_team, ...)
   )

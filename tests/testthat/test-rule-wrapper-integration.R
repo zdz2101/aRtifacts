@@ -5,12 +5,6 @@ module_specs <- list(
     rule_fns = c(
       "rule_r001_key_missing",
       "rule_r002_duplicate_keys",
-      "rule_r003_key_type_drift",
-      "rule_r004_column_added",
-      "rule_r005_column_removed",
-      "rule_r006_column_type_drift",
-      "rule_r007_key_distribution_shift",
-      "rule_r008_key_level_outlier",
       "rule_r009_high_dup_rate_site",
       "rule_r010_high_dup_rate_subject"
     )

@@ -59,6 +59,188 @@ diff_keys <- function(old_dom, new_dom) {
   list(added = added, removed = removed)
 }
 
+.column_type_string <- function(x) {
+  paste(class(x), collapse = "|")
+}
+
+#' Diff key variable types between two domain snapshots
+#'
+#' Compares classes of key variables between an old and new `DomainSnapshot`.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#'
+#' @return A `data.frame` with `key_var`, `old_type`, `new_type`, and
+#'   `changed`.
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()
+#' new_data$USUBJID <- as.factor(new_data$USUBJID)
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' diff_key_types(old_dom, new_dom)
+diff_key_types <- function(old_dom, new_dom) {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  key_vars <- sort(unique(c(old_dom@key_vars, new_dom@key_vars)))
+  if (!length(key_vars)) {
+    return(data.frame(
+      key_var = character(0),
+      old_type = character(0),
+      new_type = character(0),
+      changed = logical(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  old_type <- vapply(
+    key_vars,
+    function(v) {
+      if (v %in% names(old_dom@data)) .column_type_string(old_dom@data[[v]]) else NA_character_
+    },
+    character(1)
+  )
+  new_type <- vapply(
+    key_vars,
+    function(v) {
+      if (v %in% names(new_dom@data)) .column_type_string(new_dom@data[[v]]) else NA_character_
+    },
+    character(1)
+  )
+
+  data.frame(
+    key_var = key_vars,
+    old_type = unname(old_type),
+    new_type = unname(new_type),
+    changed = !(is.na(old_type) & is.na(new_type)) &
+      (is.na(old_type) | is.na(new_type) | old_type != new_type),
+    stringsAsFactors = FALSE
+  )
+}
+
+#' Diff column presence between two domain snapshots
+#'
+#' Compares old vs new dataset column presence and reports columns that are
+#' added, removed, or unchanged.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#'
+#' @return A `data.frame` with `column`, `old_present`, `new_present`,
+#'   `status`, and `changed`.
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()
+#' new_data$NEWCOL <- "X"
+#' new_data$CHG <- NULL
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' diff_columns(old_dom, new_dom)
+diff_columns <- function(old_dom, new_dom) {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  columns <- sort(unique(c(names(old_dom@data), names(new_dom@data))))
+  if (!length(columns)) {
+    return(data.frame(
+      column = character(0),
+      old_present = logical(0),
+      new_present = logical(0),
+      status = character(0),
+      changed = logical(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  old_present <- columns %in% names(old_dom@data)
+  new_present <- columns %in% names(new_dom@data)
+  status <- ifelse(
+    old_present & new_present,
+    "unchanged",
+    ifelse(!old_present & new_present, "added", "removed")
+  )
+
+  data.frame(
+    column = columns,
+    old_present = old_present,
+    new_present = new_present,
+    status = status,
+    changed = status != "unchanged",
+    stringsAsFactors = FALSE
+  )
+}
+
+#' Diff shared column types between two domain snapshots
+#'
+#' Compares classes for columns that exist in both snapshots.
+#'
+#' @param old_dom Previous `DomainSnapshot`.
+#' @param new_dom Current `DomainSnapshot`.
+#'
+#' @return A `data.frame` with `column`, `old_type`, `new_type`, and
+#'   `changed`.
+#' @export
+#'
+#' @examples
+#' old_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = example_advs(),
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' new_data <- example_advs()
+#' new_data$AVAL <- as.character(new_data$AVAL)
+#' new_dom <- new_domain_snapshot(
+#'   name = "ADVS",
+#'   data = new_data,
+#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#' )
+#' diff_column_types(old_dom, new_dom)
+diff_column_types <- function(old_dom, new_dom) {
+  .assert_domain(old_dom, "old_dom")
+  .assert_domain(new_dom, "new_dom")
+
+  columns <- sort(intersect(names(old_dom@data), names(new_dom@data)))
+  if (!length(columns)) {
+    return(data.frame(
+      column = character(0),
+      old_type = character(0),
+      new_type = character(0),
+      changed = logical(0),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  old_type <- vapply(columns, function(v) .column_type_string(old_dom@data[[v]]), character(1))
+  new_type <- vapply(columns, function(v) .column_type_string(new_dom@data[[v]]), character(1))
+
+  data.frame(
+    column = columns,
+    old_type = unname(old_type),
+    new_type = unname(new_type),
+    changed = old_type != new_type,
+    stringsAsFactors = FALSE
+  )
+}
+
 #' Diff values between two domain snapshots
 #'
 #' Compares one or more variables on matched keys between two
