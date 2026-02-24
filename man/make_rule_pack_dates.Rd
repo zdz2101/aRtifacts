@@ -51,6 +51,8 @@ flagged by R012.}
 (R018). Defaults to \code{Sys.Date()}.}
 
 \item{owner_team}{Team assigned to follow up on flagged records.}
+
+\item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
 A list of \code{FlagRule} objects compatible with \code{run_flags()}.

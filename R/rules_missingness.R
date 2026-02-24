@@ -36,6 +36,7 @@
 #' @param missingness_threshold Numeric \[0, 1\]. Variables with a missing
 #'   rate above this threshold are flagged by R021–R023. Default `0.1`.
 #' @param owner_team Team assigned to follow up on flagged records.
+#' @param ... Reserved for future extensions; currently ignored.
 #'
 #' @return A list of `FlagRule` objects compatible with `run_flags()`.
 #' @export

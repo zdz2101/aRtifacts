@@ -63,7 +63,7 @@ test_that("R010 flags subjects above duplicate-rate threshold", {
 
   df <- data.frame(
     ID = c("A", "A", "B", "C", "D", "E"),
-    SEQ = c(1, 1, 1, 1, 1, 1),
+    SEQ = c(1, 1, 1, 1, 1, 1, 1),
     USUBJID = c("SUBJ01", "SUBJ01", "SUBJ02", "SUBJ03", "SUBJ04", "SUBJ05"),
     SITEID = c("SITE01", "SITE01", "SITE01", "SITE02", "SITE02", "SITE02"),
     stringsAsFactors = FALSE

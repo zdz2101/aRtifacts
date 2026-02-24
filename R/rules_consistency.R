@@ -53,6 +53,7 @@
 #' @param record_count_iqr_multiplier IQR multiplier for the per-subject
 #'   record count outlier check (R048). Default `3.0`.
 #' @param owner_team Team assigned to follow up on flagged records.
+#' @param ... Reserved for future extensions; currently ignored.
 #'
 #' @return A list of `FlagRule` objects compatible with `run_flags()`.
 #' @export

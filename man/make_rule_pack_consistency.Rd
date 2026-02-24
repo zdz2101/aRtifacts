@@ -57,6 +57,8 @@ categorical variable before R045 fires. Default \code{50L}.}
 record count outlier check (R048). Default \code{3.0}.}
 
 \item{owner_team}{Team assigned to follow up on flagged records.}
+
+\item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
 A list of \code{FlagRule} objects compatible with \code{run_flags()}.

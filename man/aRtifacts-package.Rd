@@ -12,7 +12,7 @@ tabular data. SDTM and ADaM checks are bundled as supplemental starter
 modules (future companion packages: aRtifacts.sdtm, aRtifacts.adam).
 }
 \author{
-\strong{Maintainer}: ATorus Team \email{devnull@example.com}
+\strong{Maintainer}: Zelos Zhu \email{zelos.zhu@atorusresearch.com}
 
 }
 \keyword{internal}

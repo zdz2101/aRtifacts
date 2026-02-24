@@ -27,6 +27,8 @@ make_rule_pack_keys(
 duplicate-key rate above this threshold are flagged. Default \code{0.1}.}
 
 \item{owner_team}{Team assigned to follow up on flagged records.}
+
+\item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
 A list of \code{FlagRule} objects compatible with \code{run_flags()}.

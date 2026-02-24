@@ -40,6 +40,8 @@ record for a subject (used by R026 and R027). Typically \code{"ABLFL"} or
 rate above this threshold are flagged by R021–R023. Default \code{0.1}.}
 
 \item{owner_team}{Team assigned to follow up on flagged records.}
+
+\item{...}{Reserved for future extensions; currently ignored.}
 }
 \value{
 A list of \code{FlagRule} objects compatible with \code{run_flags()}.

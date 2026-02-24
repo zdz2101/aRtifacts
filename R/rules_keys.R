@@ -28,6 +28,7 @@
 #' @param dup_rate_threshold Numeric \[0, 1\]. Sites or subjects with a
 #'   duplicate-key rate above this threshold are flagged. Default `0.1`.
 #' @param owner_team Team assigned to follow up on flagged records.
+#' @param ... Reserved for future extensions; currently ignored.
 #'
 #' @return A list of `FlagRule` objects compatible with `run_flags()`.
 #' @export

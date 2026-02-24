@@ -49,6 +49,7 @@
 #' @param round_rate_threshold Fraction of values divisible by 5 above
 #'   which R039 fires. Default `0.9`.
 #' @param owner_team Team assigned to follow up on flagged records.
+#' @param ... Reserved for future extensions; currently ignored.
 #'
 #' @return A list of `FlagRule` objects compatible with `run_flags()`.
 #' @export

@@ -44,6 +44,7 @@
 #' @param cutoff_date Date used as "today" for the future-dating check
 #'   (R018). Defaults to `Sys.Date()`.
 #' @param owner_team Team assigned to follow up on flagged records.
+#' @param ... Reserved for future extensions; currently ignored.
 #'
 #' @return A list of `FlagRule` objects compatible with `run_flags()`.
 #' @export
