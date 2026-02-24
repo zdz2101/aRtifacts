@@ -43,7 +43,7 @@ We'll target LB-like data keyed by `STUDYID`, `USUBJID`, `LBSEQ`.
 A pack constructor should:
 
 - accept configuration (`domain`, thresholds, ownership),
-- create one or more `new_flag_rule(...)` objects,
+- create one or more `new_rule(...)` objects,
 - return a plain list of those rules.
 
 ```{r}
@@ -54,61 +54,70 @@ make_rule_pack_lab_custom <- function(domain = "LB",
   list(
 
     # Rule 1: Hemoglobin plausibility window
-    new_flag_rule(
+    new_rule(
       id = "LAB001_HGB_OUT_OF_RANGE",
+      title = "Hemoglobin out of range",
+      topology = "A1",
+      scope = "record",
+      intent = "clinical_review",
       domain = domain,
       severity = "warning",
-      category = "clinical_review",
       owner_team = owner_team,
-      fn = function(df) {
+      fn = function(data, context, rule) {
         needed <- c("USUBJID", "LBTESTCD", "LBSTRESN")
-        if (!all(needed %in% names(df))) return(data.frame())
+        if (!all(needed %in% names(data))) return(data.frame())
 
-        testcd <- as.character(df$LBTESTCD)
-        value <- suppressWarnings(as.numeric(df$LBSTRESN))
+        testcd <- as.character(data$LBTESTCD)
+        value <- suppressWarnings(as.numeric(data$LBSTRESN))
         bad <- testcd == "HGB" & !is.na(value) & (value < hgb_min | value > hgb_max)
         if (!any(bad)) return(data.frame())
 
-        df[bad, c("USUBJID", "LBTESTCD", "LBSTRESN"), drop = FALSE]
+        data[bad, c("USUBJID", "LBTESTCD", "LBSTRESN"), drop = FALSE]
       }
     ),
 
     # Rule 2: Result unit should be present when result is present
-    new_flag_rule(
+    new_rule(
       id = "LAB002_RESULT_WITHOUT_UNIT",
+      title = "Result present without unit",
+      topology = "A1",
+      scope = "record",
+      intent = "data_entry",
       domain = domain,
       severity = "error",
-      category = "data_entry",
       owner_team = owner_team,
-      fn = function(df) {
+      fn = function(data, context, rule) {
         needed <- c("USUBJID", "LBTESTCD", "LBORRES", "LBORRESU")
-        if (!all(needed %in% names(df))) return(data.frame())
+        if (!all(needed %in% names(data))) return(data.frame())
 
-        result_present <- !is.na(df$LBORRES) & nzchar(as.character(df$LBORRES))
-        unit_missing <- is.na(df$LBORRESU) | !nzchar(as.character(df$LBORRESU))
+        result_present <- !is.na(data$LBORRES) & nzchar(as.character(data$LBORRES))
+        unit_missing <- is.na(data$LBORRESU) | !nzchar(as.character(data$LBORRESU))
         bad <- result_present & unit_missing
         if (!any(bad)) return(data.frame())
 
-        df[bad, c("USUBJID", "LBTESTCD", "LBORRES", "LBORRESU"), drop = FALSE]
+        data[bad, c("USUBJID", "LBTESTCD", "LBORRES", "LBORRESU"), drop = FALSE]
       }
     ),
 
     # Rule 3: Duplicate test on same date for same subject
-    new_flag_rule(
+    new_rule(
       id = "LAB003_DUP_SUBJECT_TEST_DATE",
+      title = "Duplicate subject/test/date",
+      topology = "A1",
+      scope = "record",
+      intent = "ops_anomaly",
       domain = domain,
       severity = "warning",
-      category = "ops_anomaly",
       owner_team = owner_team,
-      fn = function(df) {
+      fn = function(data, context, rule) {
         needed <- c("USUBJID", "LBTESTCD", "LBDTC")
-        if (!all(needed %in% names(df))) return(data.frame())
+        if (!all(needed %in% names(data))) return(data.frame())
 
-        keys <- df[, needed, drop = FALSE]
+        keys <- data[, needed, drop = FALSE]
         dup <- duplicated(keys) | duplicated(keys, fromLast = TRUE)
         if (!any(dup)) return(data.frame())
 
-        df[dup, needed, drop = FALSE]
+        data[dup, needed, drop = FALSE]
       }
     )
   )
@@ -133,7 +142,8 @@ art <- new_artifact_snapshot(
 
 custom_rules <- make_rule_pack_lab_custom(domain = "LB")
 
-flags_v1 <- run_flags(art, custom_rules)
+ctx_v1 <- new_rule_context(current = art)
+flags_v1 <- run_rules(ctx_v1, custom_rules)
 flags_v1
 ```
 
@@ -171,7 +181,8 @@ art_v2 <- new_artifact_snapshot(
   build_id = "cut-002"
 )
 
-flags_v2 <- run_flags(art_v2, custom_rules)
+ctx_v2 <- new_rule_context(current = art_v2)
+flags_v2 <- run_rules(ctx_v2, custom_rules)
 
 flag_changes <- diff_flags(
   old_flags = flags_v1,
@@ -206,9 +217,9 @@ what an existing ID means.
 
 ## What’s next?
 
-- Use `make_rule_pack_core()` + your custom pack together:
-  `all_rules <- c(make_rule_pack_core(...), make_rule_pack_lab_custom(...))`
+- Use `pack_core_50_a1()` + your custom pack together:
+  `all_rules <- c(pack_core_50_a1(...), make_rule_pack_lab_custom(...))`
 - Split large custom packs into smaller module builders (similar to
-  `make_rule_pack_keys()`, `make_rule_pack_dates()`, etc.).
+  `pack_core_50_a1()`, `pack_core_50_a2()`, etc.).
 - If your checks depend on a standard/metadata file, pass it as an explicit
   argument to the pack constructor.

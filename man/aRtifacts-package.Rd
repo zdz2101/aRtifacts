@@ -11,6 +11,14 @@ observability. The core engine is schema-agnostic and works with any keyed
 tabular data. SDTM and ADaM checks are bundled as supplemental starter
 modules (future companion packages: aRtifacts.sdtm, aRtifacts.adam).
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://zdz2101.github.io/aRtifacts/}
+  \item \url{https://github.com/zdz2101/aRtifacts}
+}
+
+}
 \author{
 \strong{Maintainer}: Zelos Zhu \email{zelos.zhu@atorusresearch.com}
 

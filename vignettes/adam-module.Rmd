@@ -164,25 +164,28 @@ diff_values(snap_v1, snap_v2, vars = "AVAL")
 > Subject 002's WEEK 4 systolic BP jumped from 136 → 195. That's a large
 > single-visit change and might warrant clinical review.
 
-### Flag it with a custom rule
+### Flag it with a custom Core50 rule
 
 ```{r}
 art_v2 <- new_artifact_snapshot(domains = list(ADVS = snap_v2), build_id = "cut-2")
 
-rule_high_bp <- new_flag_rule(
-  id         = "HIGH_SYSBP",
+rule_high_bp <- new_rule(
+  id         = "TMP-910",
+  title      = "High systolic BP",
+  topology   = "A1",
+  scope      = "record",
+  intent     = "clinical_review",
   domain     = "ADVS",
-  severity   = "warning",
-  category   = "clinical_review",
   owner_team = "Medical Monitor",
-  fn = function(df) {
-    out <- df[df$PARAMCD == "SYSBP" & !is.na(df$AVAL) & df$AVAL > 180, , drop = FALSE]
+  fn = function(data, context, rule) {
+    out <- data[data$PARAMCD == "SYSBP" & !is.na(data$AVAL) & data$AVAL > 180, , drop = FALSE]
     if (!nrow(out)) return(data.frame())
     out[, c("USUBJID", "PARAMCD", "AVISIT", "AVAL"), drop = FALSE]
   }
 )
 
-run_flags(art_v2, list(rule_high_bp))
+ctx <- new_rule_context(current = art_v2)
+run_rules(ctx, list(rule_high_bp))
 ```
 
 > The flag identifies subject 002 at WEEK 4 with a systolic BP of 195.
@@ -204,4 +207,4 @@ check_bds(advs_v2)
 - See the **SDTM Module** vignette for SDTM domain checks.
 - See the **Core Engine** vignette for the full schema-agnostic API tour.
 - Browse `rule_catalog_core()` for the complete list of built-in
-  observability rules you can instantiate with `make_rule_pack_core()`.
+  observability rules you can instantiate via `pack_core_50_a*()`.

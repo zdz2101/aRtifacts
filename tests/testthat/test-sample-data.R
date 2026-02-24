@@ -8,8 +8,10 @@ test_that("example_adsl() has one row per unique USUBJID", {
 })
 
 test_that("example_adsl() contains the required ADaM ADSL columns", {
-  required <- c("STUDYID", "USUBJID", "SUBJID", "SITEID", "AGE", "AGEU",
-                "SEX", "RACE", "ARM", "TRT01P")
+  required <- c(
+    "STUDYID", "USUBJID", "SUBJID", "SITEID", "AGE", "AGEU",
+    "SEX", "RACE", "ARM", "TRT01P"
+  )
   expect_true(all(required %in% names(example_adsl())))
 })
 
@@ -23,8 +25,10 @@ test_that("example_advs() returns a data.frame", {
 })
 
 test_that("example_advs() contains expected BDS columns", {
-  required <- c("STUDYID", "USUBJID", "PARAM", "PARAMCD", "AVAL",
-                "AVISIT", "TRTP", "ABLFL", "BASE", "CHG")
+  required <- c(
+    "STUDYID", "USUBJID", "PARAM", "PARAMCD", "AVAL",
+    "AVISIT", "TRTP", "ABLFL", "BASE", "CHG"
+  )
   expect_true(all(required %in% names(example_advs())))
 })
 
@@ -43,8 +47,10 @@ test_that("example_sdtm_lb() returns a data.frame", {
 })
 
 test_that("example_sdtm_lb() contains expected SDTM LB columns", {
-  required <- c("STUDYID", "DOMAIN", "USUBJID", "LBSEQ",
-                "LBTESTCD", "LBTEST", "LBORRES", "LBSTRESN", "LBDTC")
+  required <- c(
+    "STUDYID", "DOMAIN", "USUBJID", "LBSEQ",
+    "LBTESTCD", "LBTEST", "LBORRES", "LBSTRESN", "LBDTC"
+  )
   expect_true(all(required %in% names(example_sdtm_lb())))
 })
 

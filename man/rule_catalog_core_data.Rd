@@ -17,6 +17,6 @@ A data frame with 50 rows and 4 columns:
 rule_catalog_core_data
 }
 \description{
-Internal dataset backing \code{\link[=rule_catalog_core]{rule_catalog_core()}}.
+Internal dataset backing \link{rule_catalog_core_data}.
 }
 \keyword{internal}

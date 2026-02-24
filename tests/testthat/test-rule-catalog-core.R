@@ -9,7 +9,7 @@ test_that("rule_catalog_core() returns expected structure and row count", {
   expect_equal(nrow(cat), 50L)
 })
 
-test_that("rule_catalog_core() has ordered IDs R001..R050", {
+test_that("rule_catalog_core() has ordered catalog IDs (legacy-compatible sequence)", {
   ids <- rule_catalog_core()$rule_id
   expect_identical(ids, sprintf("R%03d", seq_len(50)))
 })

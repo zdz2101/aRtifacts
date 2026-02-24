@@ -1,118 +1,92 @@
 # ---------------------------------------------------------------------------
-# Core rule coverage across module builders
+# Core50 topology coverage across axis packs
 # ---------------------------------------------------------------------------
 
-.extract_core_id_prefix <- function(rule_id) {
-  sub("^(R[0-9]{3}).*$", "\\1", rule_id)
-}
-
-.expected_implemented_core_ids <- c(
-  sprintf("R%03d", c(1, 2, 9, 10)),
-  sprintf("R%03d", 11:18),
-  sprintf("R%03d", 21:27),
-  sprintf("R%03d", c(31, 33, 34, 35, 37, 38, 39)),
-  sprintf("R%03d", c(40, 41, 43, 45, 47, 48))
-)
-
-test_that("all module rule IDs map to entries in rule_catalog_core()", {
+test_that("all Core50 pack IDs use axis-based prefixes", {
   rules <- c(
-    make_rule_pack_keys(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ")
-    ),
-    make_rule_pack_dates(
+    pack_core_50_a1(
       domain = "LB",
       key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      start_end_pairs = list(c("AESTDTC", "AEENDTC")),
-      date_vars = c("LBDTC"),
-      time_date_pairs = list(c("LBTM", "LBDTC")),
-      visit_order_var = "VISITNUM",
-      study_start = "2020-01-01",
-      study_end = "2030-12-31"
+      date_var = "LBDTC",
+      start_var = "LBDTC",
+      end_var = "LBDTC",
+      time_var = "LBTM",
+      condition_var = "LBOCCUR",
+      required_var = "LBTESTCD",
+      numeric_var = "LBSTRESN",
+      numeric_min = 0,
+      numeric_max = 1000,
+      categorical_var = "LBSTAT",
+      allowed_levels = c("", "NOT DONE"),
+      duration_var = "LBDUR"
     ),
-    make_rule_pack_missingness(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      required_vars = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD"),
-      visit_var = "VISITNUM",
-      baseline_flag_var = "ABLFL"
-    ),
-    make_rule_pack_plausibility(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      numeric_vars = c("LBSTRESN"),
-      non_negative_vars = c("LBSTRESN"),
-      value_ranges = list(LBSTRESN = c(0, 30)),
-      visit_order_var = "VISITNUM",
-      max_within_change = list(LBSTRESN = 5)
-    ),
-    make_rule_pack_consistency(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      impossible_combos = list(c(SEX = "M", PREGNANT = "Y")),
-      inconsistent_pairs = list(c(AESER = "Y", AESDTH = "N")),
-      categorical_vars = c("LBTESTCD"),
-      seq_vars = c("LBSEQ")
-    )
+    pack_core_50_a2(domain = "LB", key_vars = c("STUDYID", "USUBJID", "LBSEQ"), skew_value_var = "LBSTRESN"),
+    pack_core_50_a3(),
+    pack_core_50_a4(),
+    pack_core_50_a5(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ")),
+    pack_core_50_a6(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ")),
+    pack_core_50_a7()
   )
 
-  prefixes <- unique(vapply(rules, function(r) .extract_core_id_prefix(r@id), character(1)))
-  catalog_ids <- rule_catalog_core()$rule_id
-  expect_true(all(prefixes %in% catalog_ids))
+  ids <- vapply(rules, function(r) r@id, character(1))
+  expect_true(all(grepl("^[A-Z]+-[0-9]{3}$", ids)))
 })
 
-test_that("implemented core rules match expected implemented subset", {
-  rules <- c(
-    make_rule_pack_keys(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ")
-    ),
-    make_rule_pack_dates(
+test_that("Core50 packs expose expected topology coverage", {
+  packs <- list(
+    pack_core_50_a1(
       domain = "LB",
       key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      start_end_pairs = list(c("AESTDTC", "AEENDTC")),
-      date_vars = c("LBDTC"),
-      time_date_pairs = list(c("LBTM", "LBDTC")),
-      visit_order_var = "VISITNUM",
-      study_start = "2020-01-01",
-      study_end = "2030-12-31"
+      date_var = "LBDTC",
+      start_var = "LBDTC",
+      end_var = "LBDTC",
+      time_var = "LBTM",
+      condition_var = "LBOCCUR",
+      required_var = "LBTESTCD",
+      numeric_var = "LBSTRESN",
+      numeric_min = 0,
+      numeric_max = 1000,
+      categorical_var = "LBSTAT",
+      allowed_levels = c("", "NOT DONE"),
+      duration_var = "LBDUR"
     ),
-    make_rule_pack_missingness(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      required_vars = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD"),
-      visit_var = "VISITNUM",
-      baseline_flag_var = "ABLFL"
-    ),
-    make_rule_pack_plausibility(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      numeric_vars = c("LBSTRESN"),
-      non_negative_vars = c("LBSTRESN"),
-      value_ranges = list(LBSTRESN = c(0, 30)),
-      visit_order_var = "VISITNUM",
-      max_within_change = list(LBSTRESN = 5)
-    ),
-    make_rule_pack_consistency(
-      domain = "LB",
-      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
-      impossible_combos = list(c(SEX = "M", PREGNANT = "Y")),
-      inconsistent_pairs = list(c(AESER = "Y", AESDTH = "N")),
-      categorical_vars = c("LBTESTCD"),
-      seq_vars = c("LBSEQ")
-    )
+    pack_core_50_a2(domain = "LB", key_vars = c("STUDYID", "USUBJID", "LBSEQ"), skew_value_var = "LBSTRESN"),
+    pack_core_50_a3(),
+    pack_core_50_a4(),
+    pack_core_50_a5(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ")),
+    pack_core_50_a6(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ")),
+    pack_core_50_a7()
   )
 
-  prefixes <- sort(unique(vapply(rules, function(r) .extract_core_id_prefix(r@id), character(1))))
-  expect_identical(prefixes, sort(.expected_implemented_core_ids))
+  topologies <- unlist(lapply(packs, function(pack) unique(vapply(pack, function(r) r@topology, character(1)))))
+  expect_setequal(unique(topologies), paste0("A", 1:7))
 })
 
-test_that("non-implemented core rules are explicitly identifiable", {
-  all_ids <- sprintf("R%03d", seq_len(50))
-  unimplemented <- setdiff(all_ids, .expected_implemented_core_ids)
-
-  expect_identical(
-    unimplemented,
-    sprintf("R%03d", c(3:8, 19, 20, 28, 29, 30, 32, 36, 42, 44, 46, 49, 50))
+test_that("Core50 pack sizes match master-plan allocations", {
+  sizes <- c(
+    length(pack_core_50_a1(
+      domain = "LB",
+      key_vars = c("STUDYID", "USUBJID", "LBSEQ"),
+      date_var = "LBDTC",
+      start_var = "LBDTC",
+      end_var = "LBDTC",
+      time_var = "LBTM",
+      condition_var = "LBOCCUR",
+      required_var = "LBTESTCD",
+      numeric_var = "LBSTRESN",
+      numeric_min = 0,
+      numeric_max = 1000,
+      categorical_var = "LBSTAT",
+      allowed_levels = c("", "NOT DONE"),
+      duration_var = "LBDUR"
+    )),
+    length(pack_core_50_a2(domain = "LB", key_vars = c("STUDYID", "USUBJID", "LBSEQ"), skew_value_var = "LBSTRESN")),
+    length(pack_core_50_a3()),
+    length(pack_core_50_a4()),
+    length(pack_core_50_a5(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ"))),
+    length(pack_core_50_a6(domain_primary = "LB", keys = c("STUDYID", "USUBJID", "LBSEQ"))),
+    length(pack_core_50_a7())
   )
+
+  expect_identical(sizes, c(10L, 8L, 8L, 4L, 5L, 6L, 4L))
 })

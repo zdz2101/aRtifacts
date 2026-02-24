@@ -36,7 +36,7 @@ test_that("diff_keys() returns empty added/removed when snapshots are identical"
 
 test_that("diff_keys() detects an added key", {
   old_dom <- orders_dom()
-  new_df  <- rbind(orders_df(), data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE))
+  new_df <- rbind(orders_df(), data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE))
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
   result <- diff_keys(old_dom, new_dom)
@@ -47,7 +47,7 @@ test_that("diff_keys() detects an added key", {
 
 test_that("diff_keys() detects a removed key", {
   old_dom <- orders_dom()
-  new_df  <- orders_df()[-1, ]   # remove order 101
+  new_df <- orders_df()[-1, ] # remove order 101
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
   result <- diff_keys(old_dom, new_dom)
@@ -58,8 +58,8 @@ test_that("diff_keys() detects a removed key", {
 
 test_that("diff_keys() handles simultaneous additions and removals", {
   old_dom <- orders_dom()
-  new_df  <- rbind(
-    orders_df()[-1, ],   # remove 101
+  new_df <- rbind(
+    orders_df()[-1, ], # remove 101
     data.frame(order_id = 999L, customer = "Dave", amount = 10, stringsAsFactors = FALSE)
   )
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
@@ -88,14 +88,14 @@ test_that("diff_keys() errors when key_vars differ between snapshots", {
 # ---------------------------------------------------------------------------
 
 test_that("diff_values() returns empty data.frame when data is identical", {
-  dom    <- orders_dom()
+  dom <- orders_dom()
   result <- diff_values(dom, dom, vars = "amount")
   expect_equal(nrow(result), 0L)
 })
 
 test_that("diff_values() detects a changed numeric value", {
   old_dom <- orders_dom()
-  new_df  <- orders_df()
+  new_df <- orders_df()
   new_df$amount[new_df$order_id == 102L] <- 999
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
@@ -108,7 +108,7 @@ test_that("diff_values() detects a changed numeric value", {
 
 test_that("diff_values() detects a changed character value", {
   old_dom <- orders_dom()
-  new_df  <- orders_df()
+  new_df <- orders_df()
   new_df$customer[new_df$order_id == 101L] <- "Alicia"
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
@@ -120,8 +120,8 @@ test_that("diff_values() detects a changed character value", {
 
 test_that("diff_values() handles multiple changed variables", {
   old_dom <- orders_dom()
-  new_df  <- orders_df()
-  new_df$amount[1]   <- 1
+  new_df <- orders_df()
+  new_df$amount[1] <- 1
   new_df$customer[2] <- "Bobby"
   new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
 
@@ -131,13 +131,13 @@ test_that("diff_values() handles multiple changed variables", {
 })
 
 test_that("diff_values() returns empty when var is not present in data", {
-  dom    <- orders_dom()
+  dom <- orders_dom()
   result <- diff_values(dom, dom, vars = "NONEXISTENT")
   expect_equal(nrow(result), 0L)
 })
 
 test_that("diff_values() detects NA-to-value change", {
-  old_df  <- orders_df()
+  old_df <- orders_df()
   old_df$amount[1] <- NA
   old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
   new_dom <- orders_dom()
@@ -282,8 +282,8 @@ test_that("diff_column_types() errors for non-domain input", {
 # ---------------------------------------------------------------------------
 
 test_that("diff_meta_artifact() returns a 5-row data.frame with correct columns", {
-  art1   <- orders_art("build-1")
-  art2   <- orders_art("build-2")
+  art1 <- orders_art("build-1")
+  art2 <- orders_art("build-2")
   result <- diff_meta_artifact(art1, art2)
 
   expect_equal(nrow(result), 5L)
@@ -291,8 +291,8 @@ test_that("diff_meta_artifact() returns a 5-row data.frame with correct columns"
 })
 
 test_that("diff_meta_artifact() flags build_id change as changed = TRUE", {
-  art1   <- orders_art("build-1")
-  art2   <- orders_art("build-2")
+  art1 <- orders_art("build-1")
+  art2 <- orders_art("build-2")
   result <- diff_meta_artifact(art1, art2)
 
   bid_row <- result[result$field == "build_id", ]
@@ -302,7 +302,7 @@ test_that("diff_meta_artifact() flags build_id change as changed = TRUE", {
 })
 
 test_that("diff_meta_artifact() marks unchanged fields as changed = FALSE", {
-  art    <- orders_art()
+  art <- orders_art()
   result <- diff_meta_artifact(art, art)
   expect_true(all(!result$changed))
 })

@@ -61,16 +61,20 @@ aRtifacts' architecture maps naturally onto an RBQM workflow:
 
 ### Severity tiers
 
-A `FlagRule` can carry a severity property — `"critical"`, `"major"`,
+A `CoreRule` can carry a severity property — `"critical"`, `"major"`,
 `"minor"` — allowing organizations to classify risks centrally and filter
 downstream reporting.
 
 ```{r eval = FALSE}
-high_risk <- new_flag_rule(
-  id          = "RBQM-001",
-  description = "Subject missing informed-consent date",
-  severity    = "critical",
-  predicate   = function(row) is.na(row[["RFICDTC"]])
+high_risk <- new_rule(
+  id = "RBQM-001",
+  title = "Subject missing informed-consent date",
+  topology = "A1",
+  scope = "record",
+  intent = "clinical_review",
+  domain = "DM",
+  severity = "critical",
+  fn = function(data, context, rule) data[is.na(data[["RFICDTC"]]), , drop = FALSE]
 )
 ```
 
@@ -91,12 +95,13 @@ no ETL step required.
 
 ### Key Risk Indicators (KRIs)
 
-`run_flags()` output is a tidy data frame.
+`run_rules()` output is a tidy data frame.
 Aggregating flag counts by site, country, or study yields KRIs that feed
 directly into RBQM central-monitoring displays:
 
 ```{r eval = FALSE}
-flags <- run_flags(snapshot, rules)
+ctx <- new_rule_context(current = snapshot)
+flags <- run_rules(ctx, rules)
 kri   <- aggregate(flag ~ site, data = flags, FUN = length)
 ```
 
@@ -127,10 +132,14 @@ org_terms <- list(
 
 term_rules <- lapply(names(org_terms), function(var) {
   allowed <- org_terms[[var]]
-  new_flag_rule(
-    id          = paste0("TERM-", var),
-    description = paste(var, "must be in org codelist"),
-    predicate   = function(row) row[[var]] %in% allowed
+  new_rule(
+    id = paste0("TERM-", var),
+    title = paste(var, "must be in org codelist"),
+    topology = "A1",
+    scope = "record",
+    intent = "data_entry",
+    domain = "DM",
+    fn = function(data, context, rule) data[!(data[[var]] %in% allowed), , drop = FALSE]
   )
 })
 ```
@@ -138,12 +147,17 @@ term_rules <- lapply(names(org_terms), function(var) {
 ### Variable-naming conventions
 
 ```{r eval = FALSE}
-naming_rule <- new_flag_rule(
-  id          = "STYLE-001",
-  description = "All variables must be uppercase, 8 chars max",
-  predicate   = function(row) {
-    nms <- names(row)
-    all(nms == toupper(nms)) && all(nchar(nms) <= 8)
+ naming_rule <- new_rule(
+  id = "STYLE-001",
+  title = "All variables must be uppercase, 8 chars max",
+  topology = "A1",
+  scope = "record",
+  intent = "programming_etl",
+  domain = "DM",
+  fn = function(data, context, rule) {
+    nms <- names(data)
+    if (all(nms == toupper(nms)) && all(nchar(nms) <= 8)) return(data.frame())
+    data[seq_len(min(1L, nrow(data))), , drop = FALSE]
   }
 )
 ```
@@ -152,16 +166,20 @@ naming_rule <- new_flag_rule(
 
 For organizations that maintain a metadata repository (define.xml, a spec
 database, an internal data dictionary), rules can be **generated
-programmatically** from that repository — one `FlagRule` per variable,
+programmatically** from that repository — one `CoreRule` per variable,
 type-check, codelist, or cross-domain relationship:
 
 ```{r eval = FALSE}
 # Pseudocode: generate rules from a define.xml parse
 for (var_def in parse_define_xml("define2-0-0.xml")) {
-  rule <- new_flag_rule(
-    id          = paste0("DEF-", var_def$OID),
-    description = paste(var_def$Name, "codelist check"),
-    predicate   = make_codelist_predicate(var_def$CodeList)
+  rule <- new_rule(
+    id = paste0("DEF-", var_def$OID),
+    title = paste(var_def$Name, "codelist check"),
+    topology = "A1",
+    scope = "record",
+    intent = "data_entry",
+    domain = "DM",
+    fn = make_codelist_rule_fn(var_def$CodeList)
   )
 }
 ```

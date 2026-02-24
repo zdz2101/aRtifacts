@@ -32,6 +32,7 @@ devtools::install_local("path/to/aRtifacts")
 | **Flag** | Compose and execute data-quality rules (`FlagRule`) against any domain; the engine attaches rule metadata to every flagged row |
 | **Track** | Classify flags across data cuts as *introduced*, *persisting*, or *resolved* using `diff_flags()` |
 | **Check** | Run structural and temporal checks against the built-in 50-rule observability catalog, or against ADaM (ADSL / BDS) conventions |
+| **Core50** | Execute topology-dispatched Core50 rules (`A0`-`A7`) with `run_rules()` |
 
 ---
 
@@ -60,13 +61,29 @@ diff_values(snap_v1, snap_v2, vars = "AVAL")
 # --- 3. Flag it ------------------------------------------------------------------
 art_v2 <- new_artifact_snapshot(domains = list(ADVS = snap_v2), build_id = "cut-2")
 
-rule_high_bp <- new_flag_rule(
-  id     = "HIGH_SYSBP",
+rule_high_bp <- new_rule(
+  id = "TMP-900",
+  title = "High systolic BP",
+  topology = "A1",
+  scope = "record",
+  intent = "clinical_review",
   domain = "ADVS",
-  fn     = function(df) df[!is.na(df$AVAL) & df$PARAMCD == "SYSBP" & df$AVAL > 180, ]
+  owner_team = "Medical Monitor",
+  fn = function(data, context, rule) {
+    data[!is.na(data$AVAL) & data$PARAMCD == "SYSBP" & data$AVAL > 180, ]
+  }
 )
 
-run_flags(art_v2, list(rule_high_bp))
+ctx <- new_rule_context(current = art_v2)
+run_rules(ctx, list(rule_high_bp))
+
+# --- 3b. Core50 packaged path (A1 example) --------------------------------------
+core_rule <- rule_id_001_missing_key_fields(
+  domain = "ADVS",
+  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+)
+
+run_rules(ctx, list(core_rule))
 
 # --- 4. Confirm ADaMIG conformance -----------------------------------------------
 check_bds(advs_v2)   # returns empty issue table — dataset is still valid
@@ -82,11 +99,11 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 |---|---|
 | `DomainSnapshot` / `new_domain_snapshot()` | Keyed, validated point-in-time table snapshot |
 | `ArtifactSnapshot` / `new_artifact_snapshot()` | Study-level bundle of domain snapshots with build metadata |
-| `FlagRule` / `new_flag_rule()` | Composable, executable data-quality rule |
+| `CoreRule` / `new_rule()` | Topology-aware Core50 rule definition (`A0`-`A7`) |
 | `diff_keys()` | Key-combination additions and removals between two snapshots |
 | `diff_values()` | Cell-level value changes on matched keys |
 | `diff_meta_artifact()` | Build metadata comparison between two artifacts |
-| `run_flags()` | Execute a list of `FlagRule`s and collect flagged rows |
+| `run_rules()` | Execute topology-dispatched `CoreRule`s with `RuleContext` |
 | `diff_flags()` | Longitudinal flag classification (introduced / persisting / resolved) |
 
 ### Generalized rule catalog
@@ -94,8 +111,7 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 | Function | Purpose |
 |---|---|
 | `rule_catalog_core()` | Reference table of 50 high-ROI observability rules |
-| `check_tabulation_domain()` | Structural / temporal checks mapped to catalog rules |
-| `make_rule_pack_core()` | Build executable `FlagRule` objects from catalog rules |
+| `pack_core_50_a1()` ... `pack_core_50_a7()` | Build axis-based Core50 packs by topology |
 
 ### Bundled ADaM module *(supplemental — future `aRtifacts.adam`)*
 
@@ -117,7 +133,7 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 |---|---|
 | [Getting Started](vignettes/getting-started.Rmd) | End-to-end schema-agnostic walkthrough |
 | [ADaM Module](vignettes/adam-module.Rmd) | ADaMIG conformance checks for ADSL and BDS |
-| [SDTM Module](vignettes/sdtm-module.Rmd) | Generalized tabulation domain checks |
+| [SDTM Module](vignettes/sdtm-module.Rmd) | SDTM checks via Core50 axis packs |
 | [Future Extensions](vignettes/future-extensions.Rmd) | Roadmap and planned capabilities |
 
 ---

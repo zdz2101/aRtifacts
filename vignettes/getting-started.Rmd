@@ -129,31 +129,35 @@ diff_meta_artifact(art_v1, art_v2)
 
 ---
 
-## Step 4 — Write and run a flag rule
+## Step 4 — Write and run a Core50 rule
 
-A **flag rule** is a small function that receives a `data.frame` and returns
-the rows that violate some condition. You wrap it in `new_flag_rule()` so the
-engine tracks its ID, severity, and ownership.
+A **Core50 rule** is a topology-aware function. For row-level checks in a
+single snapshot, use topology `A1` and run with `run_rules()`.
 
 ```{r}
-rule_high_amount <- new_flag_rule(
-  id         = "HIGH_AMOUNT",
+rule_high_amount <- new_rule(
+  id         = "TMP-900",
+  title      = "High amount",
+  topology   = "A1",
+  scope      = "record",
+  intent     = "ops_anomaly",
   domain     = "orders",
-  severity   = "warning",
-  category   = "business_logic",
   owner_team = "Finance",
-  fn = function(df) {
-    flagged <- df[!is.na(df$amount) & df$amount > 300, , drop = FALSE]
+  fn = function(data, context, rule) {
+    flagged <- data[!is.na(data$amount) & data$amount > 300, , drop = FALSE]
     if (!nrow(flagged)) return(data.frame())
     flagged[, c("order_id", "customer", "amount"), drop = FALSE]
   }
 )
 
-flags_v1 <- run_flags(art_v1, list(rule_high_amount))
-flags_v2 <- run_flags(art_v2, list(rule_high_amount))
+ctx_v1 <- new_rule_context(current = art_v1)
+ctx_v2 <- new_rule_context(current = art_v2)
+
+flags_v1 <- run_rules(ctx_v1, list(rule_high_amount))
+flags_v2 <- run_rules(ctx_v2, list(rule_high_amount))
 ```
 
-> `run_flags()` applies every rule to its target domain inside the artifact
+> `run_rules()` applies every rule according to its topology and target domain
 > and returns a single combined table of all flagged rows, annotated with
 > `RULE_ID`, `SEVERITY`, and `OWNER_TEAM`.
 
@@ -189,4 +193,4 @@ see the companion vignettes:
 - **ADaM Module** — validate ADSL, BDS, and explore the core rule catalog
 
 You can also build your own domain-specific rule packs for any schema by
-following the same `new_flag_rule()` + `run_flags()` pattern shown above.
+following the same `new_rule()` + `run_rules()` pattern shown above.

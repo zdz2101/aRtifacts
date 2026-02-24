@@ -36,6 +36,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/zdz2101/aRtifacts/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -60,7 +61,7 @@
       <h1>SDTM Module</h1>
             
       
-
+      <small class="dont-index">Source: <a href="https://github.com/zdz2101/aRtifacts/blob/HEAD/vignettes/sdtm-module.Rmd" class="external-link"><code>vignettes/sdtm-module.Rmd</code></a></small>
       <div class="d-none name"><code>sdtm-module.Rmd</code></div>
     </div>
 
@@ -126,7 +127,7 @@ date, and a duplicate key row.</p>
 <span><span class="va">lb_new</span><span class="op">$</span><span class="va">LBSTRESN</span><span class="op">[</span><span class="va">lb_new</span><span class="op">$</span><span class="va">USUBJID</span> <span class="op">==</span> <span class="st">"STUDY01-002"</span> <span class="op">&amp;</span> <span class="va">lb_new</span><span class="op">$</span><span class="va">LBSEQ</span> <span class="op">==</span> <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">2.5</span></span>
 <span></span>
 <span><span class="co"># Change 2: A full date is replaced with a partial date (formatting issue).</span></span>
-<span><span class="va">lb_new</span><span class="op">$</span><span class="va">LBDTC</span><span class="op">[</span><span class="va">lb_new</span><span class="op">$</span><span class="va">USUBJID</span> <span class="op">==</span> <span class="st">"STUDY01-003"</span> <span class="op">&amp;</span> <span class="va">lb_new</span><span class="op">$</span><span class="va">LBSEQ</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"2024-1-04"</span></span>
+<span><span class="va">lb_new</span><span class="op">$</span><span class="va">LBDTC</span><span class="op">[</span><span class="va">lb_new</span><span class="op">$</span><span class="va">USUBJID</span> <span class="op">==</span> <span class="st">"STUDY01-003"</span> <span class="op">&amp;</span> <span class="va">lb_new</span><span class="op">$</span><span class="va">LBSEQ</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"2024-01"</span></span>
 <span></span>
 <span><span class="co"># Change 3: A new record arrives — but it duplicates an existing key.</span></span>
 <span><span class="va">lb_new</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">lb_new</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -200,16 +201,16 @@ or removed. All changes are <strong>value-level</strong>.</p>
 </h3>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/diff_values.html">diff_values</a></span><span class="op">(</span><span class="va">snap_old</span>, <span class="va">snap_new</span>, vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"LBSTRESN"</span>, <span class="st">"LBDTC"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   STUDYID     USUBJID LBSEQ      var        old       new</span></span>
-<span><span class="co">#&gt; 4 STUDY01 STUDY01-002     2 LBSTRESN       14.1      -2.5</span></span>
-<span><span class="co">#&gt; 5 STUDY01 STUDY01-003     1    LBDTC 2024-01-04 2024-1-04</span></span></code></pre></div>
+<span><span class="co">#&gt;   STUDYID     USUBJID LBSEQ      var        old     new</span></span>
+<span><span class="co">#&gt; 4 STUDY01 STUDY01-002     2 LBSTRESN       14.1    -2.5</span></span>
+<span><span class="co">#&gt; 5 STUDY01 STUDY01-003     1    LBDTC 2024-01-04 2024-01</span></span></code></pre></div>
 <blockquote>
 <p>Two changes surface:</p>
 <ul>
 <li>Subject 002, seq 2: <code>LBSTRESN</code> went from 14.1 → -2.5 (the
 injected error).</li>
 <li>Subject 003, seq 1: <code>LBDTC</code> went from
-<code>2024-01-04</code> → <code>2024-1-04</code> (partial date).</li>
+<code>2024-01-04</code> → <code>2024-01</code> (partial date).</li>
 </ul>
 <p>These are exactly the edits we made — the diff engine picks them up
 deterministically with zero configuration.</p>
@@ -312,7 +313,7 @@ internally.</li>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by ATorus Team.</p>
+  <p>Developed by Zelos Zhu.</p>
 </div>
 
 <div class="pkgdown-footer-right">

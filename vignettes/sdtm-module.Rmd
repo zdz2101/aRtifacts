@@ -136,54 +136,38 @@ diff_values(snap_old, snap_new, vars = c("LBSTRESN", "LBDTC"))
 
 ---
 
-## Step 4 — Run generalized checks
+## Step 4 — Run Core50 checks
 
-`check_tabulation_domain()` applies structural and temporal checks from the
-core rule catalog. It works on any domain — here we point it at our
-modified LB dataset.
-
-```{r}
-issues <- check_tabulation_domain(
-  data              = lb_new,
-  domain            = "LB",
-  key_vars          = c("STUDYID", "USUBJID", "LBSEQ"),
-  required_vars     = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD", "LBDTC"),
-  date_vars         = "LBDTC",
-  non_negative_vars = "LBSTRESN",
-  visit_order_var   = "VISITNUM",
-  subject_var       = "USUBJID"
-)
-
-issues
-```
-
-> **Reading the output:** Each row is one finding. The `check` column maps
-> to a rule from the core catalog (e.g., `R013_DATE_FORMAT`,
-> `R033_NEGATIVE_NOT_ALLOWED`). `severity` tells you whether it's an error
-> or warning. `n` tells you how many records are affected.
->
-> - `R013_DATE_FORMAT` — `LBDTC` has a value that isn't a full ISO date.
-> - `R033_NEGATIVE_NOT_ALLOWED` — `LBSTRESN` contains a negative value
->   where only non-negative values are expected.
-
----
-
-## Step 5 — Run rules as executable FlagRules
-
-If you want **row-level** detail (not just summary counts), build an
-executable rule pack and run it through the flag engine.
+Core50 `A1` rules apply row-level checks to one snapshot. Here we run an
+LB-focused `A1` pack against the modified dataset.
 
 ```{r}
 art <- new_artifact_snapshot(domains = list(LB = snap_new), build_id = "cut-002")
 
-rules <- make_rule_pack_core(
-  domain            = "LB",
-  key_vars          = c("STUDYID", "USUBJID", "LBSEQ"),
-  required_vars     = c("STUDYID", "USUBJID", "LBSEQ", "LBTESTCD", "LBDTC"),
-  non_negative_vars = "LBSTRESN"
+rules <- pack_core_50_a1(
+  domain = "LB",
+  key_vars = c("STUDYID", "USUBJID", "LBSEQ")
 )
 
-flags <- run_flags(art, rules)
+ctx <- new_rule_context(current = art)
+flags <- run_rules(ctx, rules)
+flags
+```
+
+> **Reading the output:** Each row is one flagged finding with metadata:
+> `RULE_ID`, `RULE_TITLE`, `TOPOLOGY`, `SCOPE`, `INTENT`, and `SEVERITY`.
+>
+> Typical IDs you will see for this example include date and value checks
+> such as `TMP-001` and `DE-002`.
+
+---
+
+## Step 5 — Run rules as executable Core50 packs
+
+If you want **row-level** detail (not just summary counts), build a Core50
+pack and run it through `run_rules()`.
+
+```{r}
 flags
 ```
 
@@ -197,5 +181,5 @@ flags
 
 - See the **ADaM Module** vignette for ADSL/BDS-specific checks.
 - See the **Core Engine** vignette for the full schema-agnostic API tour.
-- Write your own SDTM rule packs using `new_flag_rule()` — the pattern is
-  identical to what `make_rule_pack_core()` does internally.
+- Write your own SDTM rule packs using `new_rule()` and execute with
+  `run_rules()`.

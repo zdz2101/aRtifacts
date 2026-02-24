@@ -21,6 +21,7 @@ checks from the core observability rule catalog."></head><body>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/zdz2101/aRtifacts/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -36,7 +37,7 @@ checks from the core observability rule catalog."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Rule pack — identity, keys, and duplicates</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/zdz2101/aRtifacts/blob/HEAD/R/rules_keys.R" class="external-link"><code>R/rules_keys.R</code></a></small>
       <div class="d-none name"><code>make_rule_pack_keys.Rd</code></div>
     </div>
 
@@ -51,7 +52,7 @@ checks from the core observability rule catalog.</p>
 <span>  <span class="va">domain</span>,</span>
 <span>  <span class="va">key_vars</span>,</span>
 <span>  subject_var <span class="op">=</span> <span class="st">"USUBJID"</span>,</span>
-<span>  site_var <span class="op">=</span> <span class="st">"SITEID"</span>,</span>
+<span>  group_var <span class="op">=</span> <span class="st">"SITEID"</span>,</span>
 <span>  dup_rate_threshold <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  owner_team <span class="op">=</span> <span class="st">"DM"</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -74,8 +75,8 @@ checks from the core observability rule catalog.</p>
 <dd><p>Subject identifier variable. Default <code>"USUBJID"</code>.</p></dd>
 
 
-<dt id="arg-site-var">site_var<a class="anchor" aria-label="anchor" href="#arg-site-var"></a></dt>
-<dd><p>Site identifier variable. Default <code>"SITEID"</code>.</p></dd>
+<dt id="arg-group-var">group_var<a class="anchor" aria-label="anchor" href="#arg-group-var"></a></dt>
+<dd><p>Group identifier variable. Default <code>"SITEID"</code>.</p></dd>
 
 
 <dt id="arg-dup-rate-threshold">dup_rate_threshold<a class="anchor" aria-label="anchor" href="#arg-dup-rate-threshold"></a></dt>
@@ -85,6 +86,10 @@ duplicate-key rate above this threshold are flagged. Default <code>0.1</code>.</
 
 <dt id="arg-owner-team">owner_team<a class="anchor" aria-label="anchor" href="#arg-owner-team"></a></dt>
 <dd><p>Team assigned to follow up on flagged records.</p></dd>
+
+
+<dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
+<dd><p>Reserved for future extensions; currently ignored.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -114,7 +119,7 @@ belong in the diff engine rather than a single-domain rule pack.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by ATorus Team.</p>
+  <p>Developed by Zelos Zhu.</p>
 </div>
 
 <div class="pkgdown-footer-right">
