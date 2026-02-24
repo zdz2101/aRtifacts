@@ -26,15 +26,18 @@ rule_snap_007_key_churn_spike <- function(domain = "ADSL",
         return(data.frame())
       }
 
-      prev_k <- unique(previous[, by, drop = FALSE])
-      cur_k <- unique(current[, by, drop = FALSE])
-      prev_id <- .key_id(prev_k, by)
-      cur_id <- .key_id(cur_k, by)
+      prev_k <- unique(as.data.frame(previous, stringsAsFactors = FALSE)[, by, drop = FALSE])
+      cur_k <- unique(as.data.frame(current, stringsAsFactors = FALSE)[, by, drop = FALSE])
 
-      added_n <- sum(!(cur_id %in% prev_id))
-      removed_n <- sum(!(prev_id %in% cur_id))
-      prev_n <- length(prev_id)
-      churn_rate <- if (prev_n > 0) as.numeric(added_n + removed_n) / as.numeric(prev_n) else NA_real_
+      prev_dom <- new_domain_snapshot(name = domain, data = prev_k, key_vars = by)
+      cur_dom <- new_domain_snapshot(name = domain, data = cur_k, key_vars = by)
+      churn <- compare_key_churn(prev_dom, cur_dom)
+
+      added_n <- as.integer(churn$added_n[[1]])
+      removed_n <- as.integer(churn$removed_n[[1]])
+      prev_n <- as.integer(churn$old_n_keys[[1]])
+      churn_rate <- as.numeric(churn$churn_rate[[1]])
+      cur_n <- as.integer(churn$new_n_keys[[1]])
 
       if (is.na(churn_rate) || churn_rate <= churn_threshold) {
         return(data.frame())
@@ -42,7 +45,7 @@ rule_snap_007_key_churn_spike <- function(domain = "ADSL",
 
       data.frame(
         prev_n_keys = as.integer(prev_n),
-        cur_n_keys = as.integer(length(cur_id)),
+        cur_n_keys = as.integer(cur_n),
         added_n = as.integer(added_n),
         removed_n = as.integer(removed_n),
         churn_rate = churn_rate,

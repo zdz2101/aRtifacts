@@ -31,7 +31,7 @@ new_flag_rule(
 A validated \code{FlagRule} object.
 }
 \description{
-Convenience constructor for \code{FlagRule} objects used by \code{run_flags()}.
+Convenience constructor for \code{FlagRule} objects.
 }
 \examples{
 rule <- new_flag_rule(

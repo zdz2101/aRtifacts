@@ -17,6 +17,7 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 ### Core execution API
 - `new_rule()`
 - `run_rules()`
+- `compare_flag_states()`
 - `register_rule()`
 - `get_rule()`
 - `list_rules()`
@@ -85,7 +86,9 @@ Use minimal fixtures and explicit expectations. Avoid coupling tests to transien
 
 ## Documentation Expectations
 
-User-facing docs should only reference Core50 APIs (`new_rule()`, `run_rules()`, `pack_core_50*()`, registry helpers).
+User-facing docs should reference current exported APIs (`new_rule()`, `run_rules()`, `compare_flag_states()`, `pack_core_50*()`, registry helpers).
+
+For longitudinal findings, document and use `compare_flag_states()` instead of non-exported or removed legacy helpers.
 
 Internal docs should avoid references to removed legacy APIs and modules.
 

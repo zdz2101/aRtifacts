@@ -7,10 +7,9 @@ your data between runs — and to enforce data-quality rules throughout the
 lifecycle of a study or pipeline.
 
 The core is wholly **schema-agnostic**: it works with any tabular data that has
-a defined key structure, clinical or otherwise. Bundled starter modules add
-SDTM- and ADaM-oriented checks on top and are designed to graduate into
-dedicated companion packages (`aRtifacts.sdtm`, `aRtifacts.adam`) as the
-ecosystem matures.
+a defined key structure, clinical or otherwise. The package also includes
+built-in ADaM-oriented checks (`check_adsl()`, `check_bds()`,
+`validate_adam()`) and example clinical datasets for demonstrations.
 
 ---
 
@@ -112,7 +111,7 @@ check_bds(advs_v2)   # returns empty issue table — dataset is still valid
 | `rule_catalog_core()` | Reference table of 50 high-ROI observability rules |
 | `pack_core_50_a1()` ... `pack_core_50_a7()` | Build axis-based Core50 packs by topology |
 
-### Bundled ADaM module *(supplemental — future `aRtifacts.adam`)*
+### Built-in ADaM checks
 
 | Function | Purpose |
 |---|---|

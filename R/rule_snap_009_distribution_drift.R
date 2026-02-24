@@ -24,26 +24,32 @@ rule_snap_009_distribution_drift <- function(domain = "ADSL",
         return(data.frame())
       }
 
-      prev_x <- suppressWarnings(as.numeric(previous[[value_var]]))
-      cur_x <- suppressWarnings(as.numeric(current[[value_var]]))
-      prev_x <- prev_x[!is.na(prev_x)]
-      cur_x <- cur_x[!is.na(cur_x)]
-      if (length(prev_x) < 2L || length(cur_x) < 2L) {
+      prev_df <- as.data.frame(previous, stringsAsFactors = FALSE)
+      cur_df <- as.data.frame(current, stringsAsFactors = FALSE)
+      prev_df$.ALL <- "ALL"
+      cur_df$.ALL <- "ALL"
+      prev_df$.ROWID <- seq_len(nrow(prev_df))
+      cur_df$.ROWID <- seq_len(nrow(cur_df))
+
+      prev_dom <- new_domain_snapshot(name = domain, data = prev_df, key_vars = ".ROWID")
+      cur_dom <- new_domain_snapshot(name = domain, data = cur_df, key_vars = ".ROWID")
+      drift <- compare_distribution_shift(prev_dom, cur_dom, var = value_var, by = ".ALL")
+
+      if (!nrow(drift)) {
         return(data.frame())
       }
 
-      ks <- suppressWarnings(stats::ks.test(prev_x, cur_x))
-      stat <- as.numeric(ks$statistic)
+      stat <- as.numeric(drift$ks_stat[[1]])
       if (is.na(stat) || stat <= ks_threshold) {
         return(data.frame())
       }
 
       data.frame(
         value_var = value_var,
-        n_prev = as.integer(length(prev_x)),
-        n_cur = as.integer(length(cur_x)),
+        n_prev = as.integer(drift$n_old[[1]]),
+        n_cur = as.integer(drift$n_new[[1]]),
         ks_stat = stat,
-        ks_p_value = as.numeric(ks$p.value),
+        ks_p_value = as.numeric(drift$ks_p_value[[1]]),
         threshold = as.numeric(ks_threshold),
         reason = "Distribution drift exceeds KS threshold",
         stringsAsFactors = FALSE

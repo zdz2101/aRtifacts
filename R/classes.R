@@ -246,7 +246,7 @@ new_artifact_snapshot <- function(domains,
 }
   #' Create a flag rule
   #'
-  #' Convenience constructor for `FlagRule` objects used by `run_flags()`.
+  #' Convenience constructor for `FlagRule` objects.
   #'
   #' @param id Rule identifier.
   #' @param domain Target domain name in an artifact.

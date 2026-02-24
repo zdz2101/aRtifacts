@@ -15,7 +15,7 @@
 #' @param owner_team Team responsible for follow-up.
 #' @param threshold Example numeric threshold used by a rule.
 #'
-#' @return A list of `FlagRule` objects compatible with `run_flags()`.
+#' @return A list of `CoreRule` objects compatible with `run_rules()`.
 #' @export
 make_rule_pack_template <- function(domain,
                                     owner_team = "Data Management",
@@ -26,43 +26,49 @@ make_rule_pack_template <- function(domain,
     # -----------------------------------------------------------------------
     # Rule example 1: simple record-level threshold check
     # -----------------------------------------------------------------------
-    new_flag_rule(
+    new_rule(
       id = "TMP001_VALUE_OVER_THRESHOLD",
+      title = "Value over threshold",
+      topology = "A1",
+      scope = "record",
+      intent = "clinical_review",
       domain = domain,
       severity = "warning",
-      category = "clinical_review",
       owner_team = owner_team,
-      fn = function(df) {
+      fn = function(data, context, rule) {
         required <- c("USUBJID", "VALUE")
-        if (!all(required %in% names(df))) return(data.frame())
+        if (!all(required %in% names(data))) return(data.frame())
 
-        value <- suppressWarnings(as.numeric(df$VALUE))
+        value <- suppressWarnings(as.numeric(data$VALUE))
         bad <- !is.na(value) & value > threshold
         if (!any(bad)) return(data.frame())
 
-        df[bad, c("USUBJID", "VALUE"), drop = FALSE]
+        data[bad, c("USUBJID", "VALUE"), drop = FALSE]
       }
     ),
 
     # -----------------------------------------------------------------------
     # Rule example 2: cross-field consistency check
     # -----------------------------------------------------------------------
-    new_flag_rule(
+    new_rule(
       id = "TMP002_FLAG_WITHOUT_SUPPORTING_DATE",
+      title = "Flag without supporting date",
+      topology = "A1",
+      scope = "record",
+      intent = "data_entry",
       domain = domain,
       severity = "error",
-      category = "data_entry",
       owner_team = owner_team,
-      fn = function(df) {
+      fn = function(data, context, rule) {
         required <- c("USUBJID", "FLAG", "DATE")
-        if (!all(required %in% names(df))) return(data.frame())
+        if (!all(required %in% names(data))) return(data.frame())
 
-        flag_on <- !is.na(df$FLAG) & as.character(df$FLAG) == "Y"
-        date_missing <- is.na(df$DATE) | !nzchar(as.character(df$DATE))
+        flag_on <- !is.na(data$FLAG) & as.character(data$FLAG) == "Y"
+        date_missing <- is.na(data$DATE) | !nzchar(as.character(data$DATE))
         bad <- flag_on & date_missing
         if (!any(bad)) return(data.frame())
 
-        df[bad, c("USUBJID", "FLAG", "DATE"), drop = FALSE]
+        data[bad, c("USUBJID", "FLAG", "DATE"), drop = FALSE]
       }
     )
   )

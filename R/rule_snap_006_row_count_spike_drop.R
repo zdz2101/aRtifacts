@@ -20,11 +20,22 @@ rule_snap_006_row_count_spike_drop <- function(domain = "ADSL",
     domain = domain,
     owner_team = owner_team,
     fn = function(previous, current, context, rule) {
-      n_prev <- nrow(previous)
-      n_cur <- nrow(current)
-      delta_n <- as.integer(n_cur - n_prev)
+      prev_df <- as.data.frame(previous, stringsAsFactors = FALSE)
+      cur_df <- as.data.frame(current, stringsAsFactors = FALSE)
+
+      prev_df$.ROWID <- seq_len(nrow(prev_df))
+      cur_df$.ROWID <- seq_len(nrow(cur_df))
+
+      prev_dom <- new_domain_snapshot(name = domain, data = prev_df, key_vars = ".ROWID")
+      cur_dom <- new_domain_snapshot(name = domain, data = cur_df, key_vars = ".ROWID")
+
+      vol <- compare_record_volume(prev_dom, cur_dom)
+
+      n_prev <- as.integer(vol$old_n_records[[1]])
+      n_cur <- as.integer(vol$new_n_records[[1]])
+      delta_n <- as.integer(vol$absolute_change[[1]])
       delta_abs <- abs(delta_n)
-      delta_rel <- if (n_prev > 0) as.numeric(delta_n) / as.numeric(n_prev) else NA_real_
+      delta_rel <- as.numeric(vol$relative_change[[1]])
 
       bad_abs <- !is.na(threshold_abs) && delta_abs > threshold_abs
       bad_rel <- !is.na(threshold_rel) && !is.na(delta_rel) && abs(delta_rel) > threshold_rel

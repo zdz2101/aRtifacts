@@ -256,32 +256,7 @@ introduced issue.</p>
 <span><span class="va">ctx_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
 <span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v2</span>, <span class="va">custom_rules</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">compare_flag_states</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="va">ensure_key_cols</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">df</span>, <span class="va">cols</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">df</span>, stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span>    <span class="va">missing</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="va">cols</span>, <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="kw">for</span> <span class="op">(</span><span class="va">col</span> <span class="kw">in</span> <span class="va">missing</span><span class="op">)</span> <span class="op">{</span></span>
-<span>      <span class="va">out</span><span class="op">[[</span><span class="va">col</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA_character_</span></span>
-<span>    <span class="op">}</span></span>
-<span>    <span class="va">out</span><span class="op">[</span>, <span class="va">cols</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
-<span>  <span class="op">}</span></span>
-<span></span>
-<span>  <span class="va">old_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">old_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">new_key</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu">ensure_key_cols</span><span class="op">(</span><span class="va">new_flags</span>, <span class="va">by</span><span class="op">)</span><span class="op">)</span></span>
-<span>  <span class="va">old_key</span><span class="op">$</span><span class="va">.present_old</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
-<span>  <span class="va">new_key</span><span class="op">$</span><span class="va">.present_new</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
-<span></span>
-<span>  <span class="va">merged</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/merge.html" class="external-link">merge</a></span><span class="op">(</span><span class="va">old_key</span>, <span class="va">new_key</span>, by <span class="op">=</span> <span class="va">by</span>, all <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span>  <span class="va">merged</span><span class="op">$</span><span class="va">status</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_old</span><span class="op">)</span>,</span>
-<span>    <span class="st">"introduced"</span>,</span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">merged</span><span class="op">$</span><span class="va">.present_new</span><span class="op">)</span>, <span class="st">"resolved"</span>, <span class="st">"persisting"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span></span>
-<span>  <span class="va">merged</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">by</span>, <span class="st">"status"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
-<span><span class="op">}</span></span>
-<span></span>
-<span><span class="va">flag_changes</span> <span class="op">&lt;-</span> <span class="fu">compare_flag_states</span><span class="op">(</span></span>
+<span><span class="va">flag_changes</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/compare_flag_states.html">compare_flag_states</a></span><span class="op">(</span></span>
 <span>  old_flags <span class="op">=</span> <span class="va">flags_v1</span>,</span>
 <span>  new_flags <span class="op">=</span> <span class="va">flags_v2</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"DOMAIN"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span></span>
@@ -317,7 +292,7 @@ semantics.</li>
 </ul>
 <p>A useful pattern is to keep IDs stable and add new IDs instead of
 changing what an existing ID means.</p>
-<hr>
+<p>—dev</p>
 </div>
 <div class="section level2">
 <h2 id="step-6-showcase-bundle-composition">Step 6 — Showcase bundle composition<a class="anchor" aria-label="anchor" href="#step-6-showcase-bundle-composition"></a>
