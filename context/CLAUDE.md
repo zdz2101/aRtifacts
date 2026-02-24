@@ -177,7 +177,7 @@ indicates implementation status:
 | R006 | New columns added | Snapshot | Programming/ETL | `diff` — use `diff_meta_artifact()` |
 | R007 | Columns removed | Snapshot | Programming/ETL | `diff` — use `diff_meta_artifact()` |
 | R008 | Column type drift | Snapshot | Programming/ETL | `diff` — use `diff_meta_artifact()` |
-| R009 | High duplicate rate by site | Group | Ops-anomaly | ✓ `make_rule_pack_keys` (param: `site_var`, `dup_rate_threshold`) |
+| R009 | High duplicate rate by group | Group | Ops-anomaly | ✓ `make_rule_pack_keys` (param: `group_var`, `dup_rate_threshold`) |
 | R010 | High duplicate rate by subject | Group | Ops-anomaly | ✓ `make_rule_pack_keys` (param: `subject_var`, `dup_rate_threshold`) |
 
 ##### Module 2 — Date & Time Consistency (`R/rules_dates.R`)
@@ -193,14 +193,14 @@ indicates implementation status:
 | R017 | Identical timestamps across multiple records | Group | Ops-anomaly | ✓ `make_rule_pack_dates` (param: `date_vars`) |
 | R018 | Future-dated events | Record | Data-entry | ✓ `make_rule_pack_dates` (param: `cutoff_date`, default `Sys.Date()`) |
 | R019 | Large unexpected date gaps for scheduled visits | Group | Ops-anomaly | `ext` — requires visit schedule reference |
-| R020 | Timezone inconsistency within site | Group | Ops-anomaly | `ext` — requires ISO 8601 datetime strings with UTC offset |
+| R020 | Timezone inconsistency within group | Group | Ops-anomaly | `ext` — requires ISO 8601 datetime strings with UTC offset |
 
 ##### Module 3 — Missingness & Completeness Drift (`R/rules_missingness.R`)
 
 | ID | Rule name | Scope | Category | impl |
 |---|---|---|---|---|
 | R021 | Overall missingness spike | Snapshot | Ops-anomaly | ✓ `make_rule_pack_missingness` (param: `missingness_threshold`) |
-| R022 | Missingness spike by site | Group | Ops-anomaly | ✓ `make_rule_pack_missingness` (params: `site_var`, `missingness_threshold`) |
+| R022 | Missingness spike by group | Group | Ops-anomaly | ✓ `make_rule_pack_missingness` (params: `group_var`, `missingness_threshold`) |
 | R023 | Missingness spike by visit/timepoint | Group | Ops-anomaly | ✓ `make_rule_pack_missingness` (param: `visit_var`, `missingness_threshold`) |
 | R024 | Required variable missingness > 0 | Snapshot | Data-entry | ✓ `make_rule_pack_missingness` (param: `required_vars`) |
 | R025 | Expected domain empty | Snapshot | Programming/ETL | ✓ `make_rule_pack_missingness` |
@@ -208,7 +208,7 @@ indicates implementation status:
 | R027 | New subjects missing baseline assessments | Group | Ops-anomaly | ✓ `make_rule_pack_missingness` (param: `baseline_flag_var`) |
 | R028 | Late-arriving data volume spike | Snapshot | Ops-anomaly | `diff` — compare record counts between snapshot cuts |
 | R029 | Unexpected data plateau (no updates) | Snapshot | Ops-anomaly | `diff` — compare `diff_keys()` / `diff_values()` counts to detect no-change cuts |
-| R030 | Form completion rate outlier by site | Group | Ops-anomaly | `ext` — requires external form completion log |
+| R030 | Form completion rate outlier by group | Group | Ops-anomaly | `ext` — requires external form completion log |
 
 ##### Module 4 — Plausibility & Range Checks (`R/rules_plausibility.R`)
 
@@ -219,7 +219,7 @@ indicates implementation status:
 | R033 | Negative values where not allowed | Record | Data-entry | ✓ `make_rule_pack_plausibility` (param: `non_negative_vars`) |
 | R034 | Suspicious zero values | Group | Ops-anomaly | ✓ `make_rule_pack_plausibility` (params: `numeric_vars`, `zero_rate_threshold`) |
 | R035 | Extreme statistical outliers (IQR) | Record | Clinical-review | ✓ `make_rule_pack_plausibility` (params: `numeric_vars`, `iqr_multiplier`) |
-| R036 | Site-level distribution shift | Group | Ops-anomaly | `diff` — requires historical baseline distribution from a prior snapshot |
+| R036 | Group-level distribution shift | Group | Ops-anomaly | `diff` — requires historical baseline distribution from a prior snapshot |
 | R037 | Within-subject implausible change | Group | Clinical-review | ✓ `make_rule_pack_plausibility` (params: `visit_order_var`, `max_within_change`) |
 | R038 | Too-perfect data (low variance / CV) | Group | Ops-anomaly | ✓ `make_rule_pack_plausibility` (params: `numeric_vars`, `low_cv_threshold`) |
 | R039 | Rounding pattern anomaly | Group | Ops-anomaly | ✓ `make_rule_pack_plausibility` (params: `numeric_vars`, `round_rate_threshold`) |
@@ -232,12 +232,12 @@ indicates implementation status:
 | R041 | Inconsistent categorical pairs | Record | Data-entry | ✓ `make_rule_pack_consistency` (param: `inconsistent_pairs`) |
 | R042 | Derived flag inconsistent with source data | Record | Programming/ETL | `custom` — implement per-domain as a bespoke `FlagRule` |
 | R043 | Placeholder text prevalence spike | Record | Ops-anomaly | ✓ `make_rule_pack_consistency` (param: `placeholder_patterns`) |
-| R044 | Controlled terminology drift within site | Group | Ops-anomaly | `ext` — requires CT reference table |
+| R044 | Controlled terminology drift within group | Group | Ops-anomaly | `ext` — requires CT reference table |
 | R045 | Unexpected explosion in distinct categorical values | Snapshot | Ops-anomaly | ✓ `make_rule_pack_consistency` (params: `categorical_vars`, `max_distinct_values`) |
 | R046 | Child record without parent record | Record | Data-entry | `ext` — requires cross-domain parent data |
 | R047 | Sequence gaps or duplicate sequence numbers | Group | Data-entry | ✓ `make_rule_pack_consistency` (param: `seq_vars`) |
 | R048 | Record count per subject outlier | Group | Ops-anomaly | ✓ `make_rule_pack_consistency` (param: `record_count_iqr_multiplier`) |
-| R049 | Enrollment vs assessment mismatch by site | Group | Ops-anomaly | `diff` — requires cross-domain enrollment data |
+| R049 | Enrollment vs assessment mismatch by group | Group | Ops-anomaly | `diff` — requires cross-domain enrollment data |
 | R050 | Record deletions without associated code/spec change | Snapshot | Programming/ETL | `diff` — compare `diff_keys()` deletions against spec-change log |
 
 ### 4.5 Bundled ADaM module (`R/checkers.R`)
