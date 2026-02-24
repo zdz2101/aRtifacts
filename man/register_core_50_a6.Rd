@@ -53,3 +53,7 @@ Invisibly returns registered IDs.
 \description{
 Register A6 cross-snapshot aggregate rules
 }
+\details{
+Equivalent to \code{pack_core_50_a6(...)} followed by \code{register_rule()} for each
+produced rule.
+}

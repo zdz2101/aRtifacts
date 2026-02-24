@@ -15,3 +15,15 @@ A list of \code{CoreRule} objects.
 \description{
 Returns the first implemented Core50 schema rules.
 }
+\details{
+A0 rules evaluate schema/snapshot-level change on a single domain and are
+typically run with both \code{current} and \code{previous} artifacts in
+\code{new_rule_context()}.
+
+This pack includes:
+\itemize{
+\item \code{SCH-001}: new columns added,
+\item \code{SCH-002}: columns removed,
+\item \code{SCH-003}: column type drift.
+}
+}

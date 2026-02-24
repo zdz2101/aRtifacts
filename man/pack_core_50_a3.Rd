@@ -53,3 +53,10 @@ A list of \code{CoreRule} objects.
 \description{
 Build A3 cross-domain relational pack
 }
+\details{
+A3 rules evaluate cross-domain relational consistency within a single cut and
+are dispatched as \code{fn(domains, context, rule)} where \code{domains} is a named
+list of current-cut \code{data.frame}s.
+
+This pack assembles \verb{XDOM-*} relational checks.
+}

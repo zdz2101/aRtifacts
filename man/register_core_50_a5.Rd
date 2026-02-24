@@ -38,3 +38,7 @@ Invisibly returns registered IDs.
 \description{
 Register A5 cross-snapshot row rules
 }
+\details{
+Equivalent to \code{pack_core_50_a5(...)} followed by \code{register_rule()} for each
+produced rule.
+}

@@ -26,3 +26,10 @@ List of \code{CoreRule} objects.
 \description{
 Build A7 cross-domain + cross-snapshot pack
 }
+\details{
+A7 rules combine cross-domain and longitudinal logic. They are dispatched as
+\code{fn(previous, current, context, rule)} where both \code{previous} and \code{current}
+are named lists of domain \code{data.frame}s.
+
+This pack assembles \verb{BOTH-*} rules.
+}

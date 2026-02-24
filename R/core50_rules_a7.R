@@ -6,6 +6,13 @@
 #' @param risk_delta_threshold Threshold for BOTH-004.
 #'
 #' @return List of `CoreRule` objects.
+#'
+#' @details
+#' A7 rules combine cross-domain and longitudinal logic. They are dispatched as
+#' `fn(previous, current, context, rule)` where both `previous` and `current`
+#' are named lists of domain `data.frame`s.
+#'
+#' This pack assembles `BOTH-*` rules.
 #' @export
 pack_core_50_a7 <- function(owner_team = "Clinical Ops",
                             group_var = "SITEID",
@@ -58,6 +65,10 @@ pack_core_50_a7 <- function(owner_team = "Clinical Ops",
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a7(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a7 <- function(owner_team = "Clinical Ops",
                                 group_var = "SITEID",

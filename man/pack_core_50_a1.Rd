@@ -77,3 +77,10 @@ A list of \code{CoreRule} objects.
 \description{
 Returns Core50 A1 rules as individual rule objects.
 }
+\details{
+A1 rules are intra-domain row-level checks executed as
+\code{fn(data, context, rule)} by \code{run_rules()}.
+
+The pack always includes \code{ID-001} and conditionally appends \verb{TMP-*} / \verb{DE-*}
+rules based on supplied configuration arguments.
+}

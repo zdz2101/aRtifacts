@@ -14,6 +14,13 @@
 #' @param event_rate_threshold Threshold for SNAP-011 event-rate change.
 #'
 #' @return List of `CoreRule` objects.
+#'
+#' @details
+#' A6 rules are same-domain aggregate longitudinal checks dispatched as
+#' `fn(previous, current, context, rule)`.
+#'
+#' This pack assembles `SNAP-006` through `SNAP-011` aggregate drift/change
+#' checks.
 #' @export
 pack_core_50_a6 <- function(owner_team = "Clinical Ops",
                             domain_primary = "ADSL",
@@ -83,6 +90,10 @@ pack_core_50_a6 <- function(owner_team = "Clinical Ops",
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a6(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a6 <- function(owner_team = "Clinical Ops",
                                 domain_primary = "ADSL",

@@ -17,3 +17,7 @@ Invisibly returns the registered IDs.
 \description{
 Registers the schema pack into the Core50 registry.
 }
+\details{
+Equivalent to \code{pack_core_50_schema(domain)} followed by \code{register_rule()} on
+each returned rule.
+}

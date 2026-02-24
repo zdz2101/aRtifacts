@@ -80,3 +80,7 @@ Invisibly returns registered IDs.
 \description{
 Register A1 intra-domain row rules
 }
+\details{
+Equivalent to \code{pack_core_50_a1(...)} followed by \code{register_rule()} for each
+produced rule.
+}

@@ -11,6 +11,12 @@
 #' @param ex_low_threshold EX low-rate threshold for XAGG-004.
 #'
 #' @return List of `CoreRule` objects.
+#'
+#' @details
+#' A4 rules evaluate cross-domain aggregate consistency in a single cut and are
+#' dispatched as `fn(domains, context, rule)`.
+#'
+#' This pack assembles `XAGG-*` aggregate checks across domains.
 #' @export
 pack_core_50_a4 <- function(owner_team = "Standards",
                             subject_var = "USUBJID",
@@ -60,6 +66,10 @@ pack_core_50_a4 <- function(owner_team = "Standards",
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a4(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a4 <- function(owner_team = "Standards",
                                 subject_var = "USUBJID",

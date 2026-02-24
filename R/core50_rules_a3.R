@@ -15,6 +15,13 @@
 #' @param demo_right_field Right field for demographic consistency.
 #'
 #' @return A list of `CoreRule` objects.
+#'
+#' @details
+#' A3 rules evaluate cross-domain relational consistency within a single cut and
+#' are dispatched as `fn(domains, context, rule)` where `domains` is a named
+#' list of current-cut `data.frame`s.
+#'
+#' This pack assembles `XDOM-*` relational checks.
 #' @export
 pack_core_50_a3 <- function(owner_team = "DM",
                             lb_visit_var = "VISIT",
@@ -76,6 +83,10 @@ pack_core_50_a3 <- function(owner_team = "DM",
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a3(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a3 <- function(owner_team = "DM",
                                 lb_visit_var = "VISIT",

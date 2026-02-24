@@ -50,3 +50,10 @@ List of \code{CoreRule} objects.
 \description{
 Build A6 cross-snapshot aggregate pack
 }
+\details{
+A6 rules are same-domain aggregate longitudinal checks dispatched as
+\code{fn(previous, current, context, rule)}.
+
+This pack assembles \code{SNAP-006} through \code{SNAP-011} aggregate drift/change
+checks.
+}

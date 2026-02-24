@@ -9,6 +9,13 @@
 #' @param removed_keys_option Option key for SNAP-003 ledger.
 #'
 #' @return List of `CoreRule` objects.
+#'
+#' @details
+#' A5 rules are same-domain row-level longitudinal checks and are dispatched as
+#' `fn(previous, current, context, rule)`.
+#'
+#' This pack assembles `SNAP-001` through `SNAP-005` style row-level
+#' cross-cut checks.
 #' @export
 pack_core_50_a5 <- function(owner_team = "Standards",
                             domain_primary = "ADSL",
@@ -64,6 +71,10 @@ pack_core_50_a5 <- function(owner_team = "Standards",
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a5(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a5 <- function(owner_team = "Standards",
                                 domain_primary = "ADSL",

@@ -5,7 +5,8 @@ articles:
   add-rule-pack: add-rule-pack.html
   future-extensions: future-extensions.html
   getting-started: getting-started.html
-last_built: 2026-02-24T22:00Z
+  topology-a0-a7: topology-a0-a7.html
+last_built: 2026-02-24T22:46Z
 urls:
   reference: https://zdz2101.github.io/aRtifacts/reference
   article: https://zdz2101.github.io/aRtifacts/articles

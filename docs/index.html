@@ -61,7 +61,7 @@
 <p><strong>A lightweight, dependency-minimal dataset observability engine for R.</strong></p>
 </blockquote>
 <p><code>aRtifacts</code> gives you a structured, reproducible way to track what changes in your data between runs — and to enforce data-quality rules throughout the lifecycle of a study or pipeline.</p>
-<p>The core is wholly <strong>schema-agnostic</strong>: it works with any tabular data that has a defined key structure, clinical or otherwise. Bundled starter modules add SDTM- and ADaM-oriented checks on top and are designed to graduate into dedicated companion packages (<code>aRtifacts.sdtm</code>, <code>aRtifacts.adam</code>) as the ecosystem matures.</p>
+<p>The core is wholly <strong>schema-agnostic</strong>: it works with any tabular data that has a defined key structure, clinical or otherwise. The package also includes built-in ADaM-oriented checks (<code><a href="reference/check_adsl.html">check_adsl()</a></code>, <code><a href="reference/check_bds.html">check_bds()</a></code>, <code><a href="reference/validate_adam.html">validate_adam()</a></code>) and example clinical datasets for demonstrations.</p>
 <hr>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -250,8 +250,7 @@
 </table>
 </div>
 <div class="section level3">
-<h3 id="bundled-adam-module-supplemental--future-artifactsadam">Bundled ADaM module <em>(supplemental — future <code>aRtifacts.adam</code>)</em>
-<a class="anchor" aria-label="anchor" href="#bundled-adam-module-supplemental--future-artifactsadam"></a>
+<h3 id="built-in-adam-checks">Built-in ADaM checks<a class="anchor" aria-label="anchor" href="#built-in-adam-checks"></a>
 </h3>
 <table class="table">
 <colgroup>

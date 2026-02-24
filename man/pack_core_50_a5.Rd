@@ -35,3 +35,10 @@ List of \code{CoreRule} objects.
 \description{
 Build A5 cross-snapshot row pack
 }
+\details{
+A5 rules are same-domain row-level longitudinal checks and are dispatched as
+\code{fn(previous, current, context, rule)}.
+
+This pack assembles \code{SNAP-001} through \code{SNAP-005} style row-level
+cross-cut checks.
+}

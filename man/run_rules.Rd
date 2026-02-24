@@ -20,3 +20,22 @@ A \code{data.frame} of findings with metadata columns
 Unified rule runner for Core50. Rules are dispatched based on \code{topology}
 (\code{A0}-\code{A7}) and receive the smallest relevant payload plus full context.
 }
+\details{
+\code{run_rules()} dispatches each \code{CoreRule} by \code{rule@topology} and passes the
+smallest payload needed by that topology:
+\itemize{
+\item \code{A0}: \code{fn(domain, context, rule)} for domain-scoped rules, or
+\code{fn(context, rule)} for context-only rules.
+\item \code{A1}, \code{A2}: \code{fn(data, context, rule)} where \code{data} is the current domain
+\code{data.frame}.
+\item \code{A3}, \code{A4}: \code{fn(domains, context, rule)} where \code{domains} is a named list of
+current-cut \code{data.frame}s.
+\item \code{A5}, \code{A6}: \code{fn(previous, current, context, rule)} where \code{previous} and
+\code{current} are same-domain \code{data.frame}s across cuts.
+\item \code{A7}: \code{fn(previous, current, context, rule)} where both \code{previous} and
+\code{current} are named lists of \code{data.frame}s across cuts.
+}
+
+If required domains are unavailable for a rule topology, the rule is skipped
+and contributes no rows.
+}

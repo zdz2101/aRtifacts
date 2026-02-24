@@ -115,6 +115,16 @@ rule_sch_003_column_type_drift <- function(domain) {
 #' @param domain Domain name.
 #'
 #' @return A list of `CoreRule` objects.
+#'
+#' @details
+#' A0 rules evaluate schema/snapshot-level change on a single domain and are
+#' typically run with both `current` and `previous` artifacts in
+#' `new_rule_context()`.
+#'
+#' This pack includes:
+#' - `SCH-001`: new columns added,
+#' - `SCH-002`: columns removed,
+#' - `SCH-003`: column type drift.
 #' @export
 pack_core_50_schema <- function(domain) {
   list(
@@ -132,6 +142,10 @@ pack_core_50_schema <- function(domain) {
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns the registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_schema(domain)` followed by `register_rule()` on
+#' each returned rule.
 #' @export
 register_core_50_schema <- function(domain, overwrite = FALSE) {
   rules <- pack_core_50_schema(domain)

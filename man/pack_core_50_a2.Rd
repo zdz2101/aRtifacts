@@ -62,3 +62,10 @@ List of \code{CoreRule} objects.
 \description{
 Build A2 intra-domain group pack
 }
+\details{
+A2 rules are intra-domain grouped/aggregate checks executed as
+\code{fn(data, context, rule)}.
+
+This pack combines duplicate-rate (\verb{ID-*}) and grouped quality/plausibility
+(\verb{GRP-*}) rules for a single domain.
+}

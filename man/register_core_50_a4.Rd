@@ -44,3 +44,7 @@ Invisibly returns registered IDs.
 \description{
 Register A4 cross-domain aggregate rules
 }
+\details{
+Equivalent to \code{pack_core_50_a4(...)} followed by \code{register_rule()} for each
+produced rule.
+}

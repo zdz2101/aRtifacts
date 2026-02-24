@@ -29,3 +29,7 @@ Invisibly returns registered IDs.
 \description{
 Register A7 cross-domain + cross-snapshot rules
 }
+\details{
+Equivalent to \code{pack_core_50_a7(...)} followed by \code{register_rule()} for each
+produced rule.
+}

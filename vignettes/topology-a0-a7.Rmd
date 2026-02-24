@@ -1,0 +1,241 @@
+---
+title: "Core50 Topologies (A0-A7)"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Core50 Topologies (A0-A7)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Why topology exists
+
+Core50 routes every `CoreRule` through a **topology** (`A0`-`A7`).
+The topology tells `run_rules()`:
+
+1. what payload shape to pass into `rule@fn`,
+2. whether previous snapshots are required,
+3. whether the rule is domain-scoped or cross-domain.
+
+This keeps the engine deterministic while allowing different styles of checks
+(row-level, grouped, relational, and longitudinal).
+
+---
+
+## Dispatch contract at a glance
+
+| Topology | Scope pattern | `fn` payload shape | Requires `previous`? |
+|---|---|---|---|
+| `A0` | single-domain schema/snapshot object checks | `fn(domain, context, rule)` (or context-only for domainless rules) | Optional |
+| `A1` | single-domain row-level checks | `fn(data, context, rule)` | No |
+| `A2` | single-domain grouped/aggregate checks | `fn(data, context, rule)` | No |
+| `A3` | cross-domain relational checks (same cut) | `fn(domains, context, rule)` where `domains` is named list of data frames | No |
+| `A4` | cross-domain aggregate checks (same cut) | `fn(domains, context, rule)` | No |
+| `A5` | same-domain row-level longitudinal checks | `fn(previous, current, context, rule)` | Yes |
+| `A6` | same-domain aggregate longitudinal checks | `fn(previous, current, context, rule)` | Yes |
+| `A7` | cross-domain + longitudinal checks | `fn(previous, current, context, rule)` where each is named list of data frames | Yes |
+
+---
+
+## A0 — Schema/snapshot object checks
+
+**Intent:** compare schema-level properties (columns/types) between cuts.
+
+**Current pack:** `pack_core_50_schema(domain)`
+
+**Included rules:**
+
+- `SCH-001` new columns added
+- `SCH-002` columns removed
+- `SCH-003` column type drift
+
+**How to run**
+
+```{r eval = FALSE}
+rules <- pack_core_50_schema(domain = "ADVS")
+ctx <- new_rule_context(current = current_artifact, previous = previous_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A1 — Intra-domain row-level checks
+
+**Intent:** record-level quality and plausibility checks inside one domain.
+
+**Current pack:** `pack_core_50_a1(...)`
+
+**Typical rule families:**
+
+- identity (`ID-001`)
+- temporal row checks (`TMP-*`)
+- data-entry/plausibility row checks (`DE-*`)
+
+**How to run**
+
+```{r eval = FALSE}
+rules <- pack_core_50_a1(
+  domain = "ADVS",
+  key_vars = c("USUBJID", "PARAMCD", "AVISIT"),
+  numeric_var = "AVAL",
+  numeric_min = 0,
+  numeric_max = 400
+)
+
+ctx <- new_rule_context(current = current_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A2 — Intra-domain grouped/aggregate checks
+
+**Intent:** detect duplicate-rate spikes, missingness, outlier groups, skew.
+
+**Current pack:** `pack_core_50_a2(...)`
+
+**Typical rule families:**
+
+- duplicate rates by site/subject (`ID-00x`)
+- group-level quality checks (`GRP-*`)
+
+**How to run**
+
+```{r eval = FALSE}
+rules <- pack_core_50_a2(
+  domain = "ADVS",
+  key_vars = c("USUBJID", "PARAMCD", "AVISIT"),
+  site_var = "SITEID",
+  subject_var = "USUBJID",
+  skew_value_var = "AVAL"
+)
+
+ctx <- new_rule_context(current = current_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A3 — Cross-domain relational checks (same cut)
+
+**Intent:** within-cut consistency between domains (joins/relationships).
+
+**Current pack:** `pack_core_50_a3(...)`
+
+**Typical rule family:** `XDOM-*`
+
+Examples include orphan checks, visit mismatch checks, and domain-presence
+consistency checks.
+
+```{r eval = FALSE}
+rules <- pack_core_50_a3(owner_team = "DM")
+ctx <- new_rule_context(current = current_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A4 — Cross-domain aggregate checks (same cut)
+
+**Intent:** compare aggregate metrics between domains in one cut.
+
+**Current pack:** `pack_core_50_a4(...)`
+
+**Typical rule family:** `XAGG-*`
+
+Examples include subject-count mismatch and domain completeness imbalance.
+
+```{r eval = FALSE}
+rules <- pack_core_50_a4(owner_team = "Standards")
+ctx <- new_rule_context(current = current_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A5 — Same-domain row-level longitudinal checks
+
+**Intent:** detect row-level changes across cuts for the same domain.
+
+**Current pack:** `pack_core_50_a5(...)`
+
+**Typical rule family:** snapshot row checks (`SNAP-001` to `SNAP-005`).
+
+```{r eval = FALSE}
+rules <- pack_core_50_a5(domain_primary = "ADSL", keys = c("USUBJID"))
+ctx <- new_rule_context(current = current_artifact, previous = previous_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A6 — Same-domain aggregate longitudinal checks
+
+**Intent:** detect aggregate drift across cuts in one domain.
+
+**Current pack:** `pack_core_50_a6(...)`
+
+**Typical rule family:** snapshot aggregate checks (`SNAP-006` to `SNAP-011`).
+
+```{r eval = FALSE}
+rules <- pack_core_50_a6(
+  domain_primary = "ADSL",
+  keys = c("USUBJID"),
+  group_var = "SITEID",
+  value_var = "AGE"
+)
+
+ctx <- new_rule_context(current = current_artifact, previous = previous_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## A7 — Cross-domain + longitudinal checks
+
+**Intent:** multi-domain patterns that depend on change across cuts.
+
+**Current pack:** `pack_core_50_a7(...)`
+
+**Typical rule family:** `BOTH-*`
+
+These checks combine cross-domain logic with old-vs-new behavior.
+
+```{r eval = FALSE}
+rules <- pack_core_50_a7(group_var = "SITEID", subject_var = "USUBJID")
+ctx <- new_rule_context(current = current_artifact, previous = previous_artifact)
+run_rules(ctx, rules)
+```
+
+---
+
+## Choosing the right topology
+
+A practical decision rule:
+
+- **One domain, one cut, row-level?** → `A1`
+- **One domain, one cut, grouped?** → `A2`
+- **Multiple domains, one cut?** → `A3` or `A4`
+- **One domain, old vs new cut?** → `A5` or `A6`
+- **Multiple domains, old vs new cut?** → `A7`
+- **Schema/object-level drift checks?** → `A0`
+
+---
+
+## Notes on outputs
+
+`run_rules()` appends standardized metadata to each finding row:
+
+- `RULE_ID`
+- `RULE_TITLE`
+- `TOPOLOGY`
+- `SCOPE`
+- `INTENT`
+- `SEVERITY`
+- `OWNER_TEAM`
+
+For longitudinal monitoring of findings across cuts, run rules per cut and then
+use `compare_flag_states()` on the resulting tables.

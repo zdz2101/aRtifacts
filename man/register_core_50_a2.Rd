@@ -65,3 +65,7 @@ Invisibly returns registered IDs.
 \description{
 Register A2 intra-domain group rules
 }
+\details{
+Equivalent to \code{pack_core_50_a2(...)} followed by \code{register_rule()} for each
+produced rule.
+}

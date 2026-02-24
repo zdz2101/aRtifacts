@@ -25,6 +25,13 @@
 #' @param owner_team Owner team.
 #'
 #' @return A list of `CoreRule` objects.
+#'
+#' @details
+#' A1 rules are intra-domain row-level checks executed as
+#' `fn(data, context, rule)` by `run_rules()`.
+#'
+#' The pack always includes `ID-001` and conditionally appends `TMP-*` / `DE-*`
+#' rules based on supplied configuration arguments.
 #' @export
 pack_core_50_a1 <- function(domain,
                             key_vars,
@@ -150,6 +157,10 @@ pack_core_50_a1 <- function(domain,
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a1(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a1 <- function(domain,
                                 key_vars,

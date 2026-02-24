@@ -41,3 +41,9 @@ List of \code{CoreRule} objects.
 \description{
 Build A4 cross-domain aggregate pack
 }
+\details{
+A4 rules evaluate cross-domain aggregate consistency in a single cut and are
+dispatched as \code{fn(domains, context, rule)}.
+
+This pack assembles \verb{XAGG-*} aggregate checks across domains.
+}

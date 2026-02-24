@@ -97,6 +97,7 @@ articles:
   - title: Core engine
     contents:
       - getting-started
+      - topology-a0-a7
       - add-rule-pack
   - title: Extensions and roadmap
     contents:

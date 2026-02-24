@@ -18,6 +18,13 @@
 #' @param owner_team Owner team.
 #'
 #' @return List of `CoreRule` objects.
+#'
+#' @details
+#' A2 rules are intra-domain grouped/aggregate checks executed as
+#' `fn(data, context, rule)`.
+#'
+#' This pack combines duplicate-rate (`ID-*`) and grouped quality/plausibility
+#' (`GRP-*`) rules for a single domain.
 #' @export
 pack_core_50_a2 <- function(domain,
                             key_vars,
@@ -108,6 +115,10 @@ pack_core_50_a2 <- function(domain,
 #' @param overwrite Whether to overwrite existing IDs.
 #'
 #' @return Invisibly returns registered IDs.
+#'
+#' @details
+#' Equivalent to `pack_core_50_a2(...)` followed by `register_rule()` for each
+#' produced rule.
 #' @export
 register_core_50_a2 <- function(domain,
                                 key_vars,

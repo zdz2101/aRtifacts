@@ -56,3 +56,7 @@ Invisibly returns registered IDs.
 \description{
 Register A3 cross-domain relational rules
 }
+\details{
+Equivalent to \code{pack_core_50_a3(...)} followed by \code{register_rule()} for each
+produced rule.
+}
