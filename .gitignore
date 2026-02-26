@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-docs/*
+
+# Generated site docs
+docs/
 vignettes/*.R
