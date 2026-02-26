@@ -2,7 +2,11 @@ test_that(
   "GRP-002 flags excessive subject event frequency",
   {
     expected_id <- "GRP-002"
-    rule <- rule_grp_002_subject_excessive_event_frequency(domain = "AE", max_events = 2)
+    rule <- rule_grp_002_subject_excessive_event_frequency(
+      domain = "AE",
+      subject_var = "USUBJID",
+      max_events = 2
+    )
 
     ae <- data.frame(
       USUBJID = c("S1", "S1", "S1", "S2"),

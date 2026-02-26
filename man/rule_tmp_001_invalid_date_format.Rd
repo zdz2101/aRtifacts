@@ -7,8 +7,8 @@
 rule_tmp_001_invalid_date_format(
   domain,
   date_var,
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

@@ -23,15 +23,15 @@ relative change.
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()[1:4, , drop = FALSE]
+new_data <- example_primary()[1:4, , drop = FALSE]
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
 vol <- compare_record_volume(old_dom, new_dom)
 vol$relative_change < -0.20

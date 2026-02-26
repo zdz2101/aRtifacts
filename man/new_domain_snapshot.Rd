@@ -16,7 +16,7 @@ new_domain_snapshot(
 )
 }
 \arguments{
-\item{name}{Domain or table name (for example, \code{"ADVS"}, \code{"orders"}, \code{"lab_results"}).}
+\item{name}{Domain or table name (for example, \code{"orders"}, \code{"orders"}, \code{"lab_results"}).}
 
 \item{data}{A \code{data.frame} containing domain rows.}
 
@@ -40,8 +40,8 @@ Constructs and validates a \code{DomainSnapshot}.
 }
 \examples{
 dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
 }

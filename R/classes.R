@@ -4,7 +4,7 @@
 #' validation on key variables and key uniqueness. Schema-agnostic — works with
 #' any tabular data, not limited to SDTM or ADaM.
 #'
-#' @param name Domain or table name (e.g. `"ADVS"`, `"orders"`).
+#' @param name Domain or table name (e.g. `"orders"`, `"orders"`).
 #' @param data A `data.frame` containing domain rows.
 #' @param key_vars Character vector of columns that uniquely identify rows.
 #' @param spec_version Optional specification or schema version label.
@@ -95,81 +95,11 @@ ArtifactSnapshot <- S7::new_class(
   }
 )
 
-#' Flag rule S7 class
-#'
-#' Defines a rule that can be run against one domain in an
-#' `ArtifactSnapshot`.
-#'
-#' @param id Rule identifier string.
-#' @param domain Target domain name in the artifact.
-#' @param severity Severity label (e.g. `"warning"`, `"critical"`).
-#' @param category Rule category label.
-#' @param owner_team Team responsible for follow-up.
-#' @param fn Function that accepts a domain `data.frame` and returns a
-#'   `data.frame` of flagged rows.
-#'
-#' @name FlagRule
-#' @return An S7 class object.
-#' @export
-FlagRule <- S7::new_class(
-  "FlagRule",
-  properties = list(
-    id = S7::class_character,
-    domain = S7::class_character,
-    severity = S7::class_character,
-    category = S7::class_character,
-    owner_team = S7::class_character,
-    fn = S7::class_any
-  ),
-  validator = function(self) {
-    issues <- character()
-    if (!is.function(self@fn)) {
-      issues <- c(issues, "`fn` must be a function.")
-    }
-    if (length(issues)) issues else NULL
-  }
-)
-
-#' Diff flag rule S7 class
-#'
-#' Defines a rule that compares two cuts of the same domain and returns
-#' group/row summaries of drift findings.
-#'
-#' @param id Rule identifier string.
-#' @param domain Target domain name expected in both artifacts.
-#' @param severity Severity label (e.g. `"warning"`, `"critical"`).
-#' @param category Rule category label.
-#' @param owner_team Team responsible for follow-up.
-#' @param fn Function that accepts `(old_dom, new_dom)` as
-#'   `DomainSnapshot` objects and returns a `data.frame` of findings.
-#'
-#' @name DiffFlagRule
-#' @return An S7 class object.
-#' @export
-DiffFlagRule <- S7::new_class(
-  "DiffFlagRule",
-  properties = list(
-    id = S7::class_character,
-    domain = S7::class_character,
-    severity = S7::class_character,
-    category = S7::class_character,
-    owner_team = S7::class_character,
-    fn = S7::class_any
-  ),
-  validator = function(self) {
-    issues <- character()
-    if (!is.function(self@fn)) {
-      issues <- c(issues, "`fn` must be a function.")
-    }
-    if (length(issues)) issues else NULL
-  }
-)
-
 #' Create a domain snapshot
 #'
 #' Constructs and validates a `DomainSnapshot`.
 #'
-#' @param name Domain or table name (for example, `"ADVS"`, `"orders"`, `"lab_results"`).
+#' @param name Domain or table name (for example, `"orders"`, `"orders"`, `"lab_results"`).
 #' @param data A `data.frame` containing domain rows.
 #' @param key_vars Character vector of key columns that uniquely identify rows.
 #' @param spec_version Optional specification or schema version label.
@@ -183,9 +113,9 @@ DiffFlagRule <- S7::new_class(
 #'
 #' @examples
 #' dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
 new_domain_snapshot <- function(name,
                                 data,
@@ -223,11 +153,11 @@ new_domain_snapshot <- function(name,
   #'
   #' @examples
   #' dom <- new_domain_snapshot(
-  #'   name = "ADVS",
-  #'   data = example_advs(),
-  #'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  #'   name = "orders",
+  #'   data = example_primary(),
+  #'   key_vars = c("entity_id", "record_id")
   #' )
-  #' art <- new_artifact_snapshot(domains = list(ADVS = dom))
+  #' art <- new_artifact_snapshot(domains = list(orders = dom))
 
 new_artifact_snapshot <- function(domains,
                                   spec_version = NA_character_,
@@ -242,95 +172,5 @@ new_artifact_snapshot <- function(domains,
     build_id = build_id,
     code_sha = code_sha,
     inputs_hash = inputs_hash
-  )
-}
-  #' Create a flag rule
-  #'
-  #' Convenience constructor for `FlagRule` objects.
-  #'
-  #' @param id Rule identifier.
-  #' @param domain Target domain name in an artifact.
-  #' @param severity Severity label (for example, `"warning"`, `"critical"`).
-  #' @param category Rule category label.
-  #' @param owner_team Team that owns follow-up.
-  #' @param fn Function that accepts a domain `data.frame` and returns a
-  #'   `data.frame` of flagged rows.
-  #'
-  #' @return A validated `FlagRule` object.
-  #' @export
-  #'
-  #' @examples
-  #' rule <- new_flag_rule(
-  #'   id = "HI_SYSBP",
-  #'   domain = "ADVS",
-  #'   fn = function(df) {
-  #'     out <- df[df$PARAMCD == "SYSBP" & df$AVAL > 180, , drop = FALSE]
-  #'     if (!nrow(out)) return(data.frame())
-  #'     out[, c("USUBJID", "PARAMCD", "AVAL"), drop = FALSE]
-  #'   }
-  #' )
-
-new_flag_rule <- function(id,
-                          domain,
-                          severity = "warning",
-                          category = "quality",
-                          owner_team = "Biostats",
-                          fn) {
-  FlagRule(
-    id = id,
-    domain = domain,
-    severity = severity,
-    category = category,
-    owner_team = owner_team,
-    fn = fn
-  )
-}
-
-#' Create a diff flag rule
-#'
-#' Convenience constructor for `DiffFlagRule` objects used in custom
-#' snapshot-to-snapshot comparison workflows.
-#'
-#' @param id Rule identifier.
-#' @param domain Target domain name expected in both artifacts.
-#' @param severity Severity label (for example, `"warning"`, `"critical"`).
-#' @param category Rule category label.
-#' @param owner_team Team that owns follow-up.
-#' @param fn Function that accepts `(old_dom, new_dom)` `DomainSnapshot`
-#'   objects and returns a `data.frame` of findings.
-#'
-#' @return A validated `DiffFlagRule` object.
-#' @export
-#'
-#' @examples
-#' rule <- new_diff_flag_rule(
-#'   id = "KEY_CHURN",
-#'   domain = "ADVS",
-#'   fn = function(old_dom, new_dom) {
-#'     compare_key_churn(old_dom, new_dom)
-#'   }
-#' )
-new_diff_flag_rule <- function(id,
-                               domain,
-                               severity = "warning",
-                               category = "quality",
-                               owner_team = "Biostats",
-                               fn) {
-  if (!is.function(fn)) {
-    stop("`fn` must be a function.", call. = FALSE)
-  }
-
-  n_formals <- length(formals(fn))
-  if (n_formals < 2L) {
-    stop("`fn` must accept at least two arguments: old_dom and new_dom.", call. = FALSE)
-  }
-
-  DiffFlagRule(
-    id = id,
-    domain = domain,
-    severity = severity,
-    category = category,
-    owner_team = owner_team,
-    fn = fn
   )
 }

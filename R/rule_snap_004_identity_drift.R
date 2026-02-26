@@ -7,9 +7,9 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_004_identity_drift <- function(domain = "AE",
-                                         stable_fields = c("USUBJID", "AETERM", "AESTDTC"),
-                                         identity_fields = c("AESEQ"),
+rule_snap_004_identity_drift <- function(domain = "PRIMARY",
+                                         stable_fields = c("entity_id", "event_type", "event_date"),
+                                         identity_fields = c("event_id"),
                                          owner_team = "Standards") {
   new_rule(
     id = "SNAP-004",
@@ -21,7 +21,7 @@ rule_snap_004_identity_drift <- function(domain = "AE",
     owner_team = owner_team,
     fn = function(previous, current, context, rule) {
       needed <- unique(c(stable_fields, identity_fields))
-      if (!.core50_has_columns(previous, needed) || !.core50_has_columns(current, needed)) {
+      if (!.topology_has_columns(previous, needed) || !.topology_has_columns(current, needed)) {
         return(data.frame())
       }
 
@@ -36,7 +36,7 @@ rule_snap_004_identity_drift <- function(domain = "AE",
       for (fld in identity_fields) {
         prev_col <- aligned[[paste0(fld, "_prev")]]
         cur_col <- aligned[[paste0(fld, "_cur")]]
-        bad <- bad | .core50_changed_mask(prev_col, cur_col, numeric_tol = 0)
+        bad <- bad | .topology_changed_mask(prev_col, cur_col, numeric_tol = 0)
       }
 
       if (!any(bad)) {

@@ -5,12 +5,18 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Getting Started — Core Engine • aRtifacts</title>
-<script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Getting Started — Topology Core • aRtifacts</title>
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="../deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started — Core Engine">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Getting Started — Topology Core">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -58,7 +64,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Getting Started — Core Engine</h1>
+      <h1>Getting Started — Topology Core</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/zdz2101/aRtifacts/blob/HEAD/vignettes/getting-started.Rmd" class="external-link"><code>vignettes/getting-started.Rmd</code></a></small>
@@ -67,234 +73,182 @@
 
     
     
+<p><code>aRtifacts</code> is a topology-first validation engine for
+keyed tabular data.</p>
 <div class="section level2">
-<h2 id="what-is-artifacts">What is aRtifacts?<a class="anchor" aria-label="anchor" href="#what-is-artifacts"></a>
+<h2 id="mental-model-eli5">Mental Model (ELI5)<a class="anchor" aria-label="anchor" href="#mental-model-eli5"></a>
 </h2>
-<p>aRtifacts is a <strong>schema-agnostic</strong> observability engine
-for tabular data. If your data lives in a <code>data.frame</code> and
-you can name the columns that make each row unique, aRtifacts can
-snapshot it, diff it, and run quality rules against it — regardless of
-whether it’s clinical, financial, operational, or anything else.</p>
-<p>This vignette walks through the core engine using a plain, made-up
-dataset so you can see the mechanics <strong>without</strong> any
-domain-specific jargon.</p>
-<hr>
+<p>End-to-end pipeline:</p>
+<ol style="list-style-type: decimal">
+<li>
+<code>data.frame</code> -&gt; raw rows.</li>
+<li>
+<code>DomainSnapshot</code> -&gt; one named, keyed table.</li>
+<li>
+<code>ArtifactSnapshot</code> -&gt; one run/cut containing one or
+more domains.</li>
+<li>
+<code>RuleContext</code> -&gt; what rules can see at runtime:
+<ul>
+<li>
+<code>current</code> artifact (required)</li>
+<li>
+<code>previous</code> artifact (optional, for longitudinal
+checks)</li>
+<li>
+<code>options</code> (optional runtime knobs)</li>
+</ul>
+</li>
+<li>Rule list -&gt; checks to execute (prebuilt packs and/or custom
+rules).</li>
+<li>
+<code>run_rules(context, rules)</code> -&gt; findings
+<code>data.frame</code>.</li>
+</ol>
 </div>
 <div class="section level2">
-<h2 id="step-1-create-a-domain-snapshot">Step 1 — Create a domain snapshot<a class="anchor" aria-label="anchor" href="#step-1-create-a-domain-snapshot"></a>
+<h2 id="create-two-cuts-as-domain-snapshots">1. Create Two Cuts As Domain Snapshots<a class="anchor" aria-label="anchor" href="#create-two-cuts-as-domain-snapshots"></a>
 </h2>
-<p>A <strong>domain snapshot</strong> is an immutable capture of one
-table at one point in time. You tell it the table name, hand it a
-<code>data.frame</code>, and declare which columns form the unique
-key.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Imagine a simple orders table.</span></span>
-<span><span class="va">orders_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  order_id   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">101</span>, <span class="fl">102</span>, <span class="fl">103</span><span class="op">)</span>,</span>
-<span>  customer   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Carol"</span><span class="op">)</span>,</span>
-<span>  amount     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">480</span>, <span class="fl">120</span><span class="op">)</span>,</span>
-<span>  status     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shipped"</span>, <span class="st">"pending"</span>, <span class="st">"shipped"</span><span class="op">)</span>,</span>
-<span>  order_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2025-06-01"</span>, <span class="st">"2025-06-03"</span>, <span class="st">"2025-06-04"</span><span class="op">)</span>,</span>
+<code class="sourceCode R"><span><span class="va">primary_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  entity_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E001"</span>, <span class="st">"E002"</span>, <span class="st">"E003"</span><span class="op">)</span>,</span>
+<span>  record_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>,</span>
+<span>  group_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G1"</span>, <span class="st">"G2"</span><span class="op">)</span>,</span>
 <span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">snap_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span></span>
-<span>  name     <span class="op">=</span> <span class="st">"orders"</span>,</span>
-<span>  data     <span class="op">=</span> <span class="va">orders_v1</span>,</span>
-<span>  key_vars <span class="op">=</span> <span class="st">"order_id"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<blockquote>
-<p><strong>What just happened?</strong>
-<code><a href="../reference/new_domain_snapshot.html">new_domain_snapshot()</a></code> validated that <code>order_id</code>
-exists in the data and that every row has a unique value. If either
-check fails, you get an immediate error — no silent corruption
-downstream.</p>
-</blockquote>
-<hr>
+<span><span class="va">primary_v2</span> <span class="op">&lt;-</span> <span class="va">primary_v1</span></span>
+<span><span class="va">primary_v2</span><span class="op">$</span><span class="va">value</span><span class="op">[</span><span class="va">primary_v2</span><span class="op">$</span><span class="va">entity_id</span> <span class="op">==</span> <span class="st">"E002"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">99</span></span>
+<span></span>
+<span><span class="va">snap_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">primary_v1</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">snap_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">primary_v2</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="step-2-make-a-second-snapshot-and-diff">Step 2 — Make a second snapshot and diff<a class="anchor" aria-label="anchor" href="#step-2-make-a-second-snapshot-and-diff"></a>
+<h2 id="wrap-domains-into-artifacts">2. Wrap Domains Into Artifacts<a class="anchor" aria-label="anchor" href="#wrap-domains-into-artifacts"></a>
 </h2>
-<p>Now suppose a new extract arrives: one order amount was corrected, a
-new order was added, and an existing order was removed.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">orders_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
-<span>  order_id   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">101</span>, <span class="fl">103</span>, <span class="fl">104</span><span class="op">)</span>,</span>
-<span>  customer   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Alice"</span>, <span class="st">"Carol"</span>, <span class="st">"Dave"</span><span class="op">)</span>,</span>
-<span>  amount     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">250</span>, <span class="fl">135</span>, <span class="fl">310</span><span class="op">)</span>,</span>
-<span>  status     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"shipped"</span>, <span class="st">"shipped"</span>, <span class="st">"pending"</span><span class="op">)</span>,</span>
-<span>  order_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2025-06-01"</span>, <span class="st">"2025-06-04"</span>, <span class="st">"2025-06-10"</span><span class="op">)</span>,</span>
-<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">snap_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span></span>
-<span>  name     <span class="op">=</span> <span class="st">"orders"</span>,</span>
-<span>  data     <span class="op">=</span> <span class="va">orders_v2</span>,</span>
-<span>  key_vars <span class="op">=</span> <span class="st">"order_id"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="key-diff-who-was-added-or-removed">Key diff — who was added or removed?<a class="anchor" aria-label="anchor" href="#key-diff-who-was-added-or-removed"></a>
-</h3>
+<code class="sourceCode R"><span><span class="va">art_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>PRIMARY <span class="op">=</span> <span class="va">snap_v1</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-001"</span><span class="op">)</span></span>
+<span><span class="va">art_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>PRIMARY <span class="op">=</span> <span class="va">snap_v2</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-002"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="diff-the-two-cuts">3. Diff The Two Cuts<a class="anchor" aria-label="anchor" href="#diff-the-two-cuts"></a>
+</h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/diff_keys.html">diff_keys</a></span><span class="op">(</span><span class="va">snap_v1</span>, <span class="va">snap_v2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $added</span></span>
-<span><span class="co">#&gt;   order_id</span></span>
-<span><span class="co">#&gt; 3      104</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $removed</span></span>
-<span><span class="co">#&gt;   order_id</span></span>
-<span><span class="co">#&gt; 2      102</span></span></code></pre></div>
-<blockquote>
-<p><code>added</code> shows order 104 (Dave) appeared.
-<code>removed</code> shows order 102 (Bob) disappeared. This is purely
-key-level — it doesn’t look at values.</p>
-</blockquote>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/diff_values.html">diff_values</a></span><span class="op">(</span><span class="va">snap_v1</span>, <span class="va">snap_v2</span>, vars <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   entity_id record_id   var old new</span></span>
+<span><span class="co">#&gt; 2      E002         2 value  20  99</span></span></code></pre></div>
 </div>
-<div class="section level3">
-<h3 id="value-diff-what-changed-on-matching-rows">Value diff — what changed on matching rows?<a class="anchor" aria-label="anchor" href="#value-diff-what-changed-on-matching-rows"></a>
-</h3>
+<div class="section level2">
+<h2 id="build-rule-context-and-run-one-custom-rule">4. Build Rule Context And Run One Custom Rule<a class="anchor" aria-label="anchor" href="#build-rule-context-and-run-one-custom-rule"></a>
+</h2>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/diff_values.html">diff_values</a></span><span class="op">(</span><span class="va">snap_v1</span>, <span class="va">snap_v2</span>, vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"amount"</span>, <span class="st">"status"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   order_id    var old new</span></span>
-<span><span class="co">#&gt; 2      103 amount 120 135</span></span></code></pre></div>
-<blockquote>
-<p>Carol’s <code>amount</code> moved from 120 → 135. Only rows that
-exist in <strong>both</strong> snapshots are compared; added/removed
-rows are handled by <code><a href="../reference/diff_keys.html">diff_keys()</a></code>.</p>
-</blockquote>
-<hr>
-</div>
-</div>
-<div class="section level2">
-<h2 id="step-3-bundle-into-an-artifact-snapshot">Step 3 — Bundle into an artifact snapshot<a class="anchor" aria-label="anchor" href="#step-3-bundle-into-an-artifact-snapshot"></a>
-</h2>
-<p>An <strong>artifact snapshot</strong> groups one or more domain
-snapshots together with build metadata (like a Git SHA or a run ID).
-This is useful when you have multiple related tables that move
-together.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">art_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span></span>
-<span>  domains     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>orders <span class="op">=</span> <span class="va">snap_v1</span><span class="op">)</span>,</span>
-<span>  build_id    <span class="op">=</span> <span class="st">"pipeline-run-041"</span>,</span>
-<span>  code_sha    <span class="op">=</span> <span class="st">"abc123"</span>,</span>
-<span>  inputs_hash <span class="op">=</span> <span class="st">"hash_v1"</span></span>
-<span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">ctx_current</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">art_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span></span>
-<span>  domains     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>orders <span class="op">=</span> <span class="va">snap_v2</span><span class="op">)</span>,</span>
-<span>  build_id    <span class="op">=</span> <span class="st">"pipeline-run-042"</span>,</span>
-<span>  code_sha    <span class="op">=</span> <span class="st">"abc123"</span>,</span>
-<span>  inputs_hash <span class="op">=</span> <span class="st">"hash_v2"</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="../reference/diff_meta_artifact.html">diff_meta_artifact</a></span><span class="op">(</span><span class="va">art_v1</span>, <span class="va">art_v2</span><span class="op">)</span></span>
-<span><span class="co">#&gt;                     field              old              new changed</span></span>
-<span><span class="co">#&gt; spec_version spec_version             &lt;NA&gt;             &lt;NA&gt;   FALSE</span></span>
-<span><span class="co">#&gt; data_cut         data_cut       2026-02-24       2026-02-24   FALSE</span></span>
-<span><span class="co">#&gt; build_id         build_id pipeline-run-041 pipeline-run-042    TRUE</span></span>
-<span><span class="co">#&gt; code_sha         code_sha           abc123           abc123   FALSE</span></span>
-<span><span class="co">#&gt; inputs_hash   inputs_hash          hash_v1          hash_v2    TRUE</span></span></code></pre></div>
-<blockquote>
-<p>The metadata diff tells you <em>which build properties changed</em>
-between two runs. Here the <code>build_id</code> and
-<code>inputs_hash</code> changed but <code>code_sha</code> stayed the
-same — meaning the code didn’t change, but the data did.</p>
-</blockquote>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="step-4-write-and-run-a-core50-rule">Step 4 — Write and run a Core50 rule<a class="anchor" aria-label="anchor" href="#step-4-write-and-run-a-core50-rule"></a>
-</h2>
-<p>A <strong>Core50 rule</strong> is a topology-aware function. For
-row-level checks in a single snapshot, use topology <code>A1</code> and
-run with <code><a href="../reference/run_rules.html">run_rules()</a></code>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">rule_high_amount</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
-<span>  id         <span class="op">=</span> <span class="st">"TMP-900"</span>,</span>
-<span>  title      <span class="op">=</span> <span class="st">"High amount"</span>,</span>
-<span>  topology   <span class="op">=</span> <span class="st">"A1"</span>,</span>
-<span>  scope      <span class="op">=</span> <span class="st">"record"</span>,</span>
-<span>  intent     <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
-<span>  domain     <span class="op">=</span> <span class="st">"orders"</span>,</span>
-<span>  owner_team <span class="op">=</span> <span class="st">"Finance"</span>,</span>
+<span><span class="va">rule_high_value</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span>  id <span class="op">=</span> <span class="st">"TMP-900"</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"High value"</span>,</span>
+<span>  topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  scope <span class="op">=</span> <span class="st">"record"</span>,</span>
+<span>  intent <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
+<span>  domain <span class="op">=</span> <span class="st">"PRIMARY"</span>,</span>
+<span>  owner_team <span class="op">=</span> <span class="st">"Ops"</span>,</span>
 <span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">flagged</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">amount</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">amount</span> <span class="op">&gt;</span> <span class="fl">300</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
-<span>    <span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">flagged</span><span class="op">)</span><span class="op">)</span> <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
-<span>    <span class="va">flagged</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"order_id"</span>, <span class="st">"customer"</span>, <span class="st">"amount"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span>    <span class="va">data</span><span class="op">[</span><span class="va">data</span><span class="op">$</span><span class="va">value</span> <span class="op">&gt;</span> <span class="fl">50</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span>, <span class="st">"value"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">ctx_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v1</span><span class="op">)</span></span>
-<span><span class="va">ctx_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v1</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_v2</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_amount</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<blockquote>
-<p><code><a href="../reference/run_rules.html">run_rules()</a></code> applies every rule according to its topology
-and target domain and returns a single combined table of all flagged
-rows, annotated with <code>RULE_ID</code>, <code>SEVERITY</code>, and
-<code>OWNER_TEAM</code>.</p>
-</blockquote>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">flags_v1</span></span>
-<span><span class="co">#&gt;   order_id customer amount RULE_ID  RULE_TITLE TOPOLOGY  SCOPE      INTENT</span></span>
-<span><span class="co">#&gt; 2      102      Bob    480 TMP-900 High amount       A1 record ops_anomaly</span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_current</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_value</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   entity_id record_id value RULE_ID RULE_TITLE TOPOLOGY  SCOPE      INTENT</span></span>
+<span><span class="co">#&gt; 2      E002         2    99 TMP-900 High value       A1 record ops_anomaly</span></span>
 <span><span class="co">#&gt;   SEVERITY OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 2  warning    Finance</span></span>
-<span><span class="va">flags_v2</span></span>
-<span><span class="co">#&gt;   order_id customer amount RULE_ID  RULE_TITLE TOPOLOGY  SCOPE      INTENT</span></span>
-<span><span class="co">#&gt; 3      104     Dave    310 TMP-900 High amount       A1 record ops_anomaly</span></span>
-<span><span class="co">#&gt;   SEVERITY OWNER_TEAM</span></span>
-<span><span class="co">#&gt; 3  warning    Finance</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="showcase-run-bundled-core50-packs">Showcase — run bundled Core50 packs<a class="anchor" aria-label="anchor" href="#showcase-run-bundled-core50-packs"></a>
-</h3>
-<p>Beyond custom rules, you can run built-in bundles directly.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bundle_rules</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="fu"><a href="../reference/pack_core_50_schema.html">pack_core_50_schema</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/pack_core_50_a1.html">pack_core_50_a1</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span>, key_vars <span class="op">=</span> <span class="st">"order_id"</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="../reference/pack_core_50_a2.html">pack_core_50_a2</a></span><span class="op">(</span>domain <span class="op">=</span> <span class="st">"orders"</span>, key_vars <span class="op">=</span> <span class="st">"order_id"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; 2  warning        Ops</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="run-a-starter-pack">5. Run A Starter Pack<a class="anchor" aria-label="anchor" href="#run-a-starter-pack"></a>
+</h2>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">primary_bad_keys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  row_id <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,</span>
+<span>  entity_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E001"</span>, <span class="st">""</span>, <span class="st">"E003"</span><span class="op">)</span>,</span>
+<span>  record_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">bundle_flags</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span>, <span class="va">bundle_rules</span><span class="op">)</span></span></code></pre></div>
-<hr>
-</div>
+<span><span class="va">art_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span></span>
+<span>  domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    PRIMARY <span class="op">=</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">primary_bad_keys</span>, key_vars <span class="op">=</span> <span class="st">"row_id"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  build_id <span class="op">=</span> <span class="st">"cut-003"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ctx_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_single</span><span class="op">)</span></span>
+<span><span class="va">rules_a1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pack_topology_a1.html">pack_topology_a1</a></span><span class="op">(</span></span>
+<span>  domain <span class="op">=</span> <span class="st">"PRIMARY"</span>,</span>
+<span>  key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_single</span>, <span class="va">rules_a1</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   entity_id record_id row_id                  reason RULE_ID         RULE_TITLE</span></span>
+<span><span class="co">#&gt; 2                   2      2 Missing key field value  ID-001 Missing key fields</span></span>
+<span><span class="co">#&gt; 3      E003        NA      3 Missing key field value  ID-001 Missing key fields</span></span>
+<span><span class="co">#&gt;   TOPOLOGY  SCOPE         INTENT SEVERITY       OWNER_TEAM</span></span>
+<span><span class="co">#&gt; 2       A1 record core_integrity  warning Data Stewardship</span></span>
+<span><span class="co">#&gt; 3       A1 record core_integrity  warning Data Stewardship</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="step-5-track-flags-over-time">Step 5 — Track flags over time<a class="anchor" aria-label="anchor" href="#step-5-track-flags-over-time"></a>
+<h2 id="longitudinal-checks-need-previous-current">6. Longitudinal Checks Need <code>previous</code> +
+<code>current</code><a class="anchor" aria-label="anchor" href="#longitudinal-checks-need-previous-current"></a>
 </h2>
-<p>Compare two flag tables by key and classify each finding as
-<strong>introduced</strong> (new), <strong>resolved</strong> (gone), or
-<strong>persisting</strong> (still there).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/compare_flag_states.html">compare_flag_states</a></span><span class="op">(</span><span class="va">flags_v1</span>, <span class="va">flags_v2</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"order_id"</span>, <span class="st">"DOMAIN"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   order_id DOMAIN RULE_ID     status</span></span>
-<span><span class="co">#&gt; 1      102   &lt;NA&gt; TMP-900   resolved</span></span>
-<span><span class="co">#&gt; 2      104   &lt;NA&gt; TMP-900 introduced</span></span></code></pre></div>
-<blockquote>
-<p>Bob’s high-amount flag was <em>resolved</em> (his row is gone).
-Dave’s is <em>introduced</em> (new row with amount &gt; 300). This is
-how you track data-quality trends across pipeline runs or data cuts.</p>
-</blockquote>
-<hr>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">primary_v3</span> <span class="op">&lt;-</span> <span class="va">primary_v2</span><span class="op">[</span><span class="va">primary_v2</span><span class="op">$</span><span class="va">entity_id</span> <span class="op">!=</span> <span class="st">"E003"</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
+<span><span class="va">snap_v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">primary_v3</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">art_v3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>PRIMARY <span class="op">=</span> <span class="va">snap_v3</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-003"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ctx_long</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span></span>
+<span>  current <span class="op">=</span> <span class="va">art_v3</span>,</span>
+<span>  previous <span class="op">=</span> <span class="va">art_v2</span>,</span>
+<span>  options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>removed_keys_history <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E999|1"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rules_a5</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/pack_topology_a5.html">pack_topology_a5</a></span><span class="op">(</span></span>
+<span>  domain_primary <span class="op">=</span> <span class="st">"PRIMARY"</span>,</span>
+<span>  keys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_long</span>, <span class="va">rules_a5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   entity_id record_id                 reason  RULE_ID               RULE_TITLE</span></span>
+<span><span class="co">#&gt; 3      E003         3 Removed since last cut SNAP-001 Unexpected key deletions</span></span>
+<span><span class="co">#&gt;   TOPOLOGY  SCOPE          INTENT SEVERITY       OWNER_TEAM</span></span>
+<span><span class="co">#&gt; 3       A5 record programming_etl  warning Data Stewardship</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="whats-next">What’s next?<a class="anchor" aria-label="anchor" href="#whats-next"></a>
+<h2 id="compare-findings-between-runs">7. Compare Findings Between Runs<a class="anchor" aria-label="anchor" href="#compare-findings-between-runs"></a>
 </h2>
-<p>The core engine shown above works with <strong>any</strong> keyed
-tabular data. From here:</p>
-<ul>
-<li>See <strong>Add a New Rule Pack</strong> for a practical custom-pack
-authoring pattern.</li>
-<li>See <strong>The Road Ahead</strong> for extension architecture and
-ecosystem direction.</li>
-</ul>
-<p>You can also build domain-specific rule packs for any schema by
-following the same <code><a href="../reference/new_rule.html">new_rule()</a></code> + <code><a href="../reference/run_rules.html">run_rules()</a></code>
-pattern shown above.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">flags_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_value</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">flags_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_value</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/compare_flag_states.html">compare_flag_states</a></span><span class="op">(</span></span>
+<span>  old_flags <span class="op">=</span> <span class="va">flags_v1</span>,</span>
+<span>  new_flags <span class="op">=</span> <span class="va">flags_v2</span>,</span>
+<span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"RULE_ID"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;   entity_id RULE_ID     status</span></span>
+<span><span class="co">#&gt; 1      E002 TMP-900 introduced</span></span></code></pre></div>
+<p>If you are unsure which topology to use for a new rule, use the
+yes/no flow in vignette <strong>Topologies A0-A7</strong>
+(<code>topology-a0-a7</code>). The helper <code><a href="../reference/choose_topology.html">choose_topology()</a></code>
+provides the same mapping in code.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># A0-A4 (single-cut): current artifact only</span></span>
+<span><span class="va">ctx_single_cut</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">artifact_current</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_single_cut</span>, <span class="fu"><a href="../reference/pack_topology_a3.html">pack_topology_a3</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># A5-A7 (longitudinal): both previous and current artifacts</span></span>
+<span><span class="va">ctx_longitudinal</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">artifact_current</span>, previous <span class="op">=</span> <span class="va">artifact_previous</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_longitudinal</span>, <span class="fu"><a href="../reference/pack_topology_a6.html">pack_topology_a6</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx_longitudinal</span>, <span class="fu"><a href="../reference/pack_topology_a7.html">pack_topology_a7</a></span><span class="op">(</span><span class="va">...</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -307,7 +261,7 @@ pattern shown above.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

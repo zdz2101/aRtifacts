@@ -13,8 +13,8 @@ rule_de_001_required_field_missing_conditionally <- function(domain,
                                                              condition_var,
                                                              required_var,
                                                              condition_value = "Y",
-                                                             entity_key_var = "USUBJID",
-                                                             owner_team = "DM") {
+                                                             entity_key_var = "entity_id",
+                                                             owner_team = "Data Stewardship") {
   new_rule(
     id = "DE-001",
     title = "Required field missing conditionally",
@@ -30,10 +30,10 @@ rule_de_001_required_field_missing_conditionally <- function(domain,
       }
 
       cond_hit <- as.character(data[[condition_var]]) == as.character(condition_value)
-      req_missing <- .core50_any_na_or_blank(data[[required_var]])
+      req_missing <- .topology_any_na_or_blank(data[[required_var]])
       bad <- !is.na(cond_hit) & cond_hit & req_missing
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, needed)),

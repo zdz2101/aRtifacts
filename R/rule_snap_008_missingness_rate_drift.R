@@ -8,11 +8,11 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_008_missingness_rate_drift <- function(domain = "ADSL",
-                                                 group_var = "SITEID",
-                                                 value_var = "AGE",
+rule_snap_008_missingness_rate_drift <- function(domain = "PRIMARY",
+                                                 group_var = "group_id",
+                                                 value_var = "value",
                                                  threshold_increase = 0.1,
-                                                 owner_team = "Clinical Ops") {
+                                                 owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-008",
     title = "Missingness rate drift",
@@ -22,7 +22,7 @@ rule_snap_008_missingness_rate_drift <- function(domain = "ADSL",
     domain = domain,
     owner_team = owner_team,
     fn = function(previous, current, context, rule) {
-      f_missing_rate_by_group <- get(".core50_missing_rate_by_group", mode = "function", inherits = TRUE)
+      f_missing_rate_by_group <- get(".topology_missing_rate_by_group", mode = "function", inherits = TRUE)
 
       prev_m <- f_missing_rate_by_group(previous, group_var = group_var, value_var = value_var)
       cur_m <- f_missing_rate_by_group(current, group_var = group_var, value_var = value_var)

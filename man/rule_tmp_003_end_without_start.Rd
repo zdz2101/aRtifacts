@@ -8,8 +8,8 @@ rule_tmp_003_end_without_start(
   domain,
   start_var,
   end_var,
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

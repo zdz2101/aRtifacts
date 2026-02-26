@@ -7,7 +7,7 @@
 compare_flag_states(
   old_flags,
   new_flags,
-  by = c("USUBJID", "DOMAIN", "RULE_ID")
+  by = c("entity_id", "DOMAIN", "RULE_ID")
 )
 }
 \arguments{
@@ -16,7 +16,7 @@ compare_flag_states(
 \item{new_flags}{Current run flag table.}
 
 \item{by}{Character vector of key columns used to identify a finding across
-runs. Defaults to \code{c("USUBJID", "DOMAIN", "RULE_ID")}.}
+runs. Defaults to \code{c("entity_id", "DOMAIN", "RULE_ID")}.}
 }
 \value{
 A deterministic \code{data.frame} with columns \code{by} plus \code{status}.
@@ -28,14 +28,14 @@ classifies each unique key as \code{"introduced"}, \code{"resolved"}, or
 }
 \examples{
 old_flags <- data.frame(
-  USUBJID = c("01", "02"),
-  DOMAIN = c("ADVS", "ADVS"),
+  entity_id = c("01", "02"),
+  DOMAIN = c("orders", "orders"),
   RULE_ID = c("TMP-900", "TMP-900"),
   stringsAsFactors = FALSE
 )
 new_flags <- data.frame(
-  USUBJID = c("02", "03"),
-  DOMAIN = c("ADVS", "ADVS"),
+  entity_id = c("02", "03"),
+  DOMAIN = c("orders", "orders"),
   RULE_ID = c("TMP-900", "TMP-900"),
   stringsAsFactors = FALSE
 )

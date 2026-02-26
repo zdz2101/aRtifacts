@@ -9,8 +9,8 @@
 #' @export
 rule_tmp_001_invalid_date_format <- function(domain,
                                              date_var,
-                                             entity_key_var = "USUBJID",
-                                             owner_team = "DM") {
+                                             entity_key_var = "entity_id",
+                                             owner_team = "Data Stewardship") {
   new_rule(
     id = "TMP-001",
     title = "Invalid date format",
@@ -24,8 +24,8 @@ rule_tmp_001_invalid_date_format <- function(domain,
         return(data.frame())
       }
 
-      bad <- .core50_iso_date_bad(data[[date_var]])
-      .core50_row_output(
+      bad <- .topology_iso_date_bad(data[[date_var]])
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, date_var)),

@@ -11,8 +11,8 @@
 rule_tmp_002_start_after_end <- function(domain,
                                          start_var,
                                          end_var,
-                                         entity_key_var = "USUBJID",
-                                         owner_team = "DM") {
+                                         entity_key_var = "entity_id",
+                                         owner_team = "Data Stewardship") {
   new_rule(
     id = "TMP-002",
     title = "Start date after end date",
@@ -31,7 +31,7 @@ rule_tmp_002_start_after_end <- function(domain,
       end_date <- as.Date(data[[end_var]])
       bad <- !is.na(start_date) & !is.na(end_date) & (start_date > end_date)
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, needed)),

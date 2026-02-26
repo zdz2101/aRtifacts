@@ -10,8 +10,8 @@ rule_de_005_impossible_logical_combination(
   val_a = "M",
   var_b = "PREGNANT",
   val_b = "Y",
-  entity_key_var = "USUBJID",
-  owner_team = "Medical Monitor"
+  entity_key_var = "entity_id",
+  owner_team = "Data Quality"
 )
 }
 \arguments{

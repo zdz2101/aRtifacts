@@ -5,10 +5,10 @@
 \title{SNAP-007: Key churn spike}
 \usage{
 rule_snap_007_key_churn_spike(
-  domain = "ADSL",
-  keys = c("USUBJID"),
+  domain = "PRIMARY",
+  keys = c("entity_id"),
   churn_threshold = 0.1,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

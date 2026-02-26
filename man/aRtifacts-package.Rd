@@ -8,8 +8,8 @@
 \description{
 Lightweight S7-based snapshot, diff, and rule engine for longitudinal dataset
 observability. The core engine is schema-agnostic and works with any keyed
-tabular data. SDTM and ADaM checks are bundled as supplemental starter
-modules (future companion packages: aRtifacts.sdtm, aRtifacts.adam).
+tabular data using a topology-first rule model (\code{A0} to \code{A7}). Domain-specific
+rules are intended to live in companion packages.
 }
 \seealso{
 Useful links:

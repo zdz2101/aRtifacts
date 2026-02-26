@@ -7,8 +7,8 @@
 rule_de_004_negative_duration(
   domain,
   duration_var,
-  entity_key_var = "USUBJID",
-  owner_team = "Medical Monitor"
+  entity_key_var = "entity_id",
+  owner_team = "Data Quality"
 )
 }
 \arguments{

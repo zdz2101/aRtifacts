@@ -6,10 +6,9 @@ Authors@R: c(
   )
 Description: A lightweight, schema-agnostic S7-based snapshot, diff, and rule
     engine for longitudinal dataset observability. The core engine works with
-    any tabular data that has a defined key structure — no domain assumptions
-    are imposed. Bundled starter modules provide SDTM- and ADaM-oriented checks
-    as defaults; these are designed to migrate into companion packages
-    (aRtifacts.sdtm, aRtifacts.adam) as the ecosystem matures.
+    any tabular data that has a defined key structure and executes bundled
+    topology starter packs (`A0` to `A7`). Domain-specific rule modules are
+    intended to live in companion packages.
 License: MIT + file LICENSE
 URL: https://zdz2101.github.io/aRtifacts/,
    https://github.com/zdz2101/aRtifacts

@@ -5,9 +5,9 @@
 \title{SNAP-004: Identity drift}
 \usage{
 rule_snap_004_identity_drift(
-  domain = "AE",
-  stable_fields = c("USUBJID", "AETERM", "AESTDTC"),
-  identity_fields = c("AESEQ"),
+  domain = "PRIMARY",
+  stable_fields = c("entity_id", "event_type", "event_date"),
+  identity_fields = c("event_id"),
   owner_team = "Standards"
 )
 }

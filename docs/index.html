@@ -6,13 +6,19 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>aRtifacts • aRtifacts</title>
-<script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><script src="deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="aRtifacts">
-<meta name="description" content="Schema-agnostic dataset observability engine with bundled SDTM/ADaM modules.">
-<meta property="og:description" content="Schema-agnostic dataset observability engine with bundled SDTM/ADaM modules.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="aRtifacts">
+<meta name="description" content="Topology-driven semantic validation engine for structured tabular data.">
+<meta property="og:description" content="Topology-driven semantic validation engine for structured tabular data.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -58,284 +64,169 @@
 <div class="page-header"><h1 id="artifacts-">aRtifacts <img src="reference/figures/logo.png" align="right" height="139" alt=""><a class="anchor" aria-label="anchor" href="#artifacts-"></a>
 </h1></div>
 <blockquote>
-<p><strong>A lightweight, dependency-minimal dataset observability engine for R.</strong></p>
+<p>Topology-driven semantic validation engine for structured tabular data.</p>
 </blockquote>
-<p><code>aRtifacts</code> gives you a structured, reproducible way to track what changes in your data between runs — and to enforce data-quality rules throughout the lifecycle of a study or pipeline.</p>
-<p>The core is wholly <strong>schema-agnostic</strong>: it works with any tabular data that has a defined key structure, clinical or otherwise. The package also includes built-in ADaM-oriented checks (<code><a href="reference/check_adsl.html">check_adsl()</a></code>, <code><a href="reference/check_bds.html">check_bds()</a></code>, <code><a href="reference/validate_adam.html">validate_adam()</a></code>) and example clinical datasets for demonstrations.</p>
-<hr>
+<p><code>aRtifacts</code> is the neutral core package in the ecosystem. It provides:</p>
+<ul>
+<li>immutable snapshots (<code>DomainSnapshot</code>, <code>ArtifactSnapshot</code>),</li>
+<li>deterministic diff primitives,</li>
+<li>topology-dispatched rule execution (<code>A0</code>-<code>A7</code>),</li>
+<li>starter rule packs for each topology.</li>
+</ul>
+<p>Domain-specific logic lives in companion packages (for example, <code>aRtifacts.clinical</code>).</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Development version from source</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_local.html" class="external-link">install_local</a></span><span class="op">(</span><span class="st">"path/to/aRtifacts"</span><span class="op">)</span></span></code></pre></div>
-<hr>
+<code class="sourceCode R"><span><span class="co"># Development install from source</span></span>
+<span><span class="co"># devtools::install_local("/path/to/aRtifacts")</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="what-it-does">What it does<a class="anchor" aria-label="anchor" href="#what-it-does"></a>
-</h2>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Capability</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><strong>Snapshot</strong></td>
-<td>Capture a set of keyed tables at a point in time as immutable <code>DomainSnapshot</code> / <code>ArtifactSnapshot</code> objects</td>
-</tr>
-<tr>
-<td><strong>Diff</strong></td>
-<td>Deterministically compare two snapshots — key additions/removals, cell-level value changes, and build metadata</td>
-</tr>
-<tr>
-<td><strong>Rules</strong></td>
-<td>Compose and execute topology-aware data-quality rules (<code>CoreRule</code>) with <code><a href="reference/new_rule.html">new_rule()</a></code> and <code><a href="reference/run_rules.html">run_rules()</a></code>
-</td>
-</tr>
-<tr>
-<td><strong>Check</strong></td>
-<td>Run structural and temporal checks against the built-in 50-rule observability catalog, or against ADaM (ADSL / BDS) conventions</td>
-</tr>
-<tr>
-<td><strong>Core50</strong></td>
-<td>Execute topology-dispatched Core50 rules (<code>A0</code>-<code>A7</code>) with <code><a href="reference/run_rules.html">run_rules()</a></code>
-</td>
-</tr>
-</tbody>
-</table>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://zdz2101.github.io/aRtifacts/">aRtifacts</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># --- 1. Snapshot two data cuts ---------------------------------------------------</span></span>
-<span><span class="va">snap_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span></span>
-<span>  name     <span class="op">=</span> <span class="st">"ADVS"</span>,</span>
-<span>  data     <span class="op">=</span> <span class="fu"><a href="reference/example_advs.html">example_advs</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"PARAMCD"</span>, <span class="st">"AVISIT"</span><span class="op">)</span></span>
+<span><span class="va">orders_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  entity_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"E001"</span>, <span class="st">"E002"</span>, <span class="st">"E003"</span><span class="op">)</span>,</span>
+<span>  record_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">25</span><span class="op">)</span>,</span>
+<span>  group_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G1"</span>, <span class="st">"G1"</span>, <span class="st">"G2"</span><span class="op">)</span>,</span>
+<span>  stringsAsFactors <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">advs_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/example_advs.html">example_advs</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">advs_v2</span><span class="op">$</span><span class="va">AVAL</span><span class="op">[</span><span class="va">advs_v2</span><span class="op">$</span><span class="va">USUBJID</span> <span class="op">==</span> <span class="st">"STUDY01-002"</span> <span class="op">&amp;</span> <span class="va">advs_v2</span><span class="op">$</span><span class="va">AVISIT</span> <span class="op">==</span> <span class="st">"WEEK 4"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">195</span></span>
+<span><span class="va">orders_v2</span> <span class="op">&lt;-</span> <span class="va">orders_v1</span></span>
+<span><span class="va">orders_v2</span><span class="op">$</span><span class="va">value</span><span class="op">[</span><span class="va">orders_v2</span><span class="op">$</span><span class="va">entity_id</span> <span class="op">==</span> <span class="st">"E002"</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">55</span></span>
 <span></span>
-<span><span class="va">snap_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"ADVS"</span>, <span class="va">advs_v2</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"PARAMCD"</span>, <span class="st">"AVISIT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">snap_v1</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">orders_v1</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">snap_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_domain_snapshot.html">new_domain_snapshot</a></span><span class="op">(</span><span class="st">"PRIMARY"</span>, <span class="va">orders_v2</span>, key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># --- 2. See what changed ---------------------------------------------------------</span></span>
-<span><span class="fu"><a href="reference/diff_values.html">diff_values</a></span><span class="op">(</span><span class="va">snap_v1</span>, <span class="va">snap_v2</span>, vars <span class="op">=</span> <span class="st">"AVAL"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;       USUBJID PARAMCD AVISIT  var old new</span></span>
-<span><span class="co">#&gt;   STUDY01-002   SYSBP WEEK 4 AVAL 136 195</span></span>
+<span><span class="fu"><a href="reference/diff_values.html">diff_values</a></span><span class="op">(</span><span class="va">snap_v1</span>, <span class="va">snap_v2</span>, vars <span class="op">=</span> <span class="st">"value"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># --- 3. Flag it ------------------------------------------------------------------</span></span>
-<span><span class="va">art_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>ADVS <span class="op">=</span> <span class="va">snap_v2</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-2"</span><span class="op">)</span></span>
+<span><span class="va">art_v2</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_artifact_snapshot.html">new_artifact_snapshot</a></span><span class="op">(</span>domains <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>PRIMARY <span class="op">=</span> <span class="va">snap_v2</span><span class="op">)</span>, build_id <span class="op">=</span> <span class="st">"cut-2"</span><span class="op">)</span></span>
+<span><span class="va">ctx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">rule_high_bp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
+<span><span class="va">rule_high_value</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule.html">new_rule</a></span><span class="op">(</span></span>
 <span>  id <span class="op">=</span> <span class="st">"TMP-900"</span>,</span>
-<span>  title <span class="op">=</span> <span class="st">"High systolic BP"</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"High value"</span>,</span>
 <span>  topology <span class="op">=</span> <span class="st">"A1"</span>,</span>
 <span>  scope <span class="op">=</span> <span class="st">"record"</span>,</span>
-<span>  intent <span class="op">=</span> <span class="st">"clinical_review"</span>,</span>
-<span>  domain <span class="op">=</span> <span class="st">"ADVS"</span>,</span>
-<span>  owner_team <span class="op">=</span> <span class="st">"Medical Monitor"</span>,</span>
+<span>  intent <span class="op">=</span> <span class="st">"ops_anomaly"</span>,</span>
+<span>  domain <span class="op">=</span> <span class="st">"PRIMARY"</span>,</span>
+<span>  owner_team <span class="op">=</span> <span class="st">"Operations"</span>,</span>
 <span>  fn <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">data</span>, <span class="va">context</span>, <span class="va">rule</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">AVAL</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">PARAMCD</span> <span class="op">==</span> <span class="st">"SYSBP"</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">AVAL</span> <span class="op">&gt;</span> <span class="fl">180</span>, <span class="op">]</span></span>
+<span>    <span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">value</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">data</span><span class="op">$</span><span class="va">value</span> <span class="op">&gt;</span> <span class="fl">50</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"entity_id"</span>, <span class="st">"record_id"</span>, <span class="st">"value"</span><span class="op">)</span>, drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">ctx</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/new_rule_context.html">new_rule_context</a></span><span class="op">(</span>current <span class="op">=</span> <span class="va">art_v2</span><span class="op">)</span></span>
-<span><span class="fu"><a href="reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_bp</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># --- 3b. Core50 packaged path (A1 example) --------------------------------------</span></span>
-<span><span class="va">core_rule</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/rule_id_001_missing_key_fields.html">rule_id_001_missing_key_fields</a></span><span class="op">(</span></span>
-<span>  domain <span class="op">=</span> <span class="st">"ADVS"</span>,</span>
-<span>  key_vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"USUBJID"</span>, <span class="st">"PARAMCD"</span>, <span class="st">"AVISIT"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">core_rule</span><span class="op">)</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># --- 4. Confirm ADaMIG conformance -----------------------------------------------</span></span>
-<span><span class="fu"><a href="reference/check_bds.html">check_bds</a></span><span class="op">(</span><span class="va">advs_v2</span><span class="op">)</span>   <span class="co"># returns empty issue table — dataset is still valid</span></span></code></pre></div>
-<hr>
+<span><span class="fu"><a href="reference/run_rules.html">run_rules</a></span><span class="op">(</span><span class="va">ctx</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">rule_high_value</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="package-contents">Package contents<a class="anchor" aria-label="anchor" href="#package-contents"></a>
+<h2 id="topology-packs">Topology Packs<a class="anchor" aria-label="anchor" href="#topology-packs"></a>
 </h2>
-<div class="section level3">
-<h3 id="core-engine-schema-agnostic">Core engine <em>(schema-agnostic)</em>
-<a class="anchor" aria-label="anchor" href="#core-engine-schema-agnostic"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Object / Function</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr>
-<td>
-<code>DomainSnapshot</code> / <code><a href="reference/new_domain_snapshot.html">new_domain_snapshot()</a></code>
-</td>
-<td>Keyed, validated point-in-time table snapshot</td>
-</tr>
-<tr>
-<td>
-<code>ArtifactSnapshot</code> / <code><a href="reference/new_artifact_snapshot.html">new_artifact_snapshot()</a></code>
-</td>
-<td>Study-level bundle of domain snapshots with build metadata</td>
-</tr>
-<tr>
-<td>
-<code>CoreRule</code> / <code><a href="reference/new_rule.html">new_rule()</a></code>
-</td>
-<td>Topology-aware Core50 rule definition (<code>A0</code>-<code>A7</code>)</td>
-</tr>
-<tr>
-<td><code><a href="reference/diff_keys.html">diff_keys()</a></code></td>
-<td>Key-combination additions and removals between two snapshots</td>
-</tr>
-<tr>
-<td><code><a href="reference/diff_values.html">diff_values()</a></code></td>
-<td>Cell-level value changes on matched keys</td>
-</tr>
-<tr>
-<td><code><a href="reference/diff_meta_artifact.html">diff_meta_artifact()</a></code></td>
-<td>Build metadata comparison between two artifacts</td>
-</tr>
-<tr>
-<td><code><a href="reference/run_rules.html">run_rules()</a></code></td>
-<td>Execute topology-dispatched <code>CoreRule</code>s with <code>RuleContext</code>
-</td>
-</tr>
-<tr>
-<td><code><a href="reference/compare_flag_states.html">compare_flag_states()</a></code></td>
-<td>Compare flag findings across runs (<code>introduced</code> / <code>resolved</code> / <code>persisting</code>)</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="generalized-rule-catalog">Generalized rule catalog<a class="anchor" aria-label="anchor" href="#generalized-rule-catalog"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/rule_catalog_core.html">rule_catalog_core()</a></code></td>
-<td>Reference table of 50 high-ROI observability rules</td>
-</tr>
-<tr>
-<td>
-<code><a href="reference/pack_core_50_a1.html">pack_core_50_a1()</a></code> … <code><a href="reference/pack_core_50_a7.html">pack_core_50_a7()</a></code>
-</td>
-<td>Build axis-based Core50 packs by topology</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="built-in-adam-checks">Built-in ADaM checks<a class="anchor" aria-label="anchor" href="#built-in-adam-checks"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Function</th>
-<th>Purpose</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><code><a href="reference/check_adsl.html">check_adsl()</a></code></td>
-<td>Required variables, USUBJID uniqueness, population flags</td>
-</tr>
-<tr>
-<td><code><a href="reference/check_bds.html">check_bds()</a></code></td>
-<td>Required variables, treatment presence, PARAM/PARAMCD mapping, baseline/timing</td>
-</tr>
-<tr>
-<td><code><a href="reference/validate_adam.html">validate_adam()</a></code></td>
-<td>Convenience wrapper running both checks</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
-<h3 id="example-datasets">Example datasets<a class="anchor" aria-label="anchor" href="#example-datasets"></a>
-</h3>
-<p><code><a href="reference/example_adsl.html">example_adsl()</a></code> · <code><a href="reference/example_advs.html">example_advs()</a></code> · <code><a href="reference/example_sdtm_lb.html">example_sdtm_lb()</a></code></p>
-<hr>
-</div>
+<p>Bundled starter packs are organized by topology:</p>
+<ul>
+<li>
+<code><a href="reference/pack_topology_a0.html">pack_topology_a0()</a></code> / <code><a href="reference/register_topology_a0.html">register_topology_a0()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a1.html">pack_topology_a1()</a></code> / <code><a href="reference/register_topology_a1.html">register_topology_a1()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a2.html">pack_topology_a2()</a></code> / <code><a href="reference/register_topology_a2.html">register_topology_a2()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a3.html">pack_topology_a3()</a></code> / <code><a href="reference/register_topology_a3.html">register_topology_a3()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a4.html">pack_topology_a4()</a></code> / <code><a href="reference/register_topology_a4.html">register_topology_a4()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a5.html">pack_topology_a5()</a></code> / <code><a href="reference/register_topology_a5.html">register_topology_a5()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a6.html">pack_topology_a6()</a></code> / <code><a href="reference/register_topology_a6.html">register_topology_a6()</a></code>
+</li>
+<li>
+<code><a href="reference/pack_topology_a7.html">pack_topology_a7()</a></code> / <code><a href="reference/register_topology_a7.html">register_topology_a7()</a></code>
+</li>
+</ul>
+<p>For all bundled starter metadata, use <code><a href="reference/rule_catalog_core.html">rule_catalog_core()</a></code>.</p>
 </div>
 <div class="section level2">
-<h2 id="vignettes">Vignettes<a class="anchor" aria-label="anchor" href="#vignettes"></a>
+<h2 id="topology-chooser-quick">Topology chooser (quick)<a class="anchor" aria-label="anchor" href="#topology-chooser-quick"></a>
 </h2>
-<table class="table">
-<colgroup>
-<col width="50%">
-<col width="50%">
-</colgroup>
-<thead><tr>
-<th>Vignette</th>
-<th>What it covers</th>
-</tr></thead>
-<tbody>
-<tr>
-<td><a href="vignettes/getting-started.Rmd">Getting Started</a></td>
-<td>End-to-end schema-agnostic walkthrough</td>
-</tr>
-<tr>
-<td><a href="vignettes/add-rule-pack.Rmd">Add a New Rule Pack</a></td>
-<td>Build, run, and track a custom rule pack across cuts</td>
-</tr>
-<tr>
-<td><a href="vignettes/future-extensions.Rmd">Future Extensions</a></td>
-<td>Roadmap and planned capabilities</td>
-</tr>
-</tbody>
-</table>
-<hr>
-</div>
-<div class="section level2">
-<h2 id="design-principles">Design principles<a class="anchor" aria-label="anchor" href="#design-principles"></a>
-</h2>
+<p>Use this yes/no sequence to choose rule topology:</p>
 <ol style="list-style-type: decimal">
-<li>
-<strong>One hard dependency</strong> — <code>S7</code> only; everything else is base R.</li>
-<li>
-<strong>Always use <code><a href="https://rconsortium.github.io/S7/reference/S7_inherits.html" class="external-link">S7::S7_inherits()</a></code></strong> for class checks — never <code>inherits(x, "ClassName")</code> (S7 prefixes class names with the package namespace on install).</li>
-<li>
-<strong>Consistent issue table schema</strong> — every checker returns <code>data.frame(check, severity, message, n)</code>.</li>
-<li>
-<strong>Pure functions</strong> — no disk writes, no global state, no network calls.</li>
+<li>Compare current vs previous snapshot?</li>
+<li>Uses more than one domain?</li>
+<li>Is the check schema-only, row-level, or aggregate-level?</li>
 </ol>
-<hr>
+<p>Mapping:</p>
+<ul>
+<li>Single-cut + single-domain: schema <code>A0</code>, row <code>A1</code>, aggregate <code>A2</code>
+</li>
+<li>Single-cut + cross-domain: relational <code>A3</code>, aggregate <code>A4</code>
+</li>
+<li>Longitudinal + single-domain: row/value drift <code>A5</code>, aggregate drift <code>A6</code>
+</li>
+<li>Longitudinal + cross-domain: <code>A7</code>
+</li>
+</ul>
+<p>For full flow and payload contract examples, see vignette <code>topology-a0-a7</code>.</p>
+</div>
+<div class="section level2">
+<h2 id="core-api">Core API<a class="anchor" aria-label="anchor" href="#core-api"></a>
+</h2>
+<div class="section level3">
+<h3 id="snapshots">Snapshots<a class="anchor" aria-label="anchor" href="#snapshots"></a>
+</h3>
+<ul>
+<li>
+<code><a href="reference/new_domain_snapshot.html">new_domain_snapshot()</a></code>, <code><a href="reference/new_artifact_snapshot.html">new_artifact_snapshot()</a></code>
+</li>
+<li>
+<code>DomainSnapshot</code>, <code>ArtifactSnapshot</code>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="rules">Rules<a class="anchor" aria-label="anchor" href="#rules"></a>
+</h3>
+<ul>
+<li>
+<code><a href="reference/choose_topology.html">choose_topology()</a></code>, <code><a href="reference/new_rule.html">new_rule()</a></code>, <code><a href="reference/run_rules.html">run_rules()</a></code>, <code><a href="reference/new_rule_context.html">new_rule_context()</a></code>
+</li>
+<li>
+<code>CoreRule</code>, <code>RuleContext</code>
+</li>
+<li>
+<code><a href="reference/register_rule.html">register_rule()</a></code>, <code><a href="reference/get_rule.html">get_rule()</a></code>, <code><a href="reference/list_rules.html">list_rules()</a></code>, <code><a href="reference/clear_rule_registry.html">clear_rule_registry()</a></code>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="diffs">Diffs<a class="anchor" aria-label="anchor" href="#diffs"></a>
+</h3>
+<ul>
+<li>
+<code><a href="reference/diff_keys.html">diff_keys()</a></code>, <code><a href="reference/diff_values.html">diff_values()</a></code>, <code><a href="reference/diff_columns.html">diff_columns()</a></code>, <code><a href="reference/diff_column_types.html">diff_column_types()</a></code>
+</li>
+<li>
+<code><a href="reference/compare_key_churn.html">compare_key_churn()</a></code>, <code><a href="reference/compare_record_volume.html">compare_record_volume()</a></code>, <code><a href="reference/compare_distribution_shift.html">compare_distribution_shift()</a></code>
+</li>
+<li><code><a href="reference/compare_flag_states.html">compare_flag_states()</a></code></li>
+</ul>
+</div>
 </div>
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span>      <span class="co"># regenerate man/ and NAMESPACE</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span>          <span class="co"># run the testthat suite</span></span>
-<span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span><span class="op">)</span>     <span class="co"># build the reference site</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span>         <span class="co"># full R CMD check</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">document</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">test</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">pkgdown</span><span class="fu">::</span><span class="fu"><a href="https://pkgdown.r-lib.org/reference/build_site.html" class="external-link">build_site</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">check</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -365,7 +256,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Zelos Zhu <br><small class="roles"> Author, maintainer </small>  </li>
+<li>Zelos Zhu <br><small class="roles"> Author, maintainer </small>   </li>
 </ul>
 </div>
 
@@ -380,7 +271,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

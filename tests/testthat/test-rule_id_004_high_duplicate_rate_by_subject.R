@@ -3,7 +3,7 @@ test_that(
   {
     expected_id <- "ID-004"
     rule <- rule_id_004_high_duplicate_rate_by_subject(
-      domain = "AE", key_vars = c("USUBJID", "VISIT", "AETERM")
+      domain = "AE", key_vars = c("USUBJID", "VISIT", "AETERM"), subject_var = "USUBJID"
     )
 
     ae <- data.frame(

@@ -10,9 +10,9 @@
 #' @export
 rule_id_004_high_duplicate_rate_by_subject <- function(domain,
                                                        key_vars,
-                                                       subject_var = "USUBJID",
+                                                       subject_var = "entity_id",
                                                        threshold = 0.1,
-                                                       owner_team = "DM") {
+                                                       owner_team = "Data Stewardship") {
   new_rule(
     id = "ID-004",
     title = "High duplicate rate by subject",

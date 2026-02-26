@@ -20,16 +20,16 @@ Compares classes of key variables between an old and new \code{DomainSnapshot}.
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()
-new_data$USUBJID <- as.factor(new_data$USUBJID)
+new_data <- example_primary()
+new_data$entity_id <- as.factor(new_data$entity_id)
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
 diff_key_types(old_dom, new_dom)
 }

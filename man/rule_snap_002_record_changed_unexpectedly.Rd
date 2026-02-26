@@ -5,8 +5,8 @@
 \title{SNAP-002: Record changed unexpectedly}
 \usage{
 rule_snap_002_record_changed_unexpectedly(
-  domain = "ADSL",
-  keys = c("USUBJID"),
+  domain = "PRIMARY",
+  keys = c("entity_id"),
   monitored_fields = character(),
   numeric_tol = 0,
   owner_team = "Standards"

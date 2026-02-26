@@ -23,32 +23,16 @@ counts and rates.
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()
-new_data <- rbind(
-  new_data,
-  data.frame(
-    STUDYID = "STUDY01",
-    USUBJID = "STUDY01-999",
-    PARAM = "Systolic Blood Pressure (mmHg)",
-    PARAMCD = "SYSBP",
-    AVAL = 121,
-    AVISIT = "BASELINE",
-    ADY = 1,
-    TRTP = "Drug A",
-    ABLFL = "Y",
-    BASE = 121,
-    CHG = 0,
-    stringsAsFactors = FALSE
-  )
-)
+new_data <- example_primary()
+new_data <- rbind(new_data, transform(new_data[1, , drop = FALSE], entity_id = "E999", record_id = 999))
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
 churn <- compare_key_churn(old_dom, new_dom)
 churn$churn_rate > 0.10

@@ -2,7 +2,7 @@
 #'
 #' @param domain Domain name.
 #' @param key_vars Key variables for duplicate detection.
-#' @param site_var Site/group variable.
+#' @param site_var Grouping variable.
 #' @param threshold Duplicate-rate threshold.
 #' @param entity_key_var Optional entity key variable for output.
 #' @param owner_team Owner team.
@@ -11,13 +11,13 @@
 #' @export
 rule_id_003_high_duplicate_rate_by_site <- function(domain,
                                                     key_vars,
-                                                    site_var = "SITEID",
+                                                    site_var = "group_id",
                                                     threshold = 0.1,
-                                                    entity_key_var = "USUBJID",
-                                                    owner_team = "DM") {
+                                                    entity_key_var = "entity_id",
+                                                    owner_team = "Data Stewardship") {
   new_rule(
     id = "ID-003",
-    title = "High duplicate rate by site",
+    title = "High duplicate rate by group",
     topology = "A2",
     scope = "group",
     intent = "ops_anomaly",
@@ -30,6 +30,9 @@ rule_id_003_high_duplicate_rate_by_site <- function(domain,
       }
 
       present_keys <- intersect(key_vars, names(data))
+      if (!length(present_keys)) {
+        return(data.frame())
+      }
       dup <- duplicated(data[, present_keys, drop = FALSE]) |
         duplicated(data[, present_keys, drop = FALSE], fromLast = TRUE)
 
@@ -40,9 +43,10 @@ rule_id_003_high_duplicate_rate_by_site <- function(domain,
       }
 
       keep <- dup & data[[site_var]] %in% bad_sites
-      out <- data[keep, unique(c(entity_key_var, site_var, present_keys)), drop = FALSE]
+      out_cols <- intersect(unique(c(entity_key_var, site_var, present_keys)), names(data))
+      out <- data[keep, out_cols, drop = FALSE]
       out$dup_rate <- unname(by_site[as.character(out[[site_var]])])
-      out$reason <- "Site duplicate rate above threshold"
+      out$reason <- "Group duplicate rate above threshold"
       out
     }
   )

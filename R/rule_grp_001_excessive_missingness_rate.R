@@ -10,9 +10,9 @@
 #' @export
 rule_grp_001_excessive_missingness_rate <- function(domain,
                                                     target_vars,
-                                                    group_var = "SITEID",
+                                                    group_var = "group_id",
                                                     threshold = 0.1,
-                                                    owner_team = "DM") {
+                                                    owner_team = "Data Stewardship") {
   new_rule(
     id = "GRP-001",
     title = "Excessive missingness rate",

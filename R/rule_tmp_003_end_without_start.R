@@ -11,8 +11,8 @@
 rule_tmp_003_end_without_start <- function(domain,
                                            start_var,
                                            end_var,
-                                           entity_key_var = "USUBJID",
-                                           owner_team = "DM") {
+                                           entity_key_var = "entity_id",
+                                           owner_team = "Data Stewardship") {
   new_rule(
     id = "TMP-003",
     title = "End date without start",
@@ -31,7 +31,7 @@ rule_tmp_003_end_without_start <- function(domain,
       end_date <- as.Date(data[[end_var]])
       bad <- is.na(start_date) & !is.na(end_date)
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, needed)),

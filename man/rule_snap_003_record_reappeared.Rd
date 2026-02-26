@@ -5,10 +5,10 @@
 \title{SNAP-003: Record reappeared}
 \usage{
 rule_snap_003_record_reappeared(
-  domain = "ADSL",
-  keys = c("USUBJID"),
+  domain = "PRIMARY",
+  keys = c("entity_id"),
   removed_keys_option = "removed_keys_history",
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

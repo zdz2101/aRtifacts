@@ -7,10 +7,10 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_009_distribution_drift <- function(domain = "ADSL",
-                                             value_var = "AGE",
+rule_snap_009_distribution_drift <- function(domain = "PRIMARY",
+                                             value_var = "value",
                                              ks_threshold = 0.2,
-                                             owner_team = "Clinical Ops") {
+                                             owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-009",
     title = "Distribution drift",

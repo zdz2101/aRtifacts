@@ -8,8 +8,8 @@ rule_de_003_invalid_categorical_code(
   domain,
   value_var,
   allowed_levels,
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

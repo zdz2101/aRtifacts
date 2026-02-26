@@ -4,7 +4,7 @@
 \alias{diff_values}
 \title{Diff values between two domain snapshots}
 \usage{
-diff_values(old_dom, new_dom, vars = "AVAL")
+diff_values(old_dom, new_dom, vars = "value")
 }
 \arguments{
 \item{old_dom}{Previous \code{DomainSnapshot}.}
@@ -23,16 +23,16 @@ Compares one or more variables on matched keys between two
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()
-new_data$AVAL[new_data$USUBJID == "STUDY01-002" & new_data$AVISIT == "WEEK 4"] <- 141
+new_data <- example_primary()
+new_data$value[new_data$entity_id == "E001" & new_data$record_id == 1] <- 141
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
-diff_values(old_dom, new_dom, vars = c("AVAL", "CHG"))
+diff_values(old_dom, new_dom, vars = "value")
 }

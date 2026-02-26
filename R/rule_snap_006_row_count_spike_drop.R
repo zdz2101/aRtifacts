@@ -7,10 +7,10 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_006_row_count_spike_drop <- function(domain = "ADSL",
+rule_snap_006_row_count_spike_drop <- function(domain = "PRIMARY",
                                                 threshold_abs = 100,
                                                 threshold_rel = 0.2,
-                                                owner_team = "Clinical Ops") {
+                                                owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-006",
     title = "Row count spike/drop",

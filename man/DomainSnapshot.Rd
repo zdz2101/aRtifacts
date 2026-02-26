@@ -16,7 +16,7 @@ DomainSnapshot(
 )
 }
 \arguments{
-\item{name}{Domain or table name (e.g. \code{"ADVS"}, \code{"orders"}).}
+\item{name}{Domain or table name (e.g. \code{"orders"}, \code{"orders"}).}
 
 \item{data}{A \code{data.frame} containing domain rows.}
 

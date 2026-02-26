@@ -9,8 +9,8 @@
 #' @export
 rule_id_002_duplicate_keys <- function(domain,
                                        key_vars,
-                                       entity_key_var = "USUBJID",
-                                       owner_team = "DM") {
+                                       entity_key_var = "entity_id",
+                                       owner_team = "Data Stewardship") {
   new_rule(
     id = "ID-002",
     title = "Duplicate keys",
@@ -31,7 +31,8 @@ rule_id_002_duplicate_keys <- function(domain,
         return(data.frame())
       }
 
-      out <- data[dup, unique(c(entity_key_var, present)), drop = FALSE]
+      out_cols <- intersect(unique(c(entity_key_var, present)), names(data))
+      out <- data[dup, out_cols, drop = FALSE]
       out$row_id <- which(dup)
       out$reason <- "Duplicate key combination"
       out

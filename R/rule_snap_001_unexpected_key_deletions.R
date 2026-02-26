@@ -6,8 +6,8 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_001_unexpected_key_deletions <- function(domain = "ADSL",
-                                                   keys = c("USUBJID"),
+rule_snap_001_unexpected_key_deletions <- function(domain = "PRIMARY",
+                                                   keys = c("entity_id"),
                                                    owner_team = "Standards") {
   new_rule(
     id = "SNAP-001",
@@ -24,7 +24,7 @@ rule_snap_001_unexpected_key_deletions <- function(domain = "ADSL",
         return(data.frame())
       }
 
-      removed <- .core50_anti_join_rows(previous, current, by = by)
+      removed <- .topology_anti_join_rows(previous, current, by = by)
       if (!nrow(removed)) {
         return(data.frame())
       }

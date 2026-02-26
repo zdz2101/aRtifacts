@@ -11,8 +11,8 @@
 rule_tmp_004_time_without_date <- function(domain,
                                            time_var,
                                            date_var,
-                                           entity_key_var = "USUBJID",
-                                           owner_team = "DM") {
+                                           entity_key_var = "entity_id",
+                                           owner_team = "Data Stewardship") {
   new_rule(
     id = "TMP-004",
     title = "Time without date",
@@ -27,11 +27,11 @@ rule_tmp_004_time_without_date <- function(domain,
         return(data.frame())
       }
 
-      time_present <- !.core50_any_na_or_blank(data[[time_var]])
-      date_missing <- .core50_any_na_or_blank(data[[date_var]])
+      time_present <- !.topology_any_na_or_blank(data[[time_var]])
+      date_missing <- .topology_any_na_or_blank(data[[date_var]])
       bad <- time_present & date_missing
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, needed)),

@@ -15,8 +15,8 @@ rule_de_005_impossible_logical_combination <- function(domain,
                                                        val_a = "M",
                                                        var_b = "PREGNANT",
                                                        val_b = "Y",
-                                                       entity_key_var = "USUBJID",
-                                                       owner_team = "Medical Monitor") {
+                                                       entity_key_var = "entity_id",
+                                                       owner_team = "Data Quality") {
   new_rule(
     id = "DE-005",
     title = "Impossible logical combination",
@@ -35,7 +35,7 @@ rule_de_005_impossible_logical_combination <- function(domain,
       b_vals <- as.character(data[[var_b]])
       bad <- !is.na(a_vals) & !is.na(b_vals) & (a_vals == as.character(val_a)) & (b_vals == as.character(val_b))
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, needed)),

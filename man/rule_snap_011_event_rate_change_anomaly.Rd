@@ -5,11 +5,11 @@
 \title{SNAP-011: Event rate change anomaly}
 \usage{
 rule_snap_011_event_rate_change_anomaly(
-  domain = "AE",
-  group_var = "SITEID",
-  subject_var = "USUBJID",
+  domain = "PRIMARY",
+  group_var = "group_id",
+  subject_var = "entity_id",
   threshold_abs_change = 0.5,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

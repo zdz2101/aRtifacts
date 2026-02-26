@@ -5,10 +5,10 @@
 \title{SNAP-009: Distribution drift}
 \usage{
 rule_snap_009_distribution_drift(
-  domain = "ADSL",
-  value_var = "AGE",
+  domain = "PRIMARY",
+  value_var = "value",
   ks_threshold = 0.2,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

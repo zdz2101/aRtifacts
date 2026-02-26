@@ -21,17 +21,17 @@ added, removed, or unchanged.
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()
+new_data <- example_primary()
 new_data$NEWCOL <- "X"
-new_data$CHG <- NULL
+new_data$delta <- NULL
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
 diff_columns(old_dom, new_dom)
 }

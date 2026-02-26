@@ -10,8 +10,8 @@ rule_de_001_required_field_missing_conditionally(
   condition_var,
   required_var,
   condition_value = "Y",
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

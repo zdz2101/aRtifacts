@@ -19,11 +19,11 @@ Compares top-level metadata fields between two \code{ArtifactSnapshot} objects.
 }
 \examples{
 dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-old_art <- new_artifact_snapshot(domains = list(ADVS = dom), build_id = "run-001")
-new_art <- new_artifact_snapshot(domains = list(ADVS = dom), build_id = "run-002")
+old_art <- new_artifact_snapshot(domains = list(orders = dom), build_id = "run-001")
+new_art <- new_artifact_snapshot(domains = list(orders = dom), build_id = "run-002")
 diff_meta_artifact(old_art, new_art)
 }

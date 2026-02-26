@@ -8,11 +8,11 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_010_site_metric_drift <- function(domain = "ADSL",
-                                            group_var = "SITEID",
-                                            value_var = "AGE",
+rule_snap_010_site_metric_drift <- function(domain = "PRIMARY",
+                                            group_var = "group_id",
+                                            value_var = "value",
                                             threshold_abs_diff = 5,
-                                            owner_team = "Clinical Ops") {
+                                            owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-010",
     title = "Site metric drift",
@@ -22,8 +22,8 @@ rule_snap_010_site_metric_drift <- function(domain = "ADSL",
     domain = domain,
     owner_team = owner_team,
     fn = function(previous, current, context, rule) {
-      prev_m <- .core50_metric_by_group(previous, group_var = group_var, value_var = value_var, fun = mean)
-      cur_m <- .core50_metric_by_group(current, group_var = group_var, value_var = value_var, fun = mean)
+      prev_m <- .topology_metric_by_group(previous, group_var = group_var, value_var = value_var, fun = mean)
+      cur_m <- .topology_metric_by_group(current, group_var = group_var, value_var = value_var, fun = mean)
       if (!nrow(prev_m) || !nrow(cur_m)) {
         return(data.frame())
       }

@@ -5,11 +5,11 @@
 \title{SNAP-008: Missingness rate drift}
 \usage{
 rule_snap_008_missingness_rate_drift(
-  domain = "ADSL",
-  group_var = "SITEID",
-  value_var = "AGE",
+  domain = "PRIMARY",
+  group_var = "group_id",
+  value_var = "value",
   threshold_increase = 0.1,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

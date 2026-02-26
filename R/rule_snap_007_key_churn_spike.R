@@ -7,10 +7,10 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_007_key_churn_spike <- function(domain = "ADSL",
-                                          keys = c("USUBJID"),
+rule_snap_007_key_churn_spike <- function(domain = "PRIMARY",
+                                          keys = c("entity_id"),
                                           churn_threshold = 0.1,
-                                          owner_team = "Clinical Ops") {
+                                          owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-007",
     title = "Key churn spike",

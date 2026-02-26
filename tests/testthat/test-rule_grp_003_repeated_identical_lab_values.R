@@ -2,7 +2,11 @@ test_that(
   "GRP-003 flags repeated identical lab values",
   {
     expected_id <- "GRP-003"
-    rule <- rule_grp_003_repeated_identical_lab_values(domain = "LB", min_repeats = 3)
+    rule <- rule_grp_003_repeated_identical_lab_values(
+      domain = "LB",
+      subject_var = "USUBJID",
+      min_repeats = 3
+    )
 
     lb <- data.frame(
       USUBJID = c("S1", "S1", "S1", "S2"),

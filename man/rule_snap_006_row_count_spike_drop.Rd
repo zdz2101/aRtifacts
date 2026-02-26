@@ -5,10 +5,10 @@
 \title{SNAP-006: Row count spike/drop}
 \usage{
 rule_snap_006_row_count_spike_drop(
-  domain = "ADSL",
+  domain = "PRIMARY",
   threshold_abs = 100,
   threshold_rel = 0.2,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

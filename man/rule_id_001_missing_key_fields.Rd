@@ -7,8 +7,8 @@
 rule_id_001_missing_key_fields(
   domain,
   key_vars,
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

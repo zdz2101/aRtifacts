@@ -7,9 +7,9 @@
 rule_grp_001_excessive_missingness_rate(
   domain,
   target_vars,
-  group_var = "SITEID",
+  group_var = "group_id",
   threshold = 0.1,
-  owner_team = "DM"
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{

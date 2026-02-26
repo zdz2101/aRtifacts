@@ -2,20 +2,20 @@
 % Please edit documentation in R/rule_grp_004_site_level_outlier_rate.R
 \name{rule_grp_004_site_level_outlier_rate}
 \alias{rule_grp_004_site_level_outlier_rate}
-\title{GRP-004: Site-level outlier rate}
+\title{GRP-004: Group-level outlier rate}
 \usage{
 rule_grp_004_site_level_outlier_rate(
   domain,
-  site_var = "SITEID",
+  site_var = "group_id",
   event_flag_var = NULL,
   k = 3,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{
 \item{domain}{Domain name.}
 
-\item{site_var}{Site/group variable.}
+\item{site_var}{Grouping variable.}
 
 \item{event_flag_var}{Optional binary event variable (\code{1}/\code{0}, \code{Y}/\code{N}).}
 
@@ -27,5 +27,5 @@ rule_grp_004_site_level_outlier_rate(
 A \code{CoreRule} object.
 }
 \description{
-GRP-004: Site-level outlier rate
+GRP-004: Group-level outlier rate
 }

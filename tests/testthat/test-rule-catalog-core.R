@@ -1,38 +1,37 @@
 # ---------------------------------------------------------------------------
-# rule_catalog_core() dataset-backed catalog
+# rule_catalog_core() topology starter catalog
 # ---------------------------------------------------------------------------
 
-test_that("rule_catalog_core() returns expected structure and row count", {
+test_that("rule_catalog_core() returns expected columns", {
   cat <- rule_catalog_core()
   expect_s3_class(cat, "data.frame")
-  expect_named(cat, c("rule_id", "rule_name", "scope", "category"))
-  expect_equal(nrow(cat), 50L)
+  expect_named(cat, c("rule_id", "rule_name", "topology", "scope", "intent", "category"))
 })
 
-test_that("rule_catalog_core() has ordered catalog IDs (legacy-compatible sequence)", {
-  ids <- rule_catalog_core()$rule_id
-  expect_identical(ids, sprintf("R%03d", seq_len(50)))
-})
-
-test_that("rule_catalog_core() has no missing values and unique IDs", {
+test_that("rule_catalog_core() has unique rule IDs and no missing values", {
   cat <- rule_catalog_core()
   expect_false(anyNA(cat))
-  expect_equal(length(unique(cat$rule_id)), 50L)
+  expect_equal(length(unique(cat$rule_id)), nrow(cat))
 })
 
-test_that("rule_catalog_core() uses supported scope values", {
-  scopes <- unique(rule_catalog_core()$scope)
-  expect_setequal(scopes, c("Record", "Group", "Snapshot"))
-})
-
-test_that("rule_catalog_core() matches data-raw CSV source exactly", {
-  skip_if_not(!is.null(system.file("data-raw/rule_catalog_core.csv", package = "aRtifacts")))
-  csv <- utils::read.csv(system.file("data-raw/rule_catalog_core.csv", package = "aRtifacts"), stringsAsFactors = FALSE, check.names = FALSE)
+test_that("rule_catalog_core() covers all topologies A0-A7", {
   cat <- rule_catalog_core()
-  expect_identical(cat, csv)
+  expect_setequal(unique(cat$topology), paste0("A", 0:7))
 })
 
-test_that("rule_catalog_core() exposes the packaged data object", {
-  expect_true(exists("rule_catalog_core_data", inherits = TRUE))
-  expect_identical(rule_catalog_core(), rule_catalog_core_data)
+test_that("rule_catalog_core() reflects bundled starter rules", {
+  rules <- c(
+    pack_topology_a0(domain = "PRIMARY"),
+    pack_topology_a1(domain = "PRIMARY", key_vars = c("entity_id", "record_id")),
+    pack_topology_a2(domain = "PRIMARY", key_vars = c("entity_id", "record_id")),
+    pack_topology_a3(),
+    pack_topology_a4(),
+    pack_topology_a5(domain_primary = "PRIMARY", keys = c("entity_id", "record_id")),
+    pack_topology_a6(domain_primary = "PRIMARY", keys = c("entity_id", "record_id")),
+    pack_topology_a7()
+  )
+
+  expected_ids <- sort(vapply(rules, function(x) x@id, character(1)))
+  observed_ids <- sort(rule_catalog_core()$rule_id)
+  expect_identical(observed_ids, expected_ids)
 })

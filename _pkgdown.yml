@@ -6,10 +6,10 @@ template:
   light-switch: true
   bslib:
     preset: "flatly"
-    
+
 home:
   title: aRtifacts
-  description: Schema-agnostic dataset observability engine with bundled SDTM/ADaM modules.
+  description: Topology-driven semantic validation engine for structured tabular data.
 
 navbar:
   structure:
@@ -22,6 +22,7 @@ reference:
       - new_artifact_snapshot
       - DomainSnapshot
       - ArtifactSnapshot
+
   - title: Diff engine
     contents:
       - diff_keys
@@ -34,10 +35,12 @@ reference:
       - compare_key_churn
       - compare_record_volume
       - compare_distribution_shift
-  - title: Core rule engine
+
+  - title: Topology rule engine
     contents:
       - CoreRule
       - RuleContext
+      - choose_topology
       - new_rule
       - new_rule_context
       - run_rules
@@ -45,53 +48,47 @@ reference:
       - get_rule
       - list_rules
       - clear_rule_registry
-  - title: Legacy/spec classes
-    desc: Exported legacy constructors and matching specs retained in the API surface.
+      - pack_topology_all
+
+  - title: Spec classes
     contents:
-      - FlagRule
-      - DiffFlagRule
       - IdentitySpec
       - MatchSpec
       - DeltaSpec
-      - new_flag_rule
-      - new_diff_flag_rule
       - new_identity_spec
       - new_match_spec
       - new_delta_spec
-  - title: Core50 packs and registration
+
+  - title: Topology starter packs
     contents:
-      - pack_core_50
-      - pack_core_50_schema
-      - pack_core_50_a1
-      - pack_core_50_a2
-      - pack_core_50_a3
-      - pack_core_50_a4
-      - pack_core_50_a5
-      - pack_core_50_a6
-      - pack_core_50_a7
-      - register_core_50_schema
-      - register_core_50_a1
-      - register_core_50_a2
-      - register_core_50_a3
-      - register_core_50_a4
-      - register_core_50_a5
-      - register_core_50_a6
-      - register_core_50_a7
-  - title: Catalogs and module checks
+      - pack_topology_a0
+      - pack_topology_a1
+      - pack_topology_a2
+      - pack_topology_a3
+      - pack_topology_a4
+      - pack_topology_a5
+      - pack_topology_a6
+      - pack_topology_a7
+      - register_topology_a0
+      - register_topology_a1
+      - register_topology_a2
+      - register_topology_a3
+      - register_topology_a4
+      - register_topology_a5
+      - register_topology_a6
+      - register_topology_a7
+
+  - title: Starter rule constructors
+    contents:
+      - matches("^rule_(sch|id|tmp|de|grp|rel|agg|snap|hyb)_")
+
+  - title: Catalog
     contents:
       - rule_catalog_core
-      - check_adsl
-      - check_bds
-      - validate_adam
-  - title: Individual rule constructors
-    desc: All bundled rule constructors (`rule_*`).
-    contents:
-      - matches("^rule_(sch|id|snap|de|tmp|grp|xdom|xagg|both)_")
+
   - title: Example data
     contents:
-      - example_sdtm_lb
-      - example_adsl
-      - example_advs
+      - example_primary
 
 articles:
   - title: Core engine
@@ -99,6 +96,6 @@ articles:
       - getting-started
       - topology-a0-a7
       - add-rule-pack
-  - title: Extensions and roadmap
+  - title: Ecosystem
     contents:
       - future-extensions

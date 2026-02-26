@@ -10,11 +10,11 @@
 #' @return A `CoreRule` object.
 #' @export
 rule_grp_003_repeated_identical_lab_values <- function(domain,
-                                                       subject_var = "USUBJID",
+                                                       subject_var = "entity_id",
                                                        test_var = "LBTESTCD",
                                                        value_var = "LBSTRESN",
                                                        min_repeats = 3,
-                                                       owner_team = "Clinical Ops") {
+                                                       owner_team = "Data Operations") {
   new_rule(
     id = "GRP-003",
     title = "Repeated identical lab values",

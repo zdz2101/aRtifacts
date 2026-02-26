@@ -20,16 +20,16 @@ Compares classes for columns that exist in both snapshots.
 }
 \examples{
 old_dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-new_data <- example_advs()
-new_data$AVAL <- as.character(new_data$AVAL)
+new_data <- example_primary()
+new_data$value <- as.character(new_data$value)
 new_dom <- new_domain_snapshot(
-  name = "ADVS",
+  name = "orders",
   data = new_data,
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  key_vars = c("entity_id", "record_id")
 )
 diff_column_types(old_dom, new_dom)
 }

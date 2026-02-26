@@ -7,10 +7,10 @@
 rule_id_003_high_duplicate_rate_by_site(
   domain,
   key_vars,
-  site_var = "SITEID",
+  site_var = "group_id",
   threshold = 0.1,
-  entity_key_var = "USUBJID",
-  owner_team = "DM"
+  entity_key_var = "entity_id",
+  owner_team = "Data Stewardship"
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ rule_id_003_high_duplicate_rate_by_site(
 
 \item{key_vars}{Key variables for duplicate detection.}
 
-\item{site_var}{Site/group variable.}
+\item{site_var}{Grouping variable.}
 
 \item{threshold}{Duplicate-rate threshold.}
 

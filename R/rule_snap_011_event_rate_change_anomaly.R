@@ -8,11 +8,11 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_011_event_rate_change_anomaly <- function(domain = "AE",
-                                                    group_var = "SITEID",
-                                                    subject_var = "USUBJID",
+rule_snap_011_event_rate_change_anomaly <- function(domain = "PRIMARY",
+                                                    group_var = "group_id",
+                                                    subject_var = "entity_id",
                                                     threshold_abs_change = 0.5,
-                                                    owner_team = "Clinical Ops") {
+                                                    owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-011",
     title = "Event rate change anomaly",
@@ -42,8 +42,8 @@ rule_snap_011_event_rate_change_anomaly <- function(domain = "AE",
       merged <- merge(merged, cur_sub, by = "group", all = TRUE)
       merged[is.na(merged)] <- 0
 
-      merged$rate_prev <- mapply(.core50_rate, merged$events_prev, merged$subjects_prev)
-      merged$rate_cur <- mapply(.core50_rate, merged$events_cur, merged$subjects_cur)
+      merged$rate_prev <- mapply(.topology_rate, merged$events_prev, merged$subjects_prev)
+      merged$rate_cur <- mapply(.topology_rate, merged$events_cur, merged$subjects_cur)
       merged$delta_abs <- abs(merged$rate_cur - merged$rate_prev)
 
       bad <- !is.na(merged$delta_abs) & merged$delta_abs > threshold_abs_change

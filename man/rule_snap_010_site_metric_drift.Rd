@@ -5,11 +5,11 @@
 \title{SNAP-010: Site metric drift}
 \usage{
 rule_snap_010_site_metric_drift(
-  domain = "ADSL",
-  group_var = "SITEID",
-  value_var = "AGE",
+  domain = "PRIMARY",
+  group_var = "group_id",
+  value_var = "value",
   threshold_abs_diff = 5,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

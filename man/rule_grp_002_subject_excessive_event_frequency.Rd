@@ -7,9 +7,9 @@
 \usage{
 rule_grp_002_subject_excessive_event_frequency(
   domain,
-  subject_var = "USUBJID",
+  subject_var = "entity_id",
   max_events = 20,
-  owner_team = "Clinical Ops"
+  owner_team = "Data Operations"
 )
 }
 \arguments{

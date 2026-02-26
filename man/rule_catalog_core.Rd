@@ -2,13 +2,14 @@
 % Please edit documentation in R/data-rule_catalog_core.R
 \name{rule_catalog_core}
 \alias{rule_catalog_core}
-\title{Core observability rule catalog}
+\title{Topology starter rule catalog}
 \usage{
 rule_catalog_core()
 }
 \value{
-A data frame with columns \code{rule_id}, \code{rule_name}, \code{scope}, \code{category}.
+A data frame with columns \code{rule_id}, \code{rule_name}, \code{topology},
+\code{scope}, \code{intent}, and \code{category}.
 }
 \description{
-Returns the packaged Core catalog as a data frame.
+Returns metadata for all bundled topology starter rules in core.
 }

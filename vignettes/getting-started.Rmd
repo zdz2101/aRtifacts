@@ -1,209 +1,156 @@
 ---
-title: "Getting Started — Core Engine"
+title: "Getting Started — Topology Core"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting Started — Core Engine}
+  %\VignetteIndexEntry{Getting Started — Topology Core}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+suppressPackageStartupMessages(library(aRtifacts))
 ```
 
-## What is aRtifacts?
- 
-aRtifacts is a **schema-agnostic** observability engine for tabular data.
-If your data lives in a `data.frame` and you can name the columns that make
-each row unique, aRtifacts can snapshot it, diff it, and run quality rules
-against it — regardless of whether it's clinical, financial, operational, or
-anything else.
+`aRtifacts` is a topology-first validation engine for keyed tabular data.
 
-This vignette walks through the core engine using a plain, made-up dataset
-so you can see the mechanics **without** any domain-specific jargon.
+## Mental Model (ELI5)
 
----
+End-to-end pipeline:
 
-## Step 1 — Create a domain snapshot
+1. `data.frame` -> raw rows.
+2. `DomainSnapshot` -> one named, keyed table.
+3. `ArtifactSnapshot` -> one run/cut containing one or more domains.
+4. `RuleContext` -> what rules can see at runtime:
+   - `current` artifact (required)
+   - `previous` artifact (optional, for longitudinal checks)
+   - `options` (optional runtime knobs)
+5. Rule list -> checks to execute (prebuilt packs and/or custom rules).
+6. `run_rules(context, rules)` -> findings `data.frame`.
 
-A **domain snapshot** is an immutable capture of one table at one point in
-time. You tell it the table name, hand it a `data.frame`, and declare which
-columns form the unique key.
+## 1. Create Two Cuts As Domain Snapshots
 
 ```{r}
-library(aRtifacts)
-
-# Imagine a simple orders table.
-orders_v1 <- data.frame(
-  order_id   = c(101, 102, 103),
-  customer   = c("Alice", "Bob", "Carol"),
-  amount     = c(250, 480, 120),
-  status     = c("shipped", "pending", "shipped"),
-  order_date = c("2025-06-01", "2025-06-03", "2025-06-04"),
+primary_v1 <- data.frame(
+  entity_id = c("E001", "E002", "E003"),
+  record_id = c(1, 2, 3),
+  value = c(10, 20, 30),
+  group_id = c("G1", "G1", "G2"),
   stringsAsFactors = FALSE
 )
 
-snap_v1 <- new_domain_snapshot(
-  name     = "orders",
-  data     = orders_v1,
-  key_vars = "order_id"
-)
+primary_v2 <- primary_v1
+primary_v2$value[primary_v2$entity_id == "E002"] <- 99
+
+snap_v1 <- new_domain_snapshot("PRIMARY", primary_v1, key_vars = c("entity_id", "record_id"))
+snap_v2 <- new_domain_snapshot("PRIMARY", primary_v2, key_vars = c("entity_id", "record_id"))
 ```
 
-> **What just happened?**
-> `new_domain_snapshot()` validated that `order_id` exists in the data and
-> that every row has a unique value. If either check fails, you get an
-> immediate error — no silent corruption downstream.
-
----
-
-## Step 2 — Make a second snapshot and diff
-
-Now suppose a new extract arrives: one order amount was corrected, a new
-order was added, and an existing order was removed.
+## 2. Wrap Domains Into Artifacts
 
 ```{r}
-orders_v2 <- data.frame(
-  order_id   = c(101, 103, 104),
-  customer   = c("Alice", "Carol", "Dave"),
-  amount     = c(250, 135, 310),
-  status     = c("shipped", "shipped", "pending"),
-  order_date = c("2025-06-01", "2025-06-04", "2025-06-10"),
-  stringsAsFactors = FALSE
-)
-
-snap_v2 <- new_domain_snapshot(
-  name     = "orders",
-  data     = orders_v2,
-  key_vars = "order_id"
-)
+art_v1 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v1), build_id = "cut-001")
+art_v2 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v2), build_id = "cut-002")
 ```
 
-### Key diff — who was added or removed?
+## 3. Diff The Two Cuts
 
 ```{r}
-diff_keys(snap_v1, snap_v2)
+diff_values(snap_v1, snap_v2, vars = "value")
 ```
 
-> `added` shows order 104 (Dave) appeared. `removed` shows order 102 (Bob)
-> disappeared. This is purely key-level — it doesn't look at values.
-
-### Value diff — what changed on matching rows?
+## 4. Build Rule Context And Run One Custom Rule
 
 ```{r}
-diff_values(snap_v1, snap_v2, vars = c("amount", "status"))
-```
+ctx_current <- new_rule_context(current = art_v2)
 
-> Carol's `amount` moved from 120 → 135. Only rows that exist in **both**
-> snapshots are compared; added/removed rows are handled by `diff_keys()`.
-
----
-
-## Step 3 — Bundle into an artifact snapshot
-
-An **artifact snapshot** groups one or more domain snapshots together with
-build metadata (like a Git SHA or a run ID). This is useful when you have
-multiple related tables that move together.
-
-```{r}
-art_v1 <- new_artifact_snapshot(
-  domains     = list(orders = snap_v1),
-  build_id    = "pipeline-run-041",
-  code_sha    = "abc123",
-  inputs_hash = "hash_v1"
-)
-
-art_v2 <- new_artifact_snapshot(
-  domains     = list(orders = snap_v2),
-  build_id    = "pipeline-run-042",
-  code_sha    = "abc123",
-  inputs_hash = "hash_v2"
-)
-
-diff_meta_artifact(art_v1, art_v2)
-```
-
-> The metadata diff tells you *which build properties changed* between
-> two runs. Here the `build_id` and `inputs_hash` changed but `code_sha`
-> stayed the same — meaning the code didn't change, but the data did.
-
----
-
-## Step 4 — Write and run a Core50 rule
-
-A **Core50 rule** is a topology-aware function. For row-level checks in a
-single snapshot, use topology `A1` and run with `run_rules()`.
-
-```{r}
-rule_high_amount <- new_rule(
-  id         = "TMP-900",
-  title      = "High amount",
-  topology   = "A1",
-  scope      = "record",
-  intent     = "ops_anomaly",
-  domain     = "orders",
-  owner_team = "Finance",
+rule_high_value <- new_rule(
+  id = "TMP-900",
+  title = "High value",
+  topology = "A1",
+  scope = "record",
+  intent = "ops_anomaly",
+  domain = "PRIMARY",
+  owner_team = "Ops",
   fn = function(data, context, rule) {
-    flagged <- data[!is.na(data$amount) & data$amount > 300, , drop = FALSE]
-    if (!nrow(flagged)) return(data.frame())
-    flagged[, c("order_id", "customer", "amount"), drop = FALSE]
+    data[data$value > 50, c("entity_id", "record_id", "value"), drop = FALSE]
   }
 )
 
-ctx_v1 <- new_rule_context(current = art_v1)
-ctx_v2 <- new_rule_context(current = art_v2)
-
-flags_v1 <- run_rules(ctx_v1, list(rule_high_amount))
-flags_v2 <- run_rules(ctx_v2, list(rule_high_amount))
+run_rules(ctx_current, list(rule_high_value))
 ```
 
-> `run_rules()` applies every rule according to its topology and target domain
-> and returns a single combined table of all flagged rows, annotated with
-> `RULE_ID`, `SEVERITY`, and `OWNER_TEAM`.
+## 5. Run A Starter Pack
 
 ```{r}
-flags_v1
-flags_v2
-```
-
-### Showcase — run bundled Core50 packs
-
-Beyond custom rules, you can run built-in bundles directly.
-
-```{r eval = FALSE}
-bundle_rules <- c(
-  pack_core_50_schema(domain = "orders"),
-  pack_core_50_a1(domain = "orders", key_vars = "order_id"),
-  pack_core_50_a2(domain = "orders", key_vars = "order_id")
+primary_bad_keys <- data.frame(
+  row_id = 1:3,
+  entity_id = c("E001", "", "E003"),
+  record_id = c(1, 2, NA),
+  stringsAsFactors = FALSE
 )
 
-bundle_flags <- run_rules(new_rule_context(current = art_v2), bundle_rules)
+art_single <- new_artifact_snapshot(
+  domains = list(
+    PRIMARY = new_domain_snapshot("PRIMARY", primary_bad_keys, key_vars = "row_id")
+  ),
+  build_id = "cut-003"
+)
+
+ctx_single <- new_rule_context(current = art_single)
+rules_a1 <- pack_topology_a1(
+  domain = "PRIMARY",
+  key_vars = c("entity_id", "record_id")
+)
+
+run_rules(ctx_single, rules_a1)
 ```
 
----
-
-## Step 5 — Track flags over time
-
-Compare two flag tables by key and classify each finding as
-**introduced** (new), **resolved** (gone), or **persisting** (still there).
+## 6. Longitudinal Checks Need `previous` + `current`
 
 ```{r}
-compare_flag_states(flags_v1, flags_v2, by = c("order_id", "DOMAIN", "RULE_ID"))
+primary_v3 <- primary_v2[primary_v2$entity_id != "E003", , drop = FALSE]
+snap_v3 <- new_domain_snapshot("PRIMARY", primary_v3, key_vars = c("entity_id", "record_id"))
+art_v3 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v3), build_id = "cut-003")
+
+ctx_long <- new_rule_context(
+  current = art_v3,
+  previous = art_v2,
+  options = list(removed_keys_history = c("E999|1"))
+)
+
+rules_a5 <- pack_topology_a5(
+  domain_primary = "PRIMARY",
+  keys = c("entity_id", "record_id")
+)
+
+run_rules(ctx_long, rules_a5)
 ```
 
-> Bob's high-amount flag was *resolved* (his row is gone). Dave's is
-> *introduced* (new row with amount > 300). This is how you track
-> data-quality trends across pipeline runs or data cuts.
+## 7. Compare Findings Between Runs
 
----
+```{r}
+flags_v1 <- run_rules(new_rule_context(current = art_v1), list(rule_high_value))
+flags_v2 <- run_rules(new_rule_context(current = art_v2), list(rule_high_value))
 
-## What's next?
+compare_flag_states(
+  old_flags = flags_v1,
+  new_flags = flags_v2,
+  by = c("entity_id", "RULE_ID")
+)
+```
 
-The core engine shown above works with **any** keyed tabular data.
-From here:
+If you are unsure which topology to use for a new rule, use the yes/no flow in
+vignette **Topologies A0-A7** (`topology-a0-a7`). The helper
+`choose_topology()` provides the same mapping in code.
 
-- See **Add a New Rule Pack** for a practical custom-pack authoring pattern.
-- See **The Road Ahead** for extension architecture and ecosystem direction.
+```{r eval = FALSE}
+# A0-A4 (single-cut): current artifact only
+ctx_single_cut <- new_rule_context(current = artifact_current)
+run_rules(ctx_single_cut, pack_topology_a3(...))
 
-You can also build domain-specific rule packs for any schema by following the
-same `new_rule()` + `run_rules()` pattern shown above.
+# A5-A7 (longitudinal): both previous and current artifacts
+ctx_longitudinal <- new_rule_context(current = artifact_current, previous = artifact_previous)
+run_rules(ctx_longitudinal, pack_topology_a6(...))
+run_rules(ctx_longitudinal, pack_topology_a7(...))
+```

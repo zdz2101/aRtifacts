@@ -1,7 +1,7 @@
-#' GRP-004: Site-level outlier rate
+#' GRP-004: Group-level outlier rate
 #'
 #' @param domain Domain name.
-#' @param site_var Site/group variable.
+#' @param site_var Grouping variable.
 #' @param event_flag_var Optional binary event variable (`1`/`0`, `Y`/`N`).
 #' @param k Robust z-score threshold.
 #' @param owner_team Owner team.
@@ -9,13 +9,13 @@
 #' @return A `CoreRule` object.
 #' @export
 rule_grp_004_site_level_outlier_rate <- function(domain,
-                                                 site_var = "SITEID",
+                                                 site_var = "group_id",
                                                  event_flag_var = NULL,
                                                  k = 3,
-                                                 owner_team = "Clinical Ops") {
+                                                 owner_team = "Data Operations") {
   new_rule(
     id = "GRP-004",
-    title = "Site-level outlier rate",
+    title = "Group-level outlier rate",
     topology = "A2",
     scope = "group",
     intent = "ops_anomaly",
@@ -56,11 +56,11 @@ rule_grp_004_site_level_outlier_rate <- function(domain,
       }
 
       data.frame(
-        site_id = bad,
+        group_id = bad,
         event_rate = unname(event_rate[bad]),
         robust_z = unname(rz[bad]),
         threshold = as.numeric(k),
-        reason = "Site event rate is a robust-z outlier",
+        reason = "Group event rate is a robust-z outlier",
         stringsAsFactors = FALSE
       )
     }

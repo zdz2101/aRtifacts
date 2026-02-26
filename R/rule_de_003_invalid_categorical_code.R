@@ -11,8 +11,8 @@
 rule_de_003_invalid_categorical_code <- function(domain,
                                                  value_var,
                                                  allowed_levels,
-                                                 entity_key_var = "USUBJID",
-                                                 owner_team = "DM") {
+                                                 entity_key_var = "entity_id",
+                                                 owner_team = "Data Stewardship") {
   new_rule(
     id = "DE-003",
     title = "Invalid categorical code",
@@ -27,10 +27,10 @@ rule_de_003_invalid_categorical_code <- function(domain,
       }
 
       vals <- as.character(data[[value_var]])
-      present <- !.core50_any_na_or_blank(vals)
+      present <- !.topology_any_na_or_blank(vals)
       bad <- present & !(vals %in% allowed_levels)
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, value_var)),

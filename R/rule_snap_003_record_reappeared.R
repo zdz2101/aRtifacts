@@ -9,10 +9,10 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_003_record_reappeared <- function(domain = "ADSL",
-                                            keys = c("USUBJID"),
+rule_snap_003_record_reappeared <- function(domain = "PRIMARY",
+                                            keys = c("entity_id"),
                                             removed_keys_option = "removed_keys_history",
-                                            owner_team = "Clinical Ops") {
+                                            owner_team = "Data Operations") {
   new_rule(
     id = "SNAP-003",
     title = "Record reappeared",
@@ -23,7 +23,7 @@ rule_snap_003_record_reappeared <- function(domain = "ADSL",
     owner_team = owner_team,
     identity_spec = new_identity_spec(keys = keys, method = "exact"),
     fn = function(previous, current, context, rule) {
-      key_frame <- .core50_key_frame(current, keys)
+      key_frame <- .topology_key_frame(current, keys)
       if (!nrow(key_frame)) {
         return(data.frame())
       }
@@ -35,7 +35,7 @@ rule_snap_003_record_reappeared <- function(domain = "ADSL",
 
       if (is.vector(ledger) && is.character(ledger)) {
         ledger_ids <- ledger
-      } else if (is.data.frame(ledger) && .core50_has_columns(ledger, keys)) {
+      } else if (is.data.frame(ledger) && .topology_has_columns(ledger, keys)) {
         ledger_ids <- .key_id(unique(ledger[, keys, drop = FALSE]), keys)
       } else {
         return(data.frame())

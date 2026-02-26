@@ -6,9 +6,9 @@
 \title{SNAP-005: Critical field modified post-lock}
 \usage{
 rule_snap_005_critical_field_modified_post_lock(
-  domain = "ADSL",
-  keys = c("USUBJID"),
-  critical_fields = c("TRT01A"),
+  domain = "PRIMARY",
+  keys = c("entity_id"),
+  critical_fields = c("status_flag"),
   numeric_tol = 0,
   owner_team = "Standards"
 )

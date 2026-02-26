@@ -5,8 +5,8 @@
 \title{SNAP-001: Unexpected key deletions}
 \usage{
 rule_snap_001_unexpected_key_deletions(
-  domain = "ADSL",
-  keys = c("USUBJID"),
+  domain = "PRIMARY",
+  keys = c("entity_id"),
   owner_team = "Standards"
 )
 }

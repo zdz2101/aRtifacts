@@ -10,32 +10,16 @@
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
-#' new_data <- rbind(
-#'   new_data,
-#'   data.frame(
-#'     STUDYID = "STUDY01",
-#'     USUBJID = "STUDY01-999",
-#'     PARAM = "Systolic Blood Pressure (mmHg)",
-#'     PARAMCD = "SYSBP",
-#'     AVAL = 121,
-#'     AVISIT = "BASELINE",
-#'     ADY = 1,
-#'     TRTP = "Drug A",
-#'     ABLFL = "Y",
-#'     BASE = 121,
-#'     CHG = 0,
-#'     stringsAsFactors = FALSE
-#'   )
-#' )
+#' new_data <- example_primary()
+#' new_data <- rbind(new_data, transform(new_data[1, , drop = FALSE], entity_id = "E999", record_id = 999))
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' diff_keys(old_dom, new_dom)
 diff_keys <- function(old_dom, new_dom) {
@@ -83,32 +67,16 @@ diff_keys <- function(old_dom, new_dom) {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
-#' new_data <- rbind(
-#'   new_data,
-#'   data.frame(
-#'     STUDYID = "STUDY01",
-#'     USUBJID = "STUDY01-999",
-#'     PARAM = "Systolic Blood Pressure (mmHg)",
-#'     PARAMCD = "SYSBP",
-#'     AVAL = 121,
-#'     AVISIT = "BASELINE",
-#'     ADY = 1,
-#'     TRTP = "Drug A",
-#'     ABLFL = "Y",
-#'     BASE = 121,
-#'     CHG = 0,
-#'     stringsAsFactors = FALSE
-#'   )
-#' )
+#' new_data <- example_primary()
+#' new_data <- rbind(new_data, transform(new_data[1, , drop = FALSE], entity_id = "E999", record_id = 999))
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' churn <- compare_key_churn(old_dom, new_dom)
 #' churn$churn_rate > 0.10
@@ -160,15 +128,15 @@ compare_key_churn <- function(old_dom, new_dom) {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()[1:4, , drop = FALSE]
+#' new_data <- example_primary()[1:4, , drop = FALSE]
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' vol <- compare_record_volume(old_dom, new_dom)
 #' vol$relative_change < -0.20
@@ -213,7 +181,7 @@ compare_record_volume <- function(old_dom, new_dom) {
 #' @param old_dom Previous `DomainSnapshot`.
 #' @param new_dom Current `DomainSnapshot`.
 #' @param var Single variable name to compare.
-#' @param by Grouping variable name. Default `"SITEID"`.
+#' @param by Grouping variable name. Default `"group_id"`.
 #'
 #' @return A tidy `data.frame` with one row per group and deterministic
 #'   columns: `domain`, `var`, `by`, `group`, `n_old`, `n_new`,
@@ -226,18 +194,18 @@ compare_record_volume <- function(old_dom, new_dom) {
 #' @examples
 #' old_df <- data.frame(
 #'   ID = 1:6,
-#'   SITEID = c("A", "A", "A", "B", "B", "B"),
-#'   AVAL = c(10, 11, 12, 20, 21, 22),
+#'   group_id = c("A", "A", "A", "B", "B", "B"),
+#'   value = c(10, 11, 12, 20, 21, 22),
 #'   stringsAsFactors = FALSE
 #' )
 #' new_df <- old_df
-#' new_df$AVAL[new_df$SITEID == "A"] <- new_df$AVAL[new_df$SITEID == "A"] + 5
+#' new_df$value[new_df$group_id == "A"] <- new_df$value[new_df$group_id == "A"] + 5
 #'
-#' old_dom <- new_domain_snapshot("ADVS", old_df, key_vars = "ID")
-#' new_dom <- new_domain_snapshot("ADVS", new_df, key_vars = "ID")
+#' old_dom <- new_domain_snapshot("orders", old_df, key_vars = "ID")
+#' new_dom <- new_domain_snapshot("orders", new_df, key_vars = "ID")
 #'
-#' compare_distribution_shift(old_dom, new_dom, var = "AVAL", by = "SITEID")
-compare_distribution_shift <- function(old_dom, new_dom, var, by = "SITEID") {
+#' compare_distribution_shift(old_dom, new_dom, var = "value", by = "group_id")
+compare_distribution_shift <- function(old_dom, new_dom, var, by = "group_id") {
   .assert_domain(old_dom, "old_dom")
   .assert_domain(new_dom, "new_dom")
 
@@ -374,16 +342,16 @@ compare_distribution_shift <- function(old_dom, new_dom, var, by = "SITEID") {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
-#' new_data$USUBJID <- as.factor(new_data$USUBJID)
+#' new_data <- example_primary()
+#' new_data$entity_id <- as.factor(new_data$entity_id)
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' diff_key_types(old_dom, new_dom)
 diff_key_types <- function(old_dom, new_dom) {
@@ -440,17 +408,17 @@ diff_key_types <- function(old_dom, new_dom) {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
+#' new_data <- example_primary()
 #' new_data$NEWCOL <- "X"
-#' new_data$CHG <- NULL
+#' new_data$delta <- NULL
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' diff_columns(old_dom, new_dom)
 diff_columns <- function(old_dom, new_dom) {
@@ -500,16 +468,16 @@ diff_columns <- function(old_dom, new_dom) {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
-#' new_data$AVAL <- as.character(new_data$AVAL)
+#' new_data <- example_primary()
+#' new_data$value <- as.character(new_data$value)
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
 #' diff_column_types(old_dom, new_dom)
 diff_column_types <- function(old_dom, new_dom) {
@@ -554,19 +522,19 @@ diff_column_types <- function(old_dom, new_dom) {
 #'
 #' @examples
 #' old_dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' new_data <- example_advs()
-#' new_data$AVAL[new_data$USUBJID == "STUDY01-002" & new_data$AVISIT == "WEEK 4"] <- 141
+#' new_data <- example_primary()
+#' new_data$value[new_data$entity_id == "E001" & new_data$record_id == 1] <- 141
 #' new_dom <- new_domain_snapshot(
-#'   name = "ADVS",
+#'   name = "orders",
 #'   data = new_data,
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' diff_values(old_dom, new_dom, vars = c("AVAL", "CHG"))
-diff_values <- function(old_dom, new_dom, vars = "AVAL") {
+#' diff_values(old_dom, new_dom, vars = "value")
+diff_values <- function(old_dom, new_dom, vars = "value") {
   .assert_domain(old_dom, "old_dom")
   .assert_domain(new_dom, "new_dom")
 
@@ -626,12 +594,12 @@ diff_values <- function(old_dom, new_dom, vars = "AVAL") {
 #'
 #' @examples
 #' dom <- new_domain_snapshot(
-#'   name = "ADVS",
-#'   data = example_advs(),
-#'   key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+#'   name = "orders",
+#'   data = example_primary(),
+#'   key_vars = c("entity_id", "record_id")
 #' )
-#' old_art <- new_artifact_snapshot(domains = list(ADVS = dom), build_id = "run-001")
-#' new_art <- new_artifact_snapshot(domains = list(ADVS = dom), build_id = "run-002")
+#' old_art <- new_artifact_snapshot(domains = list(orders = dom), build_id = "run-001")
+#' new_art <- new_artifact_snapshot(domains = list(orders = dom), build_id = "run-002")
 #' diff_meta_artifact(old_art, new_art)
 diff_meta_artifact <- function(old_art, new_art) {
   .assert_artifact(old_art, "old_art")
@@ -659,21 +627,21 @@ diff_meta_artifact <- function(old_art, new_art) {
 #' @param old_flags Previous run flag table.
 #' @param new_flags Current run flag table.
 #' @param by Character vector of key columns used to identify a finding across
-#'   runs. Defaults to `c("USUBJID", "DOMAIN", "RULE_ID")`.
+#'   runs. Defaults to `c("entity_id", "DOMAIN", "RULE_ID")`.
 #'
 #' @return A deterministic `data.frame` with columns `by` plus `status`.
 #' @export
 #'
 #' @examples
 #' old_flags <- data.frame(
-#'   USUBJID = c("01", "02"),
-#'   DOMAIN = c("ADVS", "ADVS"),
+#'   entity_id = c("01", "02"),
+#'   DOMAIN = c("orders", "orders"),
 #'   RULE_ID = c("TMP-900", "TMP-900"),
 #'   stringsAsFactors = FALSE
 #' )
 #' new_flags <- data.frame(
-#'   USUBJID = c("02", "03"),
-#'   DOMAIN = c("ADVS", "ADVS"),
+#'   entity_id = c("02", "03"),
+#'   DOMAIN = c("orders", "orders"),
 #'   RULE_ID = c("TMP-900", "TMP-900"),
 #'   stringsAsFactors = FALSE
 #' )
@@ -681,7 +649,7 @@ diff_meta_artifact <- function(old_art, new_art) {
 #' compare_flag_states(old_flags, new_flags)
 compare_flag_states <- function(old_flags,
                                 new_flags,
-                                by = c("USUBJID", "DOMAIN", "RULE_ID")) {
+                                by = c("entity_id", "DOMAIN", "RULE_ID")) {
   if (!is.data.frame(old_flags)) {
     stop("`old_flags` must be a data.frame.", call. = FALSE)
   }

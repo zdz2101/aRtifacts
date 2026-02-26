@@ -8,8 +8,8 @@
 #'
 #' @return A `CoreRule` object.
 #' @export
-rule_snap_002_record_changed_unexpectedly <- function(domain = "ADSL",
-                                                      keys = c("USUBJID"),
+rule_snap_002_record_changed_unexpectedly <- function(domain = "PRIMARY",
+                                                      keys = c("entity_id"),
                                                       monitored_fields = character(),
                                                       numeric_tol = 0,
                                                       owner_team = "Standards") {
@@ -49,7 +49,7 @@ rule_snap_002_record_changed_unexpectedly <- function(domain = "ADSL",
         fld <- fields[[i]]
         prev_col <- aligned[[paste0(fld, "_prev")]]
         cur_col <- aligned[[paste0(fld, "_cur")]]
-        changed_mat[, i] <- .core50_changed_mask(prev_col, cur_col, numeric_tol = numeric_tol)
+        changed_mat[, i] <- .topology_changed_mask(prev_col, cur_col, numeric_tol = numeric_tol)
       }
 
       bad <- apply(changed_mat, 1, any)

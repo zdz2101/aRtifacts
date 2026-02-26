@@ -9,8 +9,8 @@
 #' @export
 rule_id_001_missing_key_fields <- function(domain,
                                            key_vars,
-                                           entity_key_var = "USUBJID",
-                                           owner_team = "DM") {
+                                           entity_key_var = "entity_id",
+                                           owner_team = "Data Stewardship") {
   new_rule(
     id = "ID-001",
     title = "Missing key fields",
@@ -25,9 +25,9 @@ rule_id_001_missing_key_fields <- function(domain,
         return(data.frame())
       }
 
-      miss_mat <- lapply(existing_keys, function(v) .core50_any_na_or_blank(data[[v]]))
+      miss_mat <- lapply(existing_keys, function(v) .topology_any_na_or_blank(data[[v]]))
       bad <- Reduce(`|`, miss_mat)
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, existing_keys)),

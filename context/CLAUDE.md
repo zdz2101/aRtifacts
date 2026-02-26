@@ -1,9 +1,15 @@
 # CLAUDE
 
 ## Purpose
-This guide describes the current Core50 architecture for the `aRtifacts` package and the implementation conventions expected for rule development, testing, and documentation.
+This guide describes the current Topology architecture for the `aRtifacts` package and the implementation conventions expected for rule development, testing, and documentation.
 
-## Current Architecture (Core50)
+## Package Boundary
+
+- `aRtifacts` is the neutral topology engine.
+- `aRtifacts.clinical` contains trial-specific rules, checkers, sample data, and SDTM/ADaM context materials.
+- Keep core implementation and docs domain-neutral.
+
+## Current Architecture (Topology)
 
 ### Core S7 classes
 - `DomainSnapshot`
@@ -21,17 +27,18 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 - `get_rule()`
 - `list_rules()`
 - `clear_rule_registry()`
-- `pack_core_50()`
+- `pack_topology_all()`
+- `rule_catalog_core()`
 
 ### Topology packs
-- `pack_core_50_schema()` (A0)
-- `pack_core_50_a1()`
-- `pack_core_50_a2()`
-- `pack_core_50_a3()`
-- `pack_core_50_a4()`
-- `pack_core_50_a5()`
-- `pack_core_50_a6()`
-- `pack_core_50_a7()`
+- `pack_topology_a0()` (A0)
+- `pack_topology_a1()`
+- `pack_topology_a2()`
+- `pack_topology_a3()`
+- `pack_topology_a4()`
+- `pack_topology_a5()`
+- `pack_topology_a6()`
+- `pack_topology_a7()`
 
 `run_rules()` dispatches by topology (`A0` to `A7`) using fields on each `CoreRule`.
 
@@ -39,28 +46,28 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 
 ### Rule files
 - One rule constructor per file.
-- Naming pattern: `R/core50_rule_<axis>_<id>_<slug>.R`
-- Constructor naming pattern: `rule_<axis>_<id>_<slug>()`
+- Naming pattern: `R/rule_<family>_<id>_<slug>.R`
+- Constructor naming pattern: `rule_<family>_<id>_<slug>()`
 
 Examples:
-- `R/core50_rule_schema_001_required_columns_present.R`
-- `R/core50_rule_a3_grp_001_subject_visit_monotonicity.R`
+- `R/rule_sch_001_new_columns_added.R`
+- `R/rule_rel_001_missing_reference_records.R`
 
 ### Pack files
-- One file per topology pack: `R/core50_rules_<topology>.R`
+- One file per topology pack: `R/topology_rules_<topology>.R`
 - Each pack file exports:
-  - `pack_core_50_<topology>()`
-  - `register_core_50_<topology>()`
+  - `pack_topology_<topology>()`
+  - `register_topology_<topology>()`
 
 ## Rule Design Contract
 
 Each rule constructor must return a `CoreRule` via `new_rule()` with:
-- stable `rule_id` and human-readable metadata,
+- stable `id` and human-readable metadata,
 - declared `topology`,
 - appropriate identity/match/delta specs when needed,
-- an `evaluate(context)` function that returns a standardized data frame.
+- an `fn` evaluator matching the topology payload contract used by `run_rules()`.
 
-The `evaluate()` implementation should be deterministic, side-effect free, and scoped to the declared topology.
+The `fn` implementation should be deterministic, side-effect free, and scoped to the declared topology.
 
 ## Development Workflow
 
@@ -82,16 +89,16 @@ Use minimal fixtures and explicit expectations. Avoid coupling tests to transien
 
 ## Documentation Expectations
 
-User-facing docs should only reference Core50 APIs (`new_rule()`, `run_rules()`, `pack_core_50*()`, registry helpers).
+User-facing docs should only reference Topology APIs (`new_rule()`, `run_rules()`, `pack_topology_all()`, `pack_topology_a*()`, `register_topology_a*()`, registry helpers).
 
-Internal docs should avoid references to removed legacy APIs and modules.
+Internal docs should avoid references to removed legacy APIs/modules and keep trial-specific guidance in `aRtifacts.clinical`.
 
 ## Migration Status
 
-The package is in Core50-only mode:
+The package is in Topology-only mode:
 - legacy per-rule files and wrappers were removed,
 - legacy exports were removed,
-- examples were migrated to Core50 execution patterns.
+- examples were migrated to Topology execution patterns.
 
 ## Notes for Contributors
 

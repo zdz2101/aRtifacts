@@ -9,8 +9,8 @@
 #' @export
 rule_de_004_negative_duration <- function(domain,
                                           duration_var,
-                                          entity_key_var = "USUBJID",
-                                          owner_team = "Medical Monitor") {
+                                          entity_key_var = "entity_id",
+                                          owner_team = "Data Quality") {
   new_rule(
     id = "DE-004",
     title = "Negative duration",
@@ -27,7 +27,7 @@ rule_de_004_negative_duration <- function(domain,
       vals <- suppressWarnings(as.numeric(data[[duration_var]]))
       bad <- !is.na(vals) & vals < 0
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, duration_var)),

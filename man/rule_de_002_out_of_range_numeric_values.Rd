@@ -9,8 +9,8 @@ rule_de_002_out_of_range_numeric_values(
   value_var,
   lower,
   upper,
-  entity_key_var = "USUBJID",
-  owner_team = "Medical Monitor"
+  entity_key_var = "entity_id",
+  owner_team = "Data Quality"
 )
 }
 \arguments{

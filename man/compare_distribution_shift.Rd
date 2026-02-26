@@ -4,7 +4,7 @@
 \alias{compare_distribution_shift}
 \title{Compare distribution shift between two domain snapshots}
 \usage{
-compare_distribution_shift(old_dom, new_dom, var, by = "SITEID")
+compare_distribution_shift(old_dom, new_dom, var, by = "group_id")
 }
 \arguments{
 \item{old_dom}{Previous \code{DomainSnapshot}.}
@@ -13,7 +13,7 @@ compare_distribution_shift(old_dom, new_dom, var, by = "SITEID")
 
 \item{var}{Single variable name to compare.}
 
-\item{by}{Grouping variable name. Default \code{"SITEID"}.}
+\item{by}{Grouping variable name. Default \code{"group_id"}.}
 }
 \value{
 A tidy \code{data.frame} with one row per group and deterministic
@@ -31,15 +31,15 @@ Kolmogorov-Smirnov statistics from \code{stats}.
 \examples{
 old_df <- data.frame(
   ID = 1:6,
-  SITEID = c("A", "A", "A", "B", "B", "B"),
-  AVAL = c(10, 11, 12, 20, 21, 22),
+  group_id = c("A", "A", "A", "B", "B", "B"),
+  value = c(10, 11, 12, 20, 21, 22),
   stringsAsFactors = FALSE
 )
 new_df <- old_df
-new_df$AVAL[new_df$SITEID == "A"] <- new_df$AVAL[new_df$SITEID == "A"] + 5
+new_df$value[new_df$group_id == "A"] <- new_df$value[new_df$group_id == "A"] + 5
 
-old_dom <- new_domain_snapshot("ADVS", old_df, key_vars = "ID")
-new_dom <- new_domain_snapshot("ADVS", new_df, key_vars = "ID")
+old_dom <- new_domain_snapshot("orders", old_df, key_vars = "ID")
+new_dom <- new_domain_snapshot("orders", new_df, key_vars = "ID")
 
-compare_distribution_shift(old_dom, new_dom, var = "AVAL", by = "SITEID")
+compare_distribution_shift(old_dom, new_dom, var = "value", by = "group_id")
 }

@@ -1,9 +1,15 @@
 # AGENTS
 
 ## Purpose
-This guide describes the current Core50 architecture for the `aRtifacts` package and the implementation conventions expected for rule development, testing, and documentation.
+This guide describes the current Topology architecture for the `aRtifacts` package and the implementation conventions expected for rule development, testing, and documentation.
 
-## Current Architecture (Core50)
+## Package Boundary
+
+- `aRtifacts` is the neutral, topology-driven validation engine.
+- `aRtifacts.clinical` is the companion package for trial-specific logic, checkers, examples, and implementation-guide context (SDTM/ADaM).
+- Do not add clinical trial semantics to `aRtifacts` core docs or APIs.
+
+## Current Architecture (Topology)
 
 ### Core S7 classes
 - `DomainSnapshot`
@@ -22,17 +28,18 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 - `get_rule()`
 - `list_rules()`
 - `clear_rule_registry()`
-- `pack_core_50()`
+- `pack_topology_all()`
+- `rule_catalog_core()`
 
 ### Topology packs
-- `pack_core_50_schema()` (A0)
-- `pack_core_50_a1()`
-- `pack_core_50_a2()`
-- `pack_core_50_a3()`
-- `pack_core_50_a4()`
-- `pack_core_50_a5()`
-- `pack_core_50_a6()`
-- `pack_core_50_a7()`
+- `pack_topology_a0()` (A0)
+- `pack_topology_a1()`
+- `pack_topology_a2()`
+- `pack_topology_a3()`
+- `pack_topology_a4()`
+- `pack_topology_a5()`
+- `pack_topology_a6()`
+- `pack_topology_a7()`
 
 `run_rules()` dispatches by topology (`A0` to `A7`) using fields on each `CoreRule`.
 
@@ -45,13 +52,13 @@ This guide describes the current Core50 architecture for the `aRtifacts` package
 
 Examples:
 - `R/rule_sch_001_new_columns_added.R`
-- `R/rule_xdom_006_visit_mismatch_across_domains.R`
+- `R/rule_rel_003_group_key_mismatch_across_domains.R`
 
 ### Pack files
-- One file per topology pack: `R/core50_rules_<topology>.R`
+- One file per topology pack: `R/topology_rules_<topology>.R`
 - Each pack file exports:
-  - `pack_core_50_<topology>()`
-  - `register_core_50_<topology>()`
+  - `pack_topology_<topology>()`
+  - `register_topology_<topology>()`
 
 ## Rule Design Contract
 
@@ -86,18 +93,18 @@ Use minimal fixtures and explicit expectations. Avoid coupling tests to transien
 
 ## Documentation Expectations
 
-User-facing docs should reference current exported APIs (`new_rule()`, `run_rules()`, `compare_flag_states()`, `pack_core_50*()`, registry helpers).
+User-facing docs should reference current exported APIs (`new_rule()`, `run_rules()`, `compare_flag_states()`, `pack_topology_all()`, `pack_topology_a*()`, `register_topology_a*()`, registry helpers).
 
 For longitudinal findings, document and use `compare_flag_states()` instead of non-exported or removed legacy helpers.
 
-Internal docs should avoid references to removed legacy APIs and modules.
+Internal docs should avoid references to removed legacy APIs/modules and should keep trial-specific references in `aRtifacts.clinical`.
 
 ## Migration Status
 
-The package is in Core50-only mode:
+The package is in Topology-only mode:
 - legacy per-rule files and wrappers were removed,
 - legacy exports were removed,
-- examples were migrated to Core50 execution patterns.
+- examples were migrated to Topology execution patterns.
 
 ## Notes for Contributors
 

@@ -8,9 +8,9 @@
 #' @return A `CoreRule` object.
 #' @export
 rule_grp_002_subject_excessive_event_frequency <- function(domain,
-                                                           subject_var = "USUBJID",
+                                                           subject_var = "entity_id",
                                                            max_events = 20,
-                                                           owner_team = "Clinical Ops") {
+                                                           owner_team = "Data Operations") {
   new_rule(
     id = "GRP-002",
     title = "Subject with excessive event frequency",

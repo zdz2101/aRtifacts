@@ -1,23 +1,51 @@
-#' Core observability rule catalog dataset
+#' Topology starter rule catalog
 #'
-#' Internal dataset backing [rule_catalog_core_data].
+#' Returns metadata for all bundled topology starter rules in core.
 #'
-#' @format A data frame with 50 rows and 4 columns:
-#' \describe{
-#'   \item{rule_id}{Rule identifier (`R001` to `R050`).}
-#'   \item{rule_name}{Human-readable rule label.}
-#'   \item{scope}{Rule scope (`Record`, `Group`, `Snapshot`).}
-#'   \item{category}{High-level issue category.}
-#' }
-#' @keywords internal
-"rule_catalog_core_data"
-
-#' Core observability rule catalog
-#'
-#' Returns the packaged Core catalog as a data frame.
-#'
-#' @return A data frame with columns `rule_id`, `rule_name`, `scope`, `category`.
+#' @return A data frame with columns `rule_id`, `rule_name`, `topology`,
+#'   `scope`, `intent`, and `category`.
 #' @export
 rule_catalog_core <- function() {
-	rule_catalog_core_data
+  rules <- c(
+    pack_topology_a0(domain = "PRIMARY"),
+    pack_topology_a1(domain = "PRIMARY", key_vars = c("entity_id")),
+    pack_topology_a2(domain = "PRIMARY", key_vars = c("entity_id")),
+    pack_topology_a3(),
+    pack_topology_a4(),
+    pack_topology_a5(domain_primary = "PRIMARY", keys = c("entity_id")),
+    pack_topology_a6(domain_primary = "PRIMARY", keys = c("entity_id")),
+    pack_topology_a7()
+  )
+
+  if (!length(rules)) {
+    return(data.frame(
+      rule_id = character(),
+      rule_name = character(),
+      topology = character(),
+      scope = character(),
+      intent = character(),
+      category = character(),
+      stringsAsFactors = FALSE
+    ))
+  }
+
+  to_category <- function(intent) {
+    gsub("_", "-", tools::toTitleCase(intent))
+  }
+
+  out <- lapply(rules, function(rule) {
+    data.frame(
+      rule_id = rule@id,
+      rule_name = rule@title,
+      topology = rule@topology,
+      scope = tools::toTitleCase(rule@scope),
+      intent = rule@intent,
+      category = to_category(rule@intent),
+      stringsAsFactors = FALSE
+    )
+  })
+
+  out <- do.call(rbind, out)
+  rownames(out) <- NULL
+  out[order(out$topology, out$rule_id), , drop = FALSE]
 }

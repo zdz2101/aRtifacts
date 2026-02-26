@@ -35,9 +35,9 @@ named \code{DomainSnapshot} objects.
 }
 \examples{
 dom <- new_domain_snapshot(
-  name = "ADVS",
-  data = example_advs(),
-  key_vars = c("USUBJID", "PARAMCD", "AVISIT")
+  name = "orders",
+  data = example_primary(),
+  key_vars = c("entity_id", "record_id")
 )
-art <- new_artifact_snapshot(domains = list(ADVS = dom))
+art <- new_artifact_snapshot(domains = list(orders = dom))
 }

@@ -13,8 +13,8 @@ rule_de_002_out_of_range_numeric_values <- function(domain,
                                                     value_var,
                                                     lower,
                                                     upper,
-                                                    entity_key_var = "USUBJID",
-                                                    owner_team = "Medical Monitor") {
+                                                    entity_key_var = "entity_id",
+                                                    owner_team = "Data Quality") {
   new_rule(
     id = "DE-002",
     title = "Out-of-range numeric values",
@@ -31,7 +31,7 @@ rule_de_002_out_of_range_numeric_values <- function(domain,
       vals <- suppressWarnings(as.numeric(data[[value_var]]))
       bad <- !is.na(vals) & (vals < lower | vals > upper)
 
-      .core50_row_output(
+      .topology_row_output(
         data = data,
         bad = bad,
         fields = unique(c(entity_key_var, value_var)),
