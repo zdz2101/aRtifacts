@@ -5,19 +5,57 @@
   domains[[name]]
 }
 
+.topology_normalize_key_vec <- function(x) {
+  out <- as.character(x)
+  out <- trimws(out)
+  out[!is.na(out) & !nzchar(out)] <- NA_character_
+  out
+}
+
+.topology_normalize_key_df <- function(df, cols) {
+  out <- as.data.frame(df[, cols, drop = FALSE], stringsAsFactors = FALSE)
+  for (col in cols) {
+    out[[col]] <- .topology_normalize_key_vec(out[[col]])
+  }
+  out
+}
+
 .topology_anti_join_rows <- function(x, y, by) {
   by <- intersect(by, intersect(names(x), names(y)))
   if (!length(by)) {
     return(data.frame())
   }
 
-  x_key <- .key_id(x, by)
-  y_key <- .key_id(y, by)
-  x[!(x_key %in% y_key), , drop = FALSE]
+  if (!nrow(x)) {
+    return(x[0, , drop = FALSE])
+  }
+
+  if (!nrow(y)) {
+    return(x)
+  }
+
+  x_key <- .topology_normalize_key_df(x, by)
+  y_key <- .topology_normalize_key_df(y, by)
+
+  x_complete <- stats::complete.cases(x_key)
+  y_complete <- stats::complete.cases(y_key)
+
+  x_ids <- if (any(x_complete)) .key_id(x_key[x_complete, , drop = FALSE], by) else character()
+  y_ids <- if (any(y_complete)) .key_id(y_key[y_complete, , drop = FALSE], by) else character()
+
+  matched <- rep(FALSE, nrow(x))
+  if (length(y_ids) && any(x_complete)) {
+    matched[x_complete] <- x_ids %in% y_ids
+  }
+
+  x[!matched, , drop = FALSE]
 }
 
 .topology_parse_date <- function(x) {
-  suppressWarnings(as.Date(as.character(x)))
+  vals <- as.character(x)
+  vals <- trimws(vals)
+  vals[!is.na(vals) & !nzchar(vals)] <- NA_character_
+  suppressWarnings(as.Date(vals, format = "%Y-%m-%d"))
 }
 
 .topology_within_any_window <- function(index_date, start_dates, end_dates, window_days = 0) {
@@ -44,18 +82,36 @@
 }
 
 .topology_count_by <- function(df, by) {
-  if (is.null(df) || !all(by %in% names(df))) {
+  if (is.null(df) || !length(by) || !all(by %in% names(df))) {
     return(data.frame())
   }
 
-  key <- do.call(paste, c(df[by], sep = "||"))
-  n_tab <- table(key)
-  key_names <- names(n_tab)
-  split_vals <- strsplit(key_names, "\\|\\|", fixed = FALSE)
+  if (!nrow(df)) {
+    out <- as.data.frame(
+      setNames(replicate(length(by), character(0), simplify = FALSE), by),
+      stringsAsFactors = FALSE
+    )
+    out$n <- integer(0)
+    return(out)
+  }
 
-  out <- as.data.frame(do.call(rbind, split_vals), stringsAsFactors = FALSE)
-  names(out) <- by
-  out$n <- as.integer(n_tab)
+  key_df <- .topology_normalize_key_df(df, by)
+  out <- unique(key_df)
+  out$n <- 0L
+
+  for (i in seq_len(nrow(out))) {
+    keep <- rep(TRUE, nrow(key_df))
+    for (col in by) {
+      val <- out[[col]][[i]]
+      if (is.na(val)) {
+        keep <- keep & is.na(key_df[[col]])
+      } else {
+        keep <- keep & !is.na(key_df[[col]]) & (key_df[[col]] == val)
+      }
+    }
+    out$n[[i]] <- as.integer(sum(keep))
+  }
+
   out
 }
 

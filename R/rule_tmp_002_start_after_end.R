@@ -27,8 +27,8 @@ rule_tmp_002_start_after_end <- function(domain,
         return(data.frame())
       }
 
-      start_date <- as.Date(data[[start_var]])
-      end_date <- as.Date(data[[end_var]])
+      start_date <- .topology_parse_date(data[[start_var]])
+      end_date <- .topology_parse_date(data[[end_var]])
       bad <- !is.na(start_date) & !is.na(end_date) & (start_date > end_date)
 
       .topology_row_output(

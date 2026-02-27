@@ -49,7 +49,14 @@ rule_rel_004_timestamp_outside_linked_window <- function(event_domain = "EVENTS"
       for (i in seq_len(nrow(events))) {
         rel <- rep(TRUE, nrow(window))
         for (k in link_keys) {
-          rel <- rel & (as.character(window[[k]]) == as.character(events[[k]][[i]]))
+          event_key <- .topology_normalize_key_vec(events[[k]][[i]])
+          if (is.na(event_key)) {
+            rel <- rep(FALSE, nrow(window))
+            break
+          }
+
+          window_key <- .topology_normalize_key_vec(window[[k]])
+          rel <- rel & !is.na(window_key) & (window_key == event_key)
         }
         if (!any(rel)) {
           next
