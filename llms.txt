@@ -17,7 +17,7 @@ Domain-specific logic lives in companion packages (for example,
 
 ``` r
 # Development install from source
-# devtools::install_local("zdz2101/aRtifacts")
+# devtools::install_github("zdz2101/aRtifacts")
 ```
 
 ## Quick Start
