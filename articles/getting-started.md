@@ -1,0 +1,165 @@
+# Getting Started — Topology Core
+
+`aRtifacts` is a topology-first validation engine for keyed tabular
+data.
+
+## Mental Model (ELI5)
+
+End-to-end pipeline:
+
+1.  `data.frame` -\> raw rows.
+2.  `DomainSnapshot` -\> one named, keyed table.
+3.  `ArtifactSnapshot` -\> one run/cut containing one or more domains.
+4.  `RuleContext` -\> what rules can see at runtime:
+    - `current` artifact (required)
+    - `previous` artifact (optional, for longitudinal checks)
+    - `options` (optional runtime knobs)
+5.  Rule list -\> checks to execute (prebuilt packs and/or custom
+    rules).
+6.  `run_rules(context, rules)` -\> findings `data.frame`.
+
+## 1. Create Two Cuts As Domain Snapshots
+
+``` r
+primary_v1 <- data.frame(
+  entity_id = c("E001", "E002", "E003"),
+  record_id = c(1, 2, 3),
+  value = c(10, 20, 30),
+  group_id = c("G1", "G1", "G2"),
+  stringsAsFactors = FALSE
+)
+
+primary_v2 <- primary_v1
+primary_v2$value[primary_v2$entity_id == "E002"] <- 99
+
+snap_v1 <- new_domain_snapshot("PRIMARY", primary_v1, key_vars = c("entity_id", "record_id"))
+snap_v2 <- new_domain_snapshot("PRIMARY", primary_v2, key_vars = c("entity_id", "record_id"))
+```
+
+## 2. Wrap Domains Into Artifacts
+
+``` r
+art_v1 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v1), build_id = "cut-001")
+art_v2 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v2), build_id = "cut-002")
+```
+
+## 3. Diff The Two Cuts
+
+``` r
+diff_values(snap_v1, snap_v2, vars = "value")
+#>   entity_id record_id   var old new
+#> 2      E002         2 value  20  99
+```
+
+## 4. Build Rule Context And Run One Custom Rule
+
+``` r
+ctx_current <- new_rule_context(current = art_v2)
+
+rule_high_value <- new_rule(
+  id = "TMP-900",
+  title = "High value",
+  topology = "A1",
+  scope = "record",
+  intent = "ops_anomaly",
+  domain = "PRIMARY",
+  owner_team = "Ops",
+  fn = function(data, context, rule) {
+    data[data$value > 50, c("entity_id", "record_id", "value"), drop = FALSE]
+  }
+)
+
+run_rules(ctx_current, list(rule_high_value))
+#>   entity_id record_id value RULE_ID RULE_TITLE TOPOLOGY  SCOPE      INTENT
+#> 2      E002         2    99 TMP-900 High value       A1 record ops_anomaly
+#>   SEVERITY OWNER_TEAM
+#> 2  warning        Ops
+```
+
+## 5. Run A Starter Pack
+
+``` r
+primary_bad_keys <- data.frame(
+  row_id = 1:3,
+  entity_id = c("E001", "", "E003"),
+  record_id = c(1, 2, NA),
+  stringsAsFactors = FALSE
+)
+
+art_single <- new_artifact_snapshot(
+  domains = list(
+    PRIMARY = new_domain_snapshot("PRIMARY", primary_bad_keys, key_vars = "row_id")
+  ),
+  build_id = "cut-003"
+)
+
+ctx_single <- new_rule_context(current = art_single)
+rules_a1 <- pack_topology_a1(
+  domain = "PRIMARY",
+  key_vars = c("entity_id", "record_id")
+)
+
+run_rules(ctx_single, rules_a1)
+#>   entity_id record_id row_id                  reason RULE_ID         RULE_TITLE
+#> 2                   2      2 Missing key field value  ID-001 Missing key fields
+#> 3      E003        NA      3 Missing key field value  ID-001 Missing key fields
+#>   TOPOLOGY  SCOPE         INTENT SEVERITY       OWNER_TEAM
+#> 2       A1 record core_integrity  warning Data Stewardship
+#> 3       A1 record core_integrity  warning Data Stewardship
+```
+
+## 6. Longitudinal Checks Need `previous` + `current`
+
+``` r
+primary_v3 <- primary_v2[primary_v2$entity_id != "E003", , drop = FALSE]
+snap_v3 <- new_domain_snapshot("PRIMARY", primary_v3, key_vars = c("entity_id", "record_id"))
+art_v3 <- new_artifact_snapshot(domains = list(PRIMARY = snap_v3), build_id = "cut-003")
+
+ctx_long <- new_rule_context(
+  current = art_v3,
+  previous = art_v2,
+  options = list(removed_keys_history = c("E999|1"))
+)
+
+rules_a5 <- pack_topology_a5(
+  domain_primary = "PRIMARY",
+  keys = c("entity_id", "record_id")
+)
+
+run_rules(ctx_long, rules_a5)
+#>   entity_id record_id                 reason  RULE_ID               RULE_TITLE
+#> 3      E003         3 Removed since last cut SNAP-001 Unexpected key deletions
+#>   TOPOLOGY  SCOPE          INTENT SEVERITY       OWNER_TEAM
+#> 3       A5 record programming_etl  warning Data Stewardship
+```
+
+## 7. Compare Findings Between Runs
+
+``` r
+flags_v1 <- run_rules(new_rule_context(current = art_v1), list(rule_high_value))
+flags_v2 <- run_rules(new_rule_context(current = art_v2), list(rule_high_value))
+
+compare_flag_states(
+  old_flags = flags_v1,
+  new_flags = flags_v2,
+  by = c("entity_id", "RULE_ID")
+)
+#>   entity_id RULE_ID     status
+#> 1      E002 TMP-900 introduced
+```
+
+If you are unsure which topology to use for a new rule, use the yes/no
+flow in vignette **Topologies A0-A7** (`topology-a0-a7`). The helper
+[`choose_topology()`](https://zdz2101.github.io/aRtifacts/reference/choose_topology.md)
+provides the same mapping in code.
+
+``` r
+# A0-A4 (single-cut): current artifact only
+ctx_single_cut <- new_rule_context(current = artifact_current)
+run_rules(ctx_single_cut, pack_topology_a3(...))
+
+# A5-A7 (longitudinal): both previous and current artifacts
+ctx_longitudinal <- new_rule_context(current = artifact_current, previous = artifact_previous)
+run_rules(ctx_longitudinal, pack_topology_a6(...))
+run_rules(ctx_longitudinal, pack_topology_a7(...))
+```

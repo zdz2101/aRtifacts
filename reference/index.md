@@ -1,0 +1,211 @@
+# Package index
+
+## Snapshot classes
+
+- [`new_domain_snapshot()`](https://zdz2101.github.io/aRtifacts/reference/new_domain_snapshot.md)
+  : Create a domain snapshot
+- [`new_artifact_snapshot()`](https://zdz2101.github.io/aRtifacts/reference/new_artifact_snapshot.md)
+  : Create an artifact snapshot
+- [`DomainSnapshot()`](https://zdz2101.github.io/aRtifacts/reference/DomainSnapshot.md)
+  : Domain snapshot S7 class
+- [`ArtifactSnapshot()`](https://zdz2101.github.io/aRtifacts/reference/ArtifactSnapshot.md)
+  : Artifact snapshot S7 class
+
+## Diff engine
+
+- [`diff_keys()`](https://zdz2101.github.io/aRtifacts/reference/diff_keys.md)
+  : Diff key rows between two domain snapshots
+- [`diff_key_types()`](https://zdz2101.github.io/aRtifacts/reference/diff_key_types.md)
+  : Diff key variable types between two domain snapshots
+- [`diff_columns()`](https://zdz2101.github.io/aRtifacts/reference/diff_columns.md)
+  : Diff column presence between two domain snapshots
+- [`diff_column_types()`](https://zdz2101.github.io/aRtifacts/reference/diff_column_types.md)
+  : Diff shared column types between two domain snapshots
+- [`diff_values()`](https://zdz2101.github.io/aRtifacts/reference/diff_values.md)
+  : Diff values between two domain snapshots
+- [`diff_meta_artifact()`](https://zdz2101.github.io/aRtifacts/reference/diff_meta_artifact.md)
+  : Diff artifact metadata
+- [`compare_flag_states()`](https://zdz2101.github.io/aRtifacts/reference/compare_flag_states.md)
+  : Compare flag states between two runs
+- [`compare_key_churn()`](https://zdz2101.github.io/aRtifacts/reference/compare_key_churn.md)
+  : Compare key churn between two domain snapshots
+- [`compare_record_volume()`](https://zdz2101.github.io/aRtifacts/reference/compare_record_volume.md)
+  : Compare record volume between two domain snapshots
+- [`compare_distribution_shift()`](https://zdz2101.github.io/aRtifacts/reference/compare_distribution_shift.md)
+  : Compare distribution shift between two domain snapshots
+
+## Topology rule engine
+
+- [`CoreRule()`](https://zdz2101.github.io/aRtifacts/reference/CoreRule.md)
+  : Core rule S7 class
+- [`RuleContext()`](https://zdz2101.github.io/aRtifacts/reference/RuleContext.md)
+  : Rule context S7 class
+- [`choose_topology()`](https://zdz2101.github.io/aRtifacts/reference/choose_topology.md)
+  : Choose topology from rule shape
+- [`new_rule()`](https://zdz2101.github.io/aRtifacts/reference/new_rule.md)
+  : Create a topology-aware rule
+- [`new_rule_context()`](https://zdz2101.github.io/aRtifacts/reference/new_rule_context.md)
+  : Create a rule context
+- [`run_rules()`](https://zdz2101.github.io/aRtifacts/reference/run_rules.md)
+  : Run topology-dispatched rules
+- [`register_rule()`](https://zdz2101.github.io/aRtifacts/reference/register_rule.md)
+  : Register a core rule
+- [`get_rule()`](https://zdz2101.github.io/aRtifacts/reference/get_rule.md)
+  : Get a registered core rule
+- [`list_rules()`](https://zdz2101.github.io/aRtifacts/reference/list_rules.md)
+  : List registered core rules
+- [`clear_rule_registry()`](https://zdz2101.github.io/aRtifacts/reference/clear_rule_registry.md)
+  : Clear registered core rules
+- [`pack_topology_all()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_all.md)
+  : Build topology rule pack from registry
+
+## Spec classes
+
+- [`IdentitySpec()`](https://zdz2101.github.io/aRtifacts/reference/IdentitySpec.md)
+  : Identity spec S7 class
+- [`MatchSpec()`](https://zdz2101.github.io/aRtifacts/reference/MatchSpec.md)
+  : Match spec S7 class
+- [`DeltaSpec()`](https://zdz2101.github.io/aRtifacts/reference/DeltaSpec.md)
+  : Delta spec S7 class
+- [`new_identity_spec()`](https://zdz2101.github.io/aRtifacts/reference/new_identity_spec.md)
+  : Create an identity spec
+- [`new_match_spec()`](https://zdz2101.github.io/aRtifacts/reference/new_match_spec.md)
+  : Create a match spec
+- [`new_delta_spec()`](https://zdz2101.github.io/aRtifacts/reference/new_delta_spec.md)
+  : Create a delta spec
+
+## Topology starter packs
+
+- [`pack_topology_a0()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a0.md)
+  : Build A0 schema pack
+- [`pack_topology_a1()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a1.md)
+  : Build A1 intra-domain row pack
+- [`pack_topology_a2()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a2.md)
+  : Build A2 intra-domain group pack
+- [`pack_topology_a3()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a3.md)
+  : Build A3 cross-domain relational starter pack
+- [`pack_topology_a4()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a4.md)
+  : Build A4 cross-domain aggregate starter pack
+- [`pack_topology_a5()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a5.md)
+  : Build A5 cross-snapshot row pack
+- [`pack_topology_a6()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a6.md)
+  : Build A6 cross-snapshot aggregate pack
+- [`pack_topology_a7()`](https://zdz2101.github.io/aRtifacts/reference/pack_topology_a7.md)
+  : Build A7 cross-domain + cross-snapshot starter pack
+- [`register_topology_a0()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a0.md)
+  : Register A0 schema rules
+- [`register_topology_a1()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a1.md)
+  : Register A1 intra-domain row rules
+- [`register_topology_a2()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a2.md)
+  : Register A2 intra-domain group rules
+- [`register_topology_a3()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a3.md)
+  : Register A3 cross-domain relational starter rules
+- [`register_topology_a4()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a4.md)
+  : Register A4 cross-domain aggregate starter rules
+- [`register_topology_a5()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a5.md)
+  : Register A5 cross-snapshot row rules
+- [`register_topology_a6()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a6.md)
+  : Register A6 cross-snapshot aggregate rules
+- [`register_topology_a7()`](https://zdz2101.github.io/aRtifacts/reference/register_topology_a7.md)
+  : Register A7 cross-domain + cross-snapshot starter rules
+
+## Starter rule constructors
+
+- [`rule_agg_001_distinct_entity_count_mismatch()`](https://zdz2101.github.io/aRtifacts/reference/rule_agg_001_distinct_entity_count_mismatch.md)
+  : AGG-001: Distinct entity count mismatch
+- [`rule_agg_002_group_count_mismatch()`](https://zdz2101.github.io/aRtifacts/reference/rule_agg_002_group_count_mismatch.md)
+  : AGG-002: Group count mismatch across domains
+- [`rule_agg_003_domain_completeness_imbalance()`](https://zdz2101.github.io/aRtifacts/reference/rule_agg_003_domain_completeness_imbalance.md)
+  : AGG-003: Domain completeness imbalance
+- [`rule_agg_004_event_support_rate_discrepancy()`](https://zdz2101.github.io/aRtifacts/reference/rule_agg_004_event_support_rate_discrepancy.md)
+  : AGG-004: Event-support rate discrepancy
+- [`rule_de_001_required_field_missing_conditionally()`](https://zdz2101.github.io/aRtifacts/reference/rule_de_001_required_field_missing_conditionally.md)
+  : DE-001: Required field missing conditionally
+- [`rule_de_002_out_of_range_numeric_values()`](https://zdz2101.github.io/aRtifacts/reference/rule_de_002_out_of_range_numeric_values.md)
+  : DE-002: Out-of-range numeric values
+- [`rule_de_003_invalid_categorical_code()`](https://zdz2101.github.io/aRtifacts/reference/rule_de_003_invalid_categorical_code.md)
+  : DE-003: Invalid categorical code
+- [`rule_de_004_negative_duration()`](https://zdz2101.github.io/aRtifacts/reference/rule_de_004_negative_duration.md)
+  : DE-004: Negative duration
+- [`rule_de_005_impossible_logical_combination()`](https://zdz2101.github.io/aRtifacts/reference/rule_de_005_impossible_logical_combination.md)
+  : DE-005: Impossible logical combination
+- [`rule_grp_001_excessive_missingness_rate()`](https://zdz2101.github.io/aRtifacts/reference/rule_grp_001_excessive_missingness_rate.md)
+  : GRP-001: Excessive missingness rate
+- [`rule_grp_002_subject_excessive_event_frequency()`](https://zdz2101.github.io/aRtifacts/reference/rule_grp_002_subject_excessive_event_frequency.md)
+  : GRP-002: Subject with excessive event frequency
+- [`rule_grp_003_repeated_identical_lab_values()`](https://zdz2101.github.io/aRtifacts/reference/rule_grp_003_repeated_identical_lab_values.md)
+  : GRP-003: Repeated identical lab values
+- [`rule_grp_004_site_level_outlier_rate()`](https://zdz2101.github.io/aRtifacts/reference/rule_grp_004_site_level_outlier_rate.md)
+  : GRP-004: Group-level outlier rate
+- [`rule_grp_005_distribution_skew_anomaly()`](https://zdz2101.github.io/aRtifacts/reference/rule_grp_005_distribution_skew_anomaly.md)
+  : GRP-005: Distribution skew anomaly
+- [`rule_hyb_001_new_primary_without_new_support()`](https://zdz2101.github.io/aRtifacts/reference/rule_hyb_001_new_primary_without_new_support.md)
+  : HYB-001: New primary records without new support
+- [`rule_hyb_002_driver_change_with_metric_worsening()`](https://zdz2101.github.io/aRtifacts/reference/rule_hyb_002_driver_change_with_metric_worsening.md)
+  : HYB-002: Driver change with metric worsening
+- [`rule_hyb_003_entity_removed_but_present_elsewhere()`](https://zdz2101.github.io/aRtifacts/reference/rule_hyb_003_entity_removed_but_present_elsewhere.md)
+  : HYB-003: Entity removed from primary but present elsewhere
+- [`rule_hyb_004_cross_domain_risk_escalation()`](https://zdz2101.github.io/aRtifacts/reference/rule_hyb_004_cross_domain_risk_escalation.md)
+  : HYB-004: Cross-domain risk escalation
+- [`rule_id_001_missing_key_fields()`](https://zdz2101.github.io/aRtifacts/reference/rule_id_001_missing_key_fields.md)
+  : ID-001: Missing key fields
+- [`rule_id_002_duplicate_keys()`](https://zdz2101.github.io/aRtifacts/reference/rule_id_002_duplicate_keys.md)
+  : ID-002: Duplicate keys
+- [`rule_id_003_high_duplicate_rate_by_site()`](https://zdz2101.github.io/aRtifacts/reference/rule_id_003_high_duplicate_rate_by_site.md)
+  : ID-003: High duplicate rate by site
+- [`rule_id_004_high_duplicate_rate_by_subject()`](https://zdz2101.github.io/aRtifacts/reference/rule_id_004_high_duplicate_rate_by_subject.md)
+  : ID-004: High duplicate rate by subject
+- [`rule_rel_001_missing_reference_records()`](https://zdz2101.github.io/aRtifacts/reference/rule_rel_001_missing_reference_records.md)
+  : REL-001: Missing reference records across domains
+- [`rule_rel_002_orphan_child_records()`](https://zdz2101.github.io/aRtifacts/reference/rule_rel_002_orphan_child_records.md)
+  : REL-002: Orphan child records
+- [`rule_rel_003_group_key_mismatch_across_domains()`](https://zdz2101.github.io/aRtifacts/reference/rule_rel_003_group_key_mismatch_across_domains.md)
+  : REL-003: Group-key mismatch across domains
+- [`rule_rel_004_timestamp_outside_linked_window()`](https://zdz2101.github.io/aRtifacts/reference/rule_rel_004_timestamp_outside_linked_window.md)
+  : REL-004: Timestamp outside linked window
+- [`rule_sch_001_new_columns_added()`](https://zdz2101.github.io/aRtifacts/reference/rule_sch_001_new_columns_added.md)
+  : SCH-001: New columns added
+- [`rule_sch_002_columns_removed()`](https://zdz2101.github.io/aRtifacts/reference/rule_sch_002_columns_removed.md)
+  : SCH-002: Columns removed
+- [`rule_sch_003_column_type_drift()`](https://zdz2101.github.io/aRtifacts/reference/rule_sch_003_column_type_drift.md)
+  : SCH-003: Column type drift
+- [`rule_snap_001_unexpected_key_deletions()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_001_unexpected_key_deletions.md)
+  : SNAP-001: Unexpected key deletions
+- [`rule_snap_002_record_changed_unexpectedly()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_002_record_changed_unexpectedly.md)
+  : SNAP-002: Record changed unexpectedly
+- [`rule_snap_003_record_reappeared()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_003_record_reappeared.md)
+  : SNAP-003: Record reappeared
+- [`rule_snap_004_identity_drift()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_004_identity_drift.md)
+  : SNAP-004: Identity drift
+- [`rule_snap_005_critical_field_modified_post_lock()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_005_critical_field_modified_post_lock.md)
+  : SNAP-005: Critical field modified post-lock
+- [`rule_snap_006_row_count_spike_drop()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_006_row_count_spike_drop.md)
+  : SNAP-006: Row count spike/drop
+- [`rule_snap_007_key_churn_spike()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_007_key_churn_spike.md)
+  : SNAP-007: Key churn spike
+- [`rule_snap_008_missingness_rate_drift()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_008_missingness_rate_drift.md)
+  : SNAP-008: Missingness rate drift
+- [`rule_snap_009_distribution_drift()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_009_distribution_drift.md)
+  : SNAP-009: Distribution drift
+- [`rule_snap_010_site_metric_drift()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_010_site_metric_drift.md)
+  : SNAP-010: Site metric drift
+- [`rule_snap_011_event_rate_change_anomaly()`](https://zdz2101.github.io/aRtifacts/reference/rule_snap_011_event_rate_change_anomaly.md)
+  : SNAP-011: Event rate change anomaly
+- [`rule_tmp_001_invalid_date_format()`](https://zdz2101.github.io/aRtifacts/reference/rule_tmp_001_invalid_date_format.md)
+  : TMP-001: Invalid date format
+- [`rule_tmp_002_start_after_end()`](https://zdz2101.github.io/aRtifacts/reference/rule_tmp_002_start_after_end.md)
+  : TMP-002: Start date after end date
+- [`rule_tmp_003_end_without_start()`](https://zdz2101.github.io/aRtifacts/reference/rule_tmp_003_end_without_start.md)
+  : TMP-003: End date without start
+- [`rule_tmp_004_time_without_date()`](https://zdz2101.github.io/aRtifacts/reference/rule_tmp_004_time_without_date.md)
+  : TMP-004: Time without date
+
+## Catalog
+
+- [`rule_catalog_core()`](https://zdz2101.github.io/aRtifacts/reference/rule_catalog_core.md)
+  : Topology starter rule catalog
+
+## Example data
+
+- [`example_primary()`](https://zdz2101.github.io/aRtifacts/reference/example_primary.md)
+  : Example primary dataset
