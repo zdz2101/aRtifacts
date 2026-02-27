@@ -141,12 +141,3 @@ For full flow and payload contract examples, see vignette
   [`compare_record_volume()`](https://zdz2101.github.io/aRtifacts/reference/compare_record_volume.md),
   [`compare_distribution_shift()`](https://zdz2101.github.io/aRtifacts/reference/compare_distribution_shift.md)
 - [`compare_flag_states()`](https://zdz2101.github.io/aRtifacts/reference/compare_flag_states.md)
-
-## Development
-
-``` r
-devtools::document()
-devtools::test()
-pkgdown::build_site()
-devtools::check()
-```
