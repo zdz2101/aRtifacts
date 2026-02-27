@@ -1,0 +1,22 @@
+/* Lightweight visual affordances for dense funnel forms. */
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.form-group {
+  margin-bottom: 0.85rem;
+}
+
+pre.shiny-text-output {
+  background: #f7fbfd;
+  border: 1px solid #d9e8ef;
+  border-radius: 6px;
+  padding: 0.8rem;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.table {
+  font-size: 0.93rem;
+}

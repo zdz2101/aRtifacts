@@ -55,3 +55,24 @@ run_rules(ctx, make_rule_pack_primary())
 ```
 
 For package developers, templates are available in `inst/templates/`.
+
+## Rule Builder Funnel App (Preview + Scaffold)
+
+For repeatable pack setup and topology capture, launch the in-package app:
+
+```{r eval = FALSE}
+launch_rule_builder(output_dir = getwd(), dry_run = TRUE)
+```
+
+The app guides you through:
+
+1. Pack metadata defaults.
+2. Rule-level topology and domain context.
+3. Review and validation.
+4. Preview and optional export.
+
+On confirmed export, files are written to a timestamped folder:
+
+- `rule-pack.spec.yaml`
+- `rule_pack_<slug>.R`
+- `agent_prompt_rule_pack_<slug>.md`
