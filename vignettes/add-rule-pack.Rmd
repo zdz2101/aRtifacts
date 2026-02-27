@@ -64,14 +64,16 @@ For repeatable pack setup and topology capture, launch the in-package app:
 launch_rule_builder(output_dir = getwd(), dry_run = TRUE)
 ```
 
-The app guides you through:
+The app opens in a **Guided Builder** one-way funnel:
 
-1. Pack metadata defaults.
-2. Rule-level topology and domain context.
-3. Review and validation.
-4. Preview and optional export.
+1. Topology questions.
+2. Core metadata and domain capture.
+3. Confirm and add rule.
+4. Repeat (`Add Another Rule`) or finish (`Finish Pack`).
 
-On confirmed export, files are written to a timestamped folder:
+An **Advanced Workspace** tab is available for full edit/reorder workflows.
+
+On confirmed export, files are written to a timestamped folder (no overwrite in place):
 
 - `rule-pack.spec.yaml`
 - `rule_pack_<slug>.R`
