@@ -585,3 +585,94 @@ test_that("compare_distribution_shift() reports stronger drift for large shift",
   expect_true(abs(large_a$mean_delta) > abs(mod_a$mean_delta))
   expect_true(large_a$ks_stat >= mod_a$ks_stat)
 })
+
+test_that("compare_flag_states() handles blank and NA keys deterministically", {
+  old_flags <- data.frame(
+    entity_id = c("E1", "", NA_character_),
+    DOMAIN = c("PRIMARY", "PRIMARY", "PRIMARY"),
+    RULE_ID = c("R-1", "R-1", "R-1"),
+    stringsAsFactors = FALSE
+  )
+  new_flags <- data.frame(
+    entity_id = c("E1", " ", NA_character_),
+    DOMAIN = c("PRIMARY", "PRIMARY", "PRIMARY"),
+    RULE_ID = c("R-1", "R-1", "R-1"),
+    stringsAsFactors = FALSE
+  )
+
+  out <- compare_flag_states(old_flags, new_flags)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c("entity_id", "DOMAIN", "RULE_ID", "status"))
+  expect_true(all(out$status %in% c("introduced", "resolved", "persisting")))
+  expect_true(any(out$entity_id == "E1" & out$status == "persisting"))
+})
+
+test_that("compare_distribution_shift() tolerates non-numeric and partially missing values", {
+  old_df <- data.frame(
+    id = 1:6,
+    SITEID = rep("A", 6),
+    value = c("1", "x", NA_character_, "2", " ", "3"),
+    stringsAsFactors = FALSE
+  )
+  new_df <- data.frame(
+    id = 1:6,
+    SITEID = rep("A", 6),
+    value = c("2", "y", NA_character_, "3", "", "4"),
+    stringsAsFactors = FALSE
+  )
+
+  old_dom <- new_domain_snapshot("dist", old_df, key_vars = "id")
+  new_dom <- new_domain_snapshot("dist", new_df, key_vars = "id")
+
+  expect_no_error(out <- compare_distribution_shift(old_dom, new_dom, var = "value", by = "SITEID"))
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 1L)
+  expect_true(out$n_old[[1]] >= 1L)
+  expect_true(out$n_new[[1]] >= 1L)
+})
+
+test_that("diff_values() captures blank-to-NA and NA-to-blank transitions", {
+  old_df <- data.frame(
+    order_id = c(1L, 2L),
+    customer = c("", NA_character_),
+    stringsAsFactors = FALSE
+  )
+  new_df <- data.frame(
+    order_id = c(1L, 2L),
+    customer = c(NA_character_, ""),
+    stringsAsFactors = FALSE
+  )
+
+  old_dom <- new_domain_snapshot("orders", old_df, key_vars = "order_id")
+  new_dom <- new_domain_snapshot("orders", new_df, key_vars = "order_id")
+
+  out <- diff_values(old_dom, new_dom, vars = "customer")
+  expect_equal(nrow(out), 2L)
+  expect_true(any(is.na(out$old)))
+  expect_true(any(is.na(out$new)))
+})
+
+test_that("diff_keys() and compare_key_churn() handle missing-like keys", {
+  old_df <- data.frame(
+    key_id = c("A", ""),
+    payload = c(1, 2),
+    stringsAsFactors = FALSE
+  )
+  new_df <- data.frame(
+    key_id = c("A", NA_character_),
+    payload = c(1, 2),
+    stringsAsFactors = FALSE
+  )
+
+  old_dom <- new_domain_snapshot("x", old_df, key_vars = "key_id")
+  new_dom <- new_domain_snapshot("x", new_df, key_vars = "key_id")
+
+  keys <- diff_keys(old_dom, new_dom)
+  expect_equal(nrow(keys$added), 1L)
+  expect_equal(nrow(keys$removed), 1L)
+
+  churn <- compare_key_churn(old_dom, new_dom)
+  expect_equal(churn$added_n, 1L)
+  expect_equal(churn$removed_n, 1L)
+  expect_equal(churn$churn_n, 2L)
+})

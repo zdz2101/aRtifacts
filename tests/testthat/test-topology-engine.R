@@ -100,3 +100,62 @@ test_that("run_rules() executes A5 cross-snapshot rule", {
   expect_true(all(out$RULE_ID == "SNAP-001"))
   expect_true(all(out$TOPOLOGY == "A5"))
 })
+
+test_that("run_rules() skips rules when required domains are missing", {
+  primary <- data.frame(
+    entity_id = c("E-001", "E-002"),
+    record_id = c(1, 2),
+    stringsAsFactors = FALSE
+  )
+  reference <- primary
+
+  art <- make_artifact(primary_df = primary, reference_df = reference)
+  ctx <- new_rule_context(current = art)
+
+  # REL-001 requires the configured reference domain to exist.
+  rule <- rule_rel_001_missing_reference_records(
+    primary_domain = "PRIMARY",
+    reference_domain = "NOT_PRESENT",
+    key_vars = "entity_id"
+  )
+
+  out <- run_rules(ctx, list(rule))
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 0L)
+})
+
+test_that("run_rules() rejects non-CoreRule entries", {
+  primary <- data.frame(
+    entity_id = c("E-001", "E-002"),
+    record_id = c(1, 2),
+    stringsAsFactors = FALSE
+  )
+  reference <- primary
+
+  art <- make_artifact(primary_df = primary, reference_df = reference)
+  ctx <- new_rule_context(current = art)
+
+  expect_error(
+    run_rules(ctx, list(list(not = "a rule"))),
+    "CoreRule"
+  )
+})
+
+test_that("run_rules() accepts ArtifactSnapshot directly as context", {
+  primary <- data.frame(
+    entity_id = c("E-001", "", "E-003"),
+    record_id = c(1, 2, 3),
+    stringsAsFactors = FALSE
+  )
+  reference <- data.frame(
+    entity_id = c("E-001", "E-002", "E-003"),
+    record_id = c(1, 2, 3),
+    stringsAsFactors = FALSE
+  )
+
+  art <- make_artifact(primary_df = primary, reference_df = reference)
+  rule <- rule_id_001_missing_key_fields(domain = "PRIMARY", key_vars = c("entity_id", "record_id"))
+
+  out <- run_rules(art, list(rule))
+  edge_expect_rule_output(out, expected_id = "ID-001", require_rows = TRUE)
+})

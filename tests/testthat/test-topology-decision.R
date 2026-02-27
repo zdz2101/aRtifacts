@@ -56,3 +56,16 @@ test_that("new_rule gives topology-specific missing domain hints", {
     "`domains` must contain at least two domain names for topology A3"
   )
 })
+
+test_that("choose_topology validates malformed scalar inputs", {
+  expect_error(choose_topology(is_longitudinal = NA, n_domains = 1, level = "record"), "is_longitudinal")
+  expect_error(choose_topology(is_longitudinal = "TRUE", n_domains = 1, level = "record"), "is_longitudinal")
+
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = 0, level = "record"), "n_domains")
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = 1.5, level = "record"), "n_domains")
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = NA, level = "record"), "n_domains")
+
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = 1, level = NA), "level")
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = 1, level = ""), "level")
+  expect_error(choose_topology(is_longitudinal = FALSE, n_domains = 1, level = 123), "level")
+})
