@@ -36,7 +36,7 @@ new_art <- new_artifact_snapshot(domains = list(orders = dom), build_id = "run-0
 diff_meta_artifact(old_art, new_art)
 #>                     field        old        new changed
 #> spec_version spec_version       <NA>       <NA>   FALSE
-#> data_cut         data_cut 2026-02-27 2026-02-27   FALSE
+#> data_cut         data_cut 2026-03-02 2026-03-02   FALSE
 #> build_id         build_id    run-001    run-002    TRUE
 #> code_sha         code_sha       <NA>       <NA>   FALSE
 #> inputs_hash   inputs_hash       <NA>       <NA>   FALSE
